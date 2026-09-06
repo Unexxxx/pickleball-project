@@ -29,9 +29,25 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+- **Canonical models and identity**: Uses the single `Club` model; ranked participants are verified,
+  canonical players; cross-club identity and club-data isolation are defined.
+- **Official-record authority**: Official submission requires an authorized user and active club
+  subscription; ranked and unranked records and downstream effects remain separate.
+- **Audit and correction**: Official results, status changes, and corrections have immutable,
+  attributable audit history and a controlled correction/recalculation workflow.
+- **Deterministic calculations**: Affected rating, win-rate, streak, standing, and ranking rules,
+  ordering, tie-breaks, rounding, eligibility, and rule versions are explicit and reproducible.
+- **Security and privacy**: Server-side roles, least privilege, club boundaries, personal-data
+  visibility, and idempotent official-event processing are designed and testable.
+- **Quality attributes**: Mobile journeys and measurable performance targets are defined.
+- **Testing**: Automated unit and integration/contract coverage is planned for every affected
+  leaderboard-critical workflow, including migration and regression fixtures where rules change.
+- **Data independence**: Core player identity and match records do not depend on a third-party
+  sports platform.
+
+Record PASS, N/A with rationale, or a justified violation for every gate above.
 
 ## Project Structure
 
@@ -48,6 +64,7 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -98,7 +115,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |

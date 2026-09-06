@@ -1,0 +1,11 @@
+begin;
+select plan(7);
+select has_function('public','create_club',array['text','text','text','uuid']);
+select has_function('public','set_membership_role',array['uuid','uuid','public.club_role','text','uuid']);
+select ok(exists(select 1 from pg_indexes where schemaname='public' and tablename='clubs' and indexdef ilike '%unique%slug%'),'Club slug is unique');
+select ok((select relrowsecurity from pg_class where oid='public.club_memberships'::regclass),'membership RLS');
+select ok(not ('platform_admin'=any(enum_range(null::public.club_role)::text[])),'platform admin is not a Club role');
+select ok(to_regclass('public.club_memberships_player_active_idx') is not null,'active membership index exists');
+select ok(exists(select 1 from pg_trigger where tgrelid='public.clubs'::regclass and tgname='clubs_updated' and not tgisinternal),'Club update trigger exists');
+select * from finish();
+rollback;

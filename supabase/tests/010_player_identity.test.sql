@@ -1,0 +1,10 @@
+begin;
+select plan(6);
+select col_is_unique('public','accounts','auth_user_id','one auth user per account');
+select col_is_unique('public','accounts','player_id','one account per player');
+select throws_ok($$insert into public.players(public_slug,display_name) values ('guest','Guest')$$,'23514',null,'guest identities rejected');
+select has_function('public','provision_player_account',array['text','text','text']);
+select has_function('public','attest_player_identity',array['uuid','uuid','text','text','uuid']);
+select has_function('public','player_ranked_eligible',array['uuid','uuid']);
+select * from finish();
+rollback;

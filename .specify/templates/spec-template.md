@@ -5,13 +5,13 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
   Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
   you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
+
   Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
   Think of each story as a standalone slice of functionality that can be:
   - Developed independently
@@ -75,7 +75,7 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
@@ -85,22 +85,39 @@
 ### Functional Requirements
 
 - **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
+- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
 - **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
-*Example of marking unclear requirements:*
+### Competition Data Integrity _(mandatory when competition data is affected)_
+
+- **Identity & Club Boundary**: [Define canonical player identity, verification requirements, the
+  single Club model, cross-club identity behavior, and isolated club-owned data]
+- **Record Classification & Authority**: [Define ranked/unranked classification, authorized roles,
+  subscription checks, and which records may affect official calculations]
+- **Audit & Correction**: [Define recorded provenance, audit events, correction permissions,
+  reasons, notifications/visibility, and recalculation behavior]
+- **Calculation Rules**: [Define rule version, ordering, eligibility, rounding, tie-breaks,
+  forfeits, streaks, and deterministic expected outcomes]
+- **Privacy & Security**: [Define server-side permissions, data visibility, retention when
+  affected, and cross-club access constraints]
+- **Mobile & Performance**: [Define supported mobile journeys and measurable latency, throughput,
+  or scale outcomes]
+- **External Independence**: [Confirm player identity and match data remain first-party and core
+  workflows operate without third-party sports platforms]
+
+_Example of marking unclear requirements:_
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 <!--
   ACTION REQUIRED: Define measurable success criteria.
@@ -113,6 +130,8 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-005**: [Integrity metric, e.g., "All leaderboard outputs match deterministic fixtures for
+  identical ordered inputs and rule version"]
 
 ## Assumptions
 

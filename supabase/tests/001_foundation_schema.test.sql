@@ -1,0 +1,12 @@
+begin;
+select plan(8);
+select has_schema('private');
+select ok(to_regclass('public.players') is not null, 'players table exists');
+select ok(to_regclass('public.clubs') is not null, 'clubs table exists');
+select ok(to_regclass('private.audit_log') is not null, 'audit log exists');
+select is((select relrowsecurity from pg_class where oid='public.club_memberships'::regclass), true, 'membership RLS enabled');
+select ok(has_function_privilege('authenticated', 'public.current_player_id()', 'execute'), 'authenticated may resolve current player');
+select isnt_empty($$select 1 from pg_indexes where tablename = 'accounts' and indexname = 'accounts_auth_user_id_key'$$);
+select is((select proconfig @> array['search_path=pg_catalog, public, private'] from pg_proc where proname = 'current_player_id' limit 1), true, 'fixed search path');
+select * from finish();
+rollback;

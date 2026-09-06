@@ -1,0 +1,11 @@
+begin;
+select plan(8);
+select ok(to_regclass('public.events') is not null,'events exist');
+select ok(to_regclass('public.event_courts') is not null,'courts exist');
+select ok(to_regclass('public.event_registrations') is not null,'registrations exist');
+select ok(to_regclass('public.event_attendance') is not null,'attendance exists');
+select ok(to_regclass('public.event_join_tokens') is not null,'join tokens exist');
+select has_function('public','register_for_event',array['uuid','text','uuid']);
+select has_function('public','withdraw_from_event',array['uuid','text','uuid']);
+select ok(exists(select 1 from pg_indexes where indexname='event_registrations_one_active_idx'),'one active registration index');
+select * from finish();rollback;

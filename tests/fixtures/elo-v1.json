@@ -1,0 +1,29 @@
+{
+  "version": "elo-v1",
+  "initialRating": 1500,
+  "scale": 400,
+  "kFactor": 32,
+  "fixtures": [
+    {
+      "name": "equal singles",
+      "sideA": [1500],
+      "sideB": [1500],
+      "winner": 1,
+      "delta": 16
+    },
+    {
+      "name": "rated singles upset",
+      "sideA": [1600],
+      "sideB": [1400],
+      "winner": 2,
+      "delta": -24
+    },
+    {
+      "name": "doubles arithmetic mean",
+      "sideA": [1516, 1500],
+      "sideB": [1500, 1500],
+      "winner": 1,
+      "delta": 16
+    }
+  ]
+}
