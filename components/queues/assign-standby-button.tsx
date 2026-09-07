@@ -11,12 +11,14 @@ export function AssignStandbyButton({
   format,
   ready,
   courtAvailable,
+  onAssigned,
 }: {
   clubSlug: string;
   eventId: string;
   format: "singles" | "doubles";
   ready: boolean;
   courtAvailable: boolean;
+  onAssigned?: () => void;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -41,15 +43,22 @@ export function AssignStandbyButton({
               ? "Players assigned. The next lineup is now on standby."
               : result.error.message,
           );
-          if (result.ok) router.refresh();
+          if (result.ok) {
+            onAssigned?.();
+            router.refresh();
+          }
         }}
       >
         <Send aria-hidden="true" size={17} />
         {pending ? "Assigning…" : "Send to next court"}
       </button>
       {!ready ? <small>A complete lineup is required.</small> : null}
-      {ready && !courtAvailable ? <small>All courts are currently occupied.</small> : null}
-      <p role="status" aria-live="polite">{message}</p>
+      {ready && !courtAvailable ? (
+        <small>All courts are currently occupied.</small>
+      ) : null}
+      <p role="status" aria-live="polite">
+        {message}
+      </p>
     </div>
   );
 }

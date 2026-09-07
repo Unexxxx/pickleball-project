@@ -28,13 +28,15 @@ export function RegisterForm() {
         Display name
         <input
           name="displayName"
+          minLength={2}
+          maxLength={80}
+          autoComplete="name"
           required
           className="block w-full border p-3"
         />
-      </label>
-      <label>
-        Public profile name
-        <input name="publicSlug" required className="block w-full border p-3" />
+        <span className="mt-1 block text-sm text-muted-foreground">
+          Use the real name other players will recognize.
+        </span>
       </label>
       <input type="hidden" name="termsVersion" value="2026-09-01" />
       {state && !state.ok ? <p role="alert">{state.error.message}</p> : null}

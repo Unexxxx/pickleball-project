@@ -1,14 +1,44 @@
 import { z } from "zod";
 import { idempotencyKeySchema, uuidSchema } from "@/lib/validation/common";
 const prohibited = /^(guest|ghost|anonymous|anon|unknown|player\s*\d+)$/i;
+const displayNameSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(80)
+  .refine((v) => !prohibited.test(v), "Use your real player identity");
+
+export const registrationSchema = z
+  .object({
+    email: z.email(),
+    password: z.string().min(8).max(128),
+    displayName: displayNameSchema,
+    termsVersion: z.string().min(1),
+  })
+  .strict();
+
+export function createPublicSlug(
+  displayName: string,
+  suffix = crypto.randomUUID(),
+) {
+  const base = displayName
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 30);
+  const uniqueSuffix = suffix
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, 8);
+
+  return `${base || "player"}-${uniqueSuffix || "account"}`.slice(0, 40);
+}
+
 export const profileSchema = z
   .object({
-    displayName: z
-      .string()
-      .trim()
-      .min(2)
-      .max(80)
-      .refine((v) => !prohibited.test(v), "Use your real player identity"),
+    displayName: displayNameSchema,
     publicSlug: z
       .string()
       .trim()
@@ -21,12 +51,7 @@ export const profileSchema = z
 export const recoverySchema = z.object({ email: z.email() }).strict();
 export const profileUpdateSchema = z
   .object({
-    displayName: z
-      .string()
-      .trim()
-      .min(2)
-      .max(80)
-      .refine((v) => !prohibited.test(v), "Use your real player identity"),
+    displayName: displayNameSchema,
     avatarPath: z
       .string()
       .regex(/^[0-9a-f-]+\/[0-9a-f-]+\.(jpg|jpeg|png|webp)$/)

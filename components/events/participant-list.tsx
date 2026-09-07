@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock3, UserCheck, Users } from "lucide-react";
+import { Clock3, LockKeyhole, LogIn, UserCheck, Users } from "lucide-react";
 
 export type EventParticipant = {
   id: string;
@@ -22,9 +22,13 @@ const statusOrder: Record<string, number> = {
 export function ParticipantList({
   participants,
   capacity,
+  viewerAuthenticated = true,
+  loginHref = "/login",
 }: {
   participants: EventParticipant[];
   capacity: number;
+  viewerAuthenticated?: boolean;
+  loginHref?: string;
 }) {
   const ordered = [...participants].sort(
     (a, b) =>
@@ -52,16 +56,47 @@ export function ParticipantList({
         </div>
         <div
           className="participant-counts"
-          aria-label={`${confirmed} confirmed out of ${capacity} capacity, ${waitlisted} waitlisted`}
+          aria-label={
+            viewerAuthenticated
+              ? `${confirmed} confirmed out of ${capacity} capacity, ${waitlisted} waitlisted`
+              : "Sign in required to view the event roster"
+          }
         >
-          <span>
-            <strong>{confirmed}</strong> / {capacity} confirmed
-          </span>
-          {waitlisted ? <span>{waitlisted} waitlisted</span> : null}
+          {viewerAuthenticated ? (
+            <>
+              <span>
+                <strong>{confirmed}</strong> / {capacity} confirmed
+              </span>
+              {waitlisted ? <span>{waitlisted} waitlisted</span> : null}
+            </>
+          ) : (
+            <span className="participant-private-badge">
+              <LockKeyhole aria-hidden="true" size={13} /> Players only
+            </span>
+          )}
         </div>
       </div>
 
-      {ordered.length ? (
+      {!viewerAuthenticated ? (
+        <div className="participant-login-gate">
+          <span className="participant-login-gate__icon">
+            <LockKeyhole aria-hidden="true" />
+          </span>
+          <div>
+            <h3>Sign in to see who&apos;s playing</h3>
+            <p>
+              The participant list is available to verified players. Sign in to
+              view confirmed participants and the waitlist.
+            </p>
+          </div>
+          <Link
+            className="button participant-login-gate__action"
+            href={loginHref}
+          >
+            <LogIn aria-hidden="true" size={17} /> Sign in to view participants
+          </Link>
+        </div>
+      ) : ordered.length ? (
         <ul className="participant-list">
           {ordered.map((participant) => (
             <li key={participant.id}>

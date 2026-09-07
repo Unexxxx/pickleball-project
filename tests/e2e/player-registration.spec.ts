@@ -18,7 +18,6 @@ test("guest identities are prohibited", async ({ page }) => {
   await page.getByLabel("Email").fill("guest@example.com");
   await page.getByLabel("Password").fill("not-a-real-secret");
   await page.getByLabel("Display name").fill("Guest");
-  await page.getByLabel("Public profile name").fill("guest");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(
     page.getByText("Enter a valid real player identity."),

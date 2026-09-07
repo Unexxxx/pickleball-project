@@ -31,7 +31,7 @@ export async function getLeaderboardRules() {
     { data } = await s
       .from("leaderboard_rules")
       .select("*")
-      .eq("id", "elo-v1")
+      .eq("id", "team-bayes-v1")
       .single();
   return data;
 }

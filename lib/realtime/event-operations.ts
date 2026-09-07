@@ -8,6 +8,7 @@ export type QueueItem = {
   version?: number;
   displayName?: string;
   avatarUrl?: string | null;
+  totalMatches?: number;
 };
 export type QueueSnapshot = {
   eventId: string;

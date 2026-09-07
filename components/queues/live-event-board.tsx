@@ -9,6 +9,10 @@ import { MatchTimer } from "@/components/queues/match-timer";
 import { EndMatchScore } from "@/components/queues/end-match-score";
 import { StandbyRoster } from "@/components/queues/standby-roster";
 import { PostMatchHandoffDialog } from "@/components/queues/post-match-handoff-dialog";
+import {
+  MatchCountBadge,
+  PlayerNameWithMatches,
+} from "@/components/queues/player-name-with-matches";
 
 export type LiveCourtMatch = {
   id: string;
@@ -21,7 +25,9 @@ export type LiveCourtMatch = {
     displayName: string;
     publicSlug: string | null;
     avatarUrl: string | null;
-    rank: number | null;
+    rating: number;
+    provisional?: boolean;
+    ratingDeviation?: number;
     totalMatches: number;
     side: number;
   }[];
@@ -49,12 +55,14 @@ function MatchPlayer({
         ) : null}
         <div className="match-player-overlay">
           <strong title={player.displayName}>{player.displayName}</strong>
-          <span>
-            <small>{player.rank ? `#${player.rank}` : "Unranked"}</small>
-            <small>
-              {player.totalMatches}{" "}
-              {player.totalMatches === 1 ? "match" : "matches"}
+          <span className="match-player-meta">
+            <small
+              aria-label={`Rating ${Math.round(player.rating)}${player.provisional ? ", provisional" : ""}`}
+              title={`${player.provisional ? "Provisional" : "Established"} team rating${player.ratingDeviation !== undefined ? ` · uncertainty ${Math.round(player.ratingDeviation)}` : ""}`}
+            >
+              {Math.round(player.rating)}
             </small>
+            <MatchCountBadge totalMatches={player.totalMatches + 1} />
           </span>
         </div>
       </div>
@@ -89,13 +97,22 @@ function MatchTeam({
   );
 }
 
-function PlayerNames({ players }: { players: { displayName: string }[] }) {
+function PlayerNames({
+  players,
+}: {
+  players: { displayName: string; totalMatches?: number }[];
+}) {
   return (
     <ul className="live-player-list">
       {players.map((player, index) => (
         <li key={`${player.displayName}-${index}`}>
-          <span aria-hidden="true">{index + 1}</span>
-          {player.displayName}
+          <span className="live-player-number" aria-hidden="true">
+            {index + 1}
+          </span>
+          <PlayerNameWithMatches
+            displayName={player.displayName}
+            totalMatches={player.totalMatches}
+          />
         </li>
       ))}
     </ul>
@@ -239,6 +256,7 @@ export function LiveEventBoard({
                 <PlayerNames
                   players={standby.map((player) => ({
                     displayName: player.displayName ?? "Player",
+                    totalMatches: player.totalMatches,
                   }))}
                 />
               )
@@ -302,6 +320,7 @@ export function LiveEventBoard({
                     <PlayerNames
                       players={upcoming.map((player) => ({
                         displayName: player.displayName ?? "Player",
+                        totalMatches: player.totalMatches,
                       }))}
                     />
                   )}
@@ -322,6 +341,18 @@ export function LiveEventBoard({
             avatarUrl: player.avatarUrl ?? null,
           }))}
           format={format}
+          action={
+            canManage ? (
+              <AssignStandbyButton
+                clubSlug={clubSlug}
+                eventId={eventId}
+                format={format}
+                ready={standby.length === playersPerMatch}
+                courtAvailable={courtAvailable}
+                onAssigned={closeHandoff}
+              />
+            ) : undefined
+          }
           onClose={closeHandoff}
         />
       ) : null}

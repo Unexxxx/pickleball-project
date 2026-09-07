@@ -1,0 +1,32 @@
+-- Minimal isolated schema for executing production rotation functions. Auth
+-- helpers are test doubles; no external services or credentials are used.
+create schema private; create schema auth;
+create role anon; create role authenticated;
+create type public.club_role as enum ('owner','organizer','staff','score_official','member');
+create type public.record_class as enum ('ranked','unranked');
+create type public.match_format as enum ('singles','doubles');
+create type public.match_status as enum ('assigned','playing','score_pending','finalized','disputed','voided','canceled');
+create type public.event_status as enum ('draft','published','registration_closed','in_progress','completed','canceled');
+create table public.clubs(id uuid primary key);
+create table public.players(id uuid primary key);
+create table public.accounts(player_id uuid, contact_verified_at timestamptz);
+create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.actor',true),'')::uuid$$;
+create function public.current_player_id() returns uuid language sql as $$select auth.uid()$$;
+create function private.has_club_role(uuid,public.club_role[]) returns boolean language sql as $$select auth.uid()='10000000-0000-4000-8000-000000000001'::uuid$$;
+create function public.player_ranked_eligible(uuid,uuid) returns boolean language sql as $$select true$$;
+create table public.events(id uuid primary key,club_id uuid,record_class public.record_class default 'unranked',queue_version bigint default 0,status public.event_status default 'in_progress',formats text[] default array['doubles']);
+create table public.event_queue_entries(id uuid primary key,club_id uuid,event_id uuid,player_id uuid,state text default 'ready',position_key bigint,position_sequence bigint,version bigint default 1,joined_at timestamptz default now(),assigned_match_id uuid);
+create unique index queue_position on public.event_queue_entries(event_id,position_key) where state='ready';
+create unique index queue_player on public.event_queue_entries(event_id,player_id) where state='ready';
+create table public.event_courts(id uuid primary key,event_id uuid,label text,status text default 'available',current_match_id uuid,version bigint default 1);
+create table public.match_proposals(id uuid primary key default gen_random_uuid(),club_id uuid,event_id uuid,court_id uuid,format public.match_format,side_a_player_ids uuid[],side_b_player_ids uuid[],queue_entry_ids uuid[],queue_version bigint,policy_version text,snapshot jsonb,request_id uuid,created_by uuid,expires_at timestamptz,status text default 'pending',match_id uuid,version bigint default 1,unique(created_by,request_id));
+create table public.matches(id uuid primary key default gen_random_uuid(),club_id uuid,event_id uuid,court_id uuid,proposal_id uuid,format public.match_format,record_class public.record_class,status public.match_status default 'assigned',policy_version text,created_by uuid,assigned_at timestamptz default clock_timestamp(),completed_at timestamptz,version bigint default 1,canceled_by uuid,cancellation_reason text);
+create table public.match_participants(match_id uuid,event_id uuid,player_id uuid,side integer,position integer,active boolean default true);
+create unique index no_double_booking on public.match_participants(event_id,player_id) where active;
+create table public.match_results(id uuid primary key default gen_random_uuid(),match_id uuid,status text,current_revision_id uuid);
+create table public.result_revisions(id uuid primary key default gen_random_uuid(),winner_side integer);
+create table public.player_statistics(player_id uuid primary key,rating numeric default 1500,wins integer default 0,losses integer default 0);
+create table public.public_leaderboards(player_id uuid,scope text,rank bigint);
+create table private.audit_log(actor_auth_user_id uuid,action text,aggregate_type text,aggregate_id uuid,club_id uuid,request_id uuid,after_state jsonb);
+create table private.event_queue_history(queue_entry_id uuid,from_state text,to_state text,old_position_key bigint,new_position_key bigint,actor_player_id uuid,reason text,request_id uuid);
+create table private.rule_versions(domain text,version text,parameters jsonb,active_from timestamptz,unique(domain,version));

@@ -148,10 +148,13 @@ export async function transitionEvent(input: unknown) {
   if (error)
     return failure(
       "STALE_VERSION",
-      "Event changed; refresh and retry.",
+      error.details === "ACTIVE_MATCHES_REMAIN"
+        ? "Finish all active matches and submit their scores before ending this event."
+        : "Event changed; refresh and retry.",
       requestId,
     );
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/clubs/[clubSlug]/events/[eventId]", "layout");
   revalidatePath(`/dashboard/clubs/${p.data.clubId}/events/${p.data.eventId}`);
   return success({ version: Number(data) }, requestId);
 }

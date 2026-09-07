@@ -13,7 +13,11 @@ export async function endMatchWithScore(input: unknown) {
   const requestId = crypto.randomUUID();
   const parsed = endMatchWithScoreSchema.safeParse(input);
   if (!parsed.success)
-    return failure("VALIDATION_FAILED", "Enter a valid final score.", requestId);
+    return failure(
+      "VALIDATION_FAILED",
+      "Enter a valid final score.",
+      requestId,
+    );
   const s = await createClient();
   const { data, error } = await s.rpc("end_match_with_score", {
     p_match_id: parsed.data.matchId,
@@ -30,6 +34,8 @@ export async function endMatchWithScore(input: unknown) {
   revalidatePath(`${path}/queue`);
   revalidatePath(`${path}/matches`);
   revalidatePath(`${path}/courts`);
+  revalidatePath("/leaderboards");
+  revalidatePath("/players/[playerSlug]", "page");
   return success(data?.[0] ?? null, requestId);
 }
 export async function submitMatchResult(input: unknown) {
@@ -52,6 +58,13 @@ export async function submitMatchResult(input: unknown) {
   revalidatePath(
     `/dashboard/clubs/${parsed.data.clubId}/events/${parsed.data.eventId}/matches`,
   );
+  revalidatePath(
+    "/dashboard/clubs/[clubSlug]/events/[eventId]/matches",
+    "page",
+  );
+  revalidatePath("/dashboard/clubs/[clubSlug]/events/[eventId]/queue", "page");
+  revalidatePath("/leaderboards");
+  revalidatePath("/players/[playerSlug]", "page");
   return success(data?.[0] ?? null, requestId);
 }
 export async function confirmMatchResult(input: unknown) {

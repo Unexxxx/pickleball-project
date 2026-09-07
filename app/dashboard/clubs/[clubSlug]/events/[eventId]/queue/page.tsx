@@ -19,60 +19,95 @@ export default async function QueuePage({
   if (!club) notFound();
   const s = await createClient();
   const playerId = await currentPlayerId();
-  const [{ data }, { data: matches }, { data: courts }, { data: membership }] =
-    await Promise.all([
-      s
-        .from("events")
-        .select(
-          "status,formats,eligibility,queue_version,event_queue_entries(id,player_id,state,position_key,version,players(display_name,public_slug,avatar_path)),event_attendance(player_id,state),event_registrations(player_id,status)",
-        )
-        .eq("id", eventId)
-        .eq("club_id", club.id)
-        .single(),
-      s
-        .from("matches")
-        .select(
-          "id,court_id,format,status,assigned_at,match_participants(player_id,side,players(display_name,public_slug,avatar_path))",
-        )
-        .eq("event_id", eventId)
-        .in("status", ["assigned", "playing"])
-        .order("assigned_at", { ascending: true }),
-      s
-        .from("event_courts")
-        .select("id,label,status,current_match_id")
-        .eq("event_id", eventId),
-      s
-        .from("club_memberships")
-        .select("role")
-        .eq("club_id", club.id)
-        .eq("player_id", playerId ?? "")
-        .eq("status", "active")
-        .maybeSingle(),
-    ]);
+  const [
+    { data },
+    { data: matches },
+    { data: completedMatches },
+    { data: courts },
+    { data: membership },
+  ] = await Promise.all([
+    s
+      .from("events")
+      .select(
+        "status,formats,eligibility,queue_version,event_queue_entries(id,player_id,state,position_key,version,players(display_name,public_slug,avatar_path)),event_attendance(player_id,state),event_registrations(player_id,status)",
+      )
+      .eq("id", eventId)
+      .eq("club_id", club.id)
+      .single(),
+    s
+      .from("matches")
+      .select(
+        "id,court_id,format,status,assigned_at,match_participants(player_id,side,players(display_name,public_slug,avatar_path))",
+      )
+      .eq("event_id", eventId)
+      .in("status", ["assigned", "playing"])
+      .order("assigned_at", { ascending: true }),
+    s
+      .from("matches")
+      .select("id,completed_at,match_participants(player_id,side)")
+      .eq("event_id", eventId)
+      .in("status", ["score_pending", "finalized", "disputed"])
+      .order("completed_at", { ascending: false }),
+    s
+      .from("event_courts")
+      .select("id,label,status,current_match_id")
+      .eq("event_id", eventId),
+    s
+      .from("club_memberships")
+      .select("role")
+      .eq("club_id", club.id)
+      .eq("player_id", playerId ?? "")
+      .eq("status", "active")
+      .maybeSingle(),
+  ]);
   if (!data) notFound();
-  const livePlayerIds = [
-    ...new Set(
-      (matches ?? []).flatMap((match) =>
+  const competitionPlayerIds = [
+    ...new Set([
+      ...data.event_queue_entries.map((entry) => entry.player_id),
+      ...(matches ?? []).flatMap((match) =>
         match.match_participants.map((participant) => participant.player_id),
       ),
-    ),
+    ]),
   ];
-  const { data: leaderboardRows } = livePlayerIds.length
-    ? await s
-        .from("public_leaderboards")
-        .select("player_id,rank,wins,losses")
-        .eq("scope", "overall")
-        .in("player_id", livePlayerIds)
-    : { data: [] };
+  const [{ data: playerStatistics }, { data: leaderboardRows }] =
+    competitionPlayerIds.length
+      ? await Promise.all([
+          s
+            .from("public_player_statistics")
+            .select("player_id,rating,wins,losses,rating_deviation,provisional")
+            .in("player_id", competitionPlayerIds),
+          s
+            .from("public_leaderboards")
+            .select("player_id,rank")
+            .eq("scope", "overall")
+            .in("player_id", competitionPlayerIds),
+        ])
+      : [{ data: [] }, { data: [] }];
+  const ranks = new Map(
+    (leaderboardRows ?? []).map((row) => [row.player_id, row.rank]),
+  );
   const playerCompetition = new Map(
-    (leaderboardRows ?? []).map((row) => [
+    (playerStatistics ?? []).map((row) => [
       row.player_id,
       {
-        rank: row.rank,
-        totalMatches: (row.wins ?? 0) + (row.losses ?? 0),
+        rating: Number(row.rating),
+        provisional: row.provisional ?? true,
+        ratingDeviation: row.rating_deviation ?? 350,
+        wins: row.wins,
+        losses: row.losses,
+        rank: ranks.get(row.player_id) ?? null,
       },
     ]),
   );
+  const eventMatchCounts = new Map<string, number>();
+  for (const match of completedMatches ?? []) {
+    for (const participant of match.match_participants) {
+      eventMatchCounts.set(
+        participant.player_id,
+        (eventMatchCounts.get(participant.player_id) ?? 0) + 1,
+      );
+    }
+  }
   const queue = data.event_queue_entries
     .filter((q) => q.state === "ready")
     .map((q) => ({
@@ -86,8 +121,13 @@ export default async function QueuePage({
         ? s.storage.from("avatars").getPublicUrl(q.players.avatar_path).data
             .publicUrl
         : null,
+      totalMatches: eventMatchCounts.get(q.player_id) ?? 0,
     }))
     .sort((a, b) => a.position - b.position) satisfies QueueItem[];
+  const format =
+    data.formats.includes("singles") && !data.formats.includes("doubles")
+      ? "singles"
+      : "doubles";
   const ownReadyIndex = queue.findIndex((entry) => entry.playerId === playerId);
   const ownAssigned = data.event_queue_entries.some(
     (entry) => entry.player_id === playerId && entry.state === "assigned",
@@ -140,15 +180,14 @@ export default async function QueuePage({
             .from("avatars")
             .getPublicUrl(participant.players.avatar_path).data.publicUrl
         : null,
-      rank: playerCompetition.get(participant.player_id)?.rank ?? null,
-      totalMatches:
-        playerCompetition.get(participant.player_id)?.totalMatches ?? 0,
+      rating: playerCompetition.get(participant.player_id)?.rating ?? 1500,
+      provisional:
+        playerCompetition.get(participant.player_id)?.provisional ?? true,
+      ratingDeviation:
+        playerCompetition.get(participant.player_id)?.ratingDeviation ?? 350,
+      totalMatches: eventMatchCounts.get(participant.player_id) ?? 0,
     })),
   })) satisfies LiveCourtMatch[];
-  const format =
-    data.formats.includes("singles") && !data.formats.includes("doubles")
-      ? "singles"
-      : "doubles";
   const configuredDuration =
     data.eligibility &&
     typeof data.eligibility === "object" &&

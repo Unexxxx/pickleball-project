@@ -19,6 +19,7 @@ describe("post-match handoff dialog", () => {
         courtLabel="Court 2"
         players={players}
         format="doubles"
+        action={<button>Send to next court</button>}
         onClose={close}
       />,
     );
@@ -27,6 +28,9 @@ describe("post-match handoff dialog", () => {
     );
     expect(screen.getByText("Alex Rivera")).toBeInTheDocument();
     expect(screen.getByText("Taylor Lim")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Send to next court" }),
+    ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: /Close court handoff/ }),
     );

@@ -44,6 +44,7 @@ export function EventManagementControls({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const earliestStart = localInputValue(new Date().toISOString());
@@ -103,7 +104,7 @@ export function EventManagementControls({
   }
 
   async function changeEventState(
-    transition: "registration_closed" | "in_progress",
+    transition: "registration_closed" | "in_progress" | "completed",
   ) {
     setPending(true);
     setMessage(
@@ -121,6 +122,12 @@ export function EventManagementControls({
     setPending(false);
     if (!result.ok) {
       setMessage(result.error.message);
+      return;
+    }
+    if (transition === "completed") {
+      setConfirmingEnd(false);
+      setMessage("Event completed. Match history is preserved.");
+      router.refresh();
       return;
     }
     if (transition === "in_progress") {
@@ -142,7 +149,9 @@ export function EventManagementControls({
           <h2 id="manage-event-heading">Manage event</h2>
           <p>Edit published details, reschedule, or cancel this event.</p>
         </div>
-        {!editing && event.status !== "canceled" ? (
+        {!editing &&
+        event.status !== "canceled" &&
+        event.status !== "completed" ? (
           <button
             className="button-secondary"
             type="button"
@@ -184,6 +193,39 @@ export function EventManagementControls({
             </button>
           </div>
         </div>
+      ) : null}
+
+      {event.status === "in_progress" ? (
+        <div className="event-start-controls">
+          <div>
+            <strong>Finished playing?</strong>
+            <p>
+              Finish active matches first. Ending checks everyone out and clears
+              the waiting queue. Match history is preserved.
+            </p>
+          </div>
+          {confirmingEnd ? (
+            <div>
+              <button
+                disabled={pending}
+                onClick={() => setConfirmingEnd(false)}
+              >
+                Keep event running
+              </button>
+              <button
+                disabled={pending}
+                onClick={() => changeEventState("completed")}
+              >
+                {pending ? "Ending…" : "Confirm end event"}
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmingEnd(true)}>End event</button>
+          )}
+        </div>
+      ) : null}
+      {event.status === "completed" ? (
+        <p>Event completed. Match history is available.</p>
       ) : null}
 
       {editing ? (
@@ -279,7 +321,7 @@ export function EventManagementControls({
         </form>
       ) : null}
 
-      {event.status !== "canceled" ? (
+      {event.status === "completed" ? null : event.status !== "canceled" ? (
         <div className="event-cancel-zone">
           {!confirmingCancel ? (
             <button

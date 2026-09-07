@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
 export type HandoffPlayer = {
@@ -13,11 +14,13 @@ export function PostMatchHandoffDialog({
   courtLabel,
   players,
   format,
+  action,
   onClose,
 }: {
   courtLabel: string;
   players: HandoffPlayer[];
   format: "singles" | "doubles";
+  action?: ReactNode;
   onClose: () => void;
 }) {
   const [remaining, setRemaining] = useState(20);
@@ -137,6 +140,10 @@ export function PostMatchHandoffDialog({
             No complete standby lineup is waiting yet.
           </p>
         )}
+
+        {action ? (
+          <footer className="handoff-dialog-action">{action}</footer>
+        ) : null}
 
         <span className="sr-only" aria-live="polite">
           Closes automatically in {remaining} seconds

@@ -26,7 +26,9 @@ export default async function Page({ params, searchParams }: Props) {
   const stats = await getPublicPlayerStatistics(playerSlug),
     filter =
       q.class === "ranked" || q.class === "unranked" ? q.class : undefined,
-    page = Math.max(1, Number(q.page) || 1),
+    page = /^\d+$/.test(q.page ?? "")
+      ? Math.min(10000, Math.max(1, Number(q.page)))
+      : 1,
     history = await getPublicMatchHistory(player.player_id!, {
       recordClass: filter,
       page,
@@ -46,6 +48,9 @@ export default async function Page({ params, searchParams }: Props) {
               result_status: row.result_status,
               won: row.won ?? false,
               has_revision_history: row.has_revision_history ?? false,
+              side: row.side ?? 1,
+              score: row.score,
+              participants: row.participants,
             },
           ]
         : [],
@@ -80,6 +85,7 @@ export default async function Page({ params, searchParams }: Props) {
         filter={filter}
         slug={playerSlug}
         page={page}
+        hasNext={safeHistory.length > 20}
       />
     </main>
   );

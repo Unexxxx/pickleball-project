@@ -18,7 +18,7 @@ export async function getPublicMatchHistory(
     .eq("player_id", playerId)
     .order("played_at", { ascending: false })
     .order("match_id", { ascending: false })
-    .range((page - 1) * pageSize, page * pageSize - 1);
+    .range((page - 1) * pageSize, page * pageSize);
   if (recordClass) q = q.eq("record_class", recordClass);
   const { data, error } = await q;
   if (error) throw error;

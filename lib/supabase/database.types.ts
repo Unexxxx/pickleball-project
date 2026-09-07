@@ -2147,6 +2147,7 @@ export type Database = {
       };
       public_match_history: {
         Row: {
+          participants: Json | null;
           calculation_version: number | null;
           effect_state:
             Database["public"]["Enums"]["ranked_effect_state"] | null;
@@ -2220,6 +2221,9 @@ export type Database = {
           player_id: string | null;
           public_slug: string | null;
           rating: number | null;
+          rating_deviation: number | null;
+          rating_model: string | null;
+          provisional: boolean | null;
           win_rate: number | null;
           wins: number | null;
         };

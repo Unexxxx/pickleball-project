@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { adjustQueue } from "@/lib/actions/queues";
 import type { QueueItem } from "@/lib/realtime/event-operations";
+import { PlayerNameWithMatches } from "@/components/queues/player-name-with-matches";
 export function QueueBoard({
   clubId,
   eventId,
@@ -32,7 +33,12 @@ export function QueueBoard({
               <span className="queue-list-number" aria-hidden="true">
                 {index + 1}
               </span>
-              <strong>{entry.displayName ?? "Player"}</strong>
+              <strong>
+                <PlayerNameWithMatches
+                  displayName={entry.displayName ?? "Player"}
+                  totalMatches={entry.totalMatches}
+                />
+              </strong>
               <span className="queue-order-actions">
                 <button
                   className="queue-move-button"

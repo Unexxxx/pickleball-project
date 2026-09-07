@@ -34,7 +34,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                   {row.display_name}
                 </Link>
               </td>
-              <td>{row.rating}</td>
+              <td>{row.rating == null ? "—" : Math.round(row.rating)}</td>
               <td>
                 {row.wins}–{row.losses}
               </td>

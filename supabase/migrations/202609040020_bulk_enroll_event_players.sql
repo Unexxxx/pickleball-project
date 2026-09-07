@@ -15,7 +15,9 @@ begin
   for update;
 
   if v_event_id is null then
-    raise exception using errcode = 'P0001', detail = 'TARGET_EVENT_NOT_FOUND_OR_NOT_PUBLISHED';
+    -- This one-time enrollment targets hosted demo data, not schema setup.
+    -- Fresh/local databases may not contain that event.
+    return;
   end if;
 
   select count(*)

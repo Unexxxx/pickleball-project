@@ -24,12 +24,12 @@ const players = [
   },
 ] as const;
 
-describe("matchmaking-v1", () => {
+describe("matchmaking-v2", () => {
   it("produces the same singles proposal for the same snapshot", () => {
     const input = { format: "singles" as const, candidates: players };
     expect(proposeBalancedMatch(input)).toEqual(proposeBalancedMatch(input));
     expect(proposeBalancedMatch(input)).toMatchObject({
-      policyVersion: "matchmaking-v1",
+      policyVersion: "matchmaking-v2",
       sideAPlayerIds: [players[0].playerId],
       sideBPlayerIds: [players[1].playerId],
     });
@@ -58,5 +58,38 @@ describe("matchmaking-v1", () => {
         candidates: players.slice(0, 3),
       }),
     ).toThrow("INSUFFICIENT_PLAYERS");
+  });
+
+  it("avoids recent teammates before comparing team balance", () => {
+    const result = proposeBalancedMatch({
+      format: "doubles",
+      candidates: players,
+      recentTeammatePairs: {
+        [`${players[0].playerId}:${players[1].playerId}`]: 2,
+        [`${players[2].playerId}:${players[3].playerId}`]: 2,
+      },
+    });
+
+    expect(result.recentTeammatePenalty).toBe(0);
+    expect(result.sideAPlayerIds).not.toEqual([
+      players[0].playerId,
+      players[1].playerId,
+    ]);
+  });
+
+  it("uses win rate and rank before rating when teammate history is equal", () => {
+    const candidates = [
+      { ...players[0], wins: 9, losses: 1, rank: 1 },
+      { ...players[1], wins: 8, losses: 2, rank: 2 },
+      { ...players[2], wins: 2, losses: 8, rank: 9 },
+      { ...players[3], wins: 1, losses: 9, rank: 10 },
+    ];
+    const result = proposeBalancedMatch({ format: "doubles", candidates });
+
+    expect(result.sideAPlayerIds).toContain(players[0].playerId);
+    expect(result.sideAPlayerIds).toContain(players[3].playerId);
+    expect(result.sideBPlayerIds).toContain(players[1].playerId);
+    expect(result.sideBPlayerIds).toContain(players[2].playerId);
+    expect(result.winRateDifference).toBeCloseTo(0);
   });
 });

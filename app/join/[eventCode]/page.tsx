@@ -46,9 +46,15 @@ export default async function JoinPage({
         <p>This link is invalid, expired, or unavailable.</p>
       </main>
     );
-  const [{ roster, ownRegistration }, supabase] = await Promise.all([
+  const supabase = await createClient();
+  const [
+    { roster, ownRegistration },
+    {
+      data: { user },
+    },
+  ] = await Promise.all([
     getEventJoinRoster(eventCode, event.id),
-    createClient(),
+    supabase.auth.getUser(),
   ]);
   const participants = roster.map((registration) => ({
     id: `${registration.public_slug}-${registration.registration_status}`,
@@ -97,6 +103,8 @@ export default async function JoinPage({
   const mapQuery = encodeURIComponent(event.venue);
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`;
   const appleMapsUrl = `https://maps.apple.com/?daddr=${mapQuery}&dirflg=d`;
+  const eventPath = `/join/${eventCode}`;
+  const loginHref = `/login?next=${encodeURIComponent(eventPath)}`;
 
   return (
     <main className="public-event-page">
@@ -205,18 +213,24 @@ export default async function JoinPage({
               <p>
                 {event.status === "canceled"
                   ? "Registration closed"
-                  : availableSpots
-                    ? `${availableSpots} ${availableSpots === 1 ? "spot" : "spots"} available`
-                    : "Event is full — new registrations join the waitlist"}
+                  : !user
+                    ? "Sign in to view availability and join"
+                    : availableSpots
+                      ? `${availableSpots} ${availableSpots === 1 ? "spot" : "spots"} available`
+                      : "Event is full — new registrations join the waitlist"}
               </p>
             </div>
           </div>
-          {event.status === "published" ? (
+          {event.status === "published" && user ? (
             <RegistrationStatus
               eventId={event.id}
               isPrivate={event.is_private}
               initialRegistered={Boolean(ownRegistration)}
             />
+          ) : event.status === "published" ? (
+            <Link className="button" href={loginHref}>
+              Sign in to join
+            </Link>
           ) : (
             <p className="event-registration-closed">
               Registration is closed because this event was canceled.
@@ -237,7 +251,12 @@ export default async function JoinPage({
         </section>
       ) : null}
 
-      <ParticipantList participants={participants} capacity={event.capacity} />
+      <ParticipantList
+        participants={participants}
+        capacity={event.capacity}
+        viewerAuthenticated={Boolean(user)}
+        loginHref={loginHref}
+      />
     </main>
   );
 }

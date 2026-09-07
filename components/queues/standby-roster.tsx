@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { replaceStandbyPlayer } from "@/lib/actions/queues";
 import type { QueueItem } from "@/lib/realtime/event-operations";
+import { PlayerNameWithMatches } from "@/components/queues/player-name-with-matches";
 
 export function StandbyRoster({
   players,
@@ -52,7 +53,12 @@ export function StandbyRoster({
             <ul className="live-player-list standby-player-list">
               {sidePlayers.map((player) => (
                 <li key={player.id}>
-                  <strong>{player.displayName ?? "Player"}</strong>
+                  <strong>
+                    <PlayerNameWithMatches
+                      displayName={player.displayName ?? "Player"}
+                      totalMatches={player.totalMatches}
+                    />
+                  </strong>
                   <button
                     className="standby-replace-button"
                     disabled={candidates.length === 0}

@@ -2,11 +2,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { describeSignupError } from "@/lib/auth/signup-error";
 import {
   attestationSchema,
+  createPublicSlug,
   loginSchema,
-  profileSchema,
   profileUpdateSchema,
+  registrationSchema,
   recoverySchema,
 } from "@/lib/validation/auth";
 import { failure, success, type CommandResult } from "@/lib/actions/result";
@@ -15,6 +17,12 @@ const safeNextPath = (value: FormDataEntryValue | null) => {
   const path = typeof value === "string" ? value : "";
   return path.startsWith("/") && !path.startsWith("//") ? path : "/dashboard";
 };
+
+const confirmationRedirectUrl = () =>
+  new URL(
+    "/auth/callback",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ).toString();
 
 export async function signIn(
   _: unknown,
@@ -35,6 +43,30 @@ export async function signIn(
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error?.code === "email_not_confirmed") {
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email: parsed.data.email,
+      options: { emailRedirectTo: confirmationRedirectUrl() },
+    });
+    if (resendError?.status === 429)
+      return failure(
+        "RATE_LIMITED",
+        "Your email is not verified. A verification email was sent recently, so please check your newest message or wait before trying again.",
+        requestId,
+      );
+    if (resendError)
+      return failure(
+        "UNAUTHENTICATED",
+        "Your email is not verified. Request a new verification link from the verification page.",
+        requestId,
+      );
+    return failure(
+      "UNAUTHENTICATED",
+      "Your email is not verified. We sent a fresh verification email—open the newest message, then log in again.",
+      requestId,
+    );
+  }
   if (error || !data.user)
     return failure("UNAUTHENTICATED", "Invalid email or password.", requestId);
 
@@ -84,32 +116,79 @@ export async function signUp(
   formData: FormData,
 ): Promise<CommandResult<{ verificationRequired: boolean }>> {
   const requestId = crypto.randomUUID();
-  const parsed = profileSchema.safeParse({
+  const parsed = registrationSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
     displayName: formData.get("displayName"),
-    publicSlug: formData.get("publicSlug"),
     termsVersion: formData.get("termsVersion"),
   });
-  if (!parsed.success)
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
     return failure(
       "VALIDATION_FAILED",
-      "Enter a valid real player identity.",
+      fields.displayName
+        ? "Enter a valid real player identity."
+        : "Enter a valid email and password.",
       requestId,
-      parsed.error.flatten().fieldErrors,
+      fields,
     );
-  const email = String(formData.get("email") ?? "");
-  const password = String(formData.get("password") ?? "");
+  }
+  const publicSlug = createPublicSlug(parsed.data.displayName);
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
     options: {
-      data: parsed.data,
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3000"}/auth/callback`,
+      data: {
+        displayName: parsed.data.displayName,
+        publicSlug,
+        termsVersion: parsed.data.termsVersion,
+      },
+      emailRedirectTo: confirmationRedirectUrl(),
+    },
+  });
+  if (error) {
+    console.error(
+      JSON.stringify({
+        context: "auth.signup",
+        requestId,
+        errorCode: error.code ?? "unknown",
+        status: error.status,
+      }),
+    );
+    const described = describeSignupError(error);
+    return failure(described.code, described.message, requestId);
+  }
+  return success({ verificationRequired: true }, requestId);
+}
+
+export async function resendVerification(
+  _: unknown,
+  formData: FormData,
+): Promise<CommandResult<{ sent: boolean }>> {
+  const requestId = crypto.randomUUID();
+  const parsed = recoverySchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Enter a valid email.", requestId);
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: parsed.data.email,
+    options: {
+      emailRedirectTo: confirmationRedirectUrl(),
     },
   });
   if (error)
-    return failure("CONFLICT", "Unable to create that account.", requestId);
-  return success({ verificationRequired: true }, requestId);
+    return failure(
+      error.status === 429 ? "RATE_LIMITED" : "INTERNAL_ERROR",
+      error.status === 429
+        ? "Please wait before requesting another email."
+        : "A new verification email could not be sent.",
+      requestId,
+    );
+
+  return success({ sent: true }, requestId);
 }
 export async function sendRecovery(
   _: unknown,
