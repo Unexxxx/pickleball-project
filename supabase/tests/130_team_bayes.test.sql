@@ -1,5 +1,5 @@
 begin;
-select plan(17);
+select plan(26);
 create temporary table bayes_sample as select private.team_bayes_update(
 '[{"id":"a","side":1,"mu":1500,"sigma":350},{"id":"b","side":1,"mu":1500,"sigma":350},{"id":"c","side":2,"mu":1500,"sigma":350},{"id":"d","side":2,"mu":1500,"sigma":350}]',1) value;
 select ok((select (value->0->>'mu')::numeric>1500 from bayes_sample),'winner mean increases');
@@ -47,11 +47,27 @@ select * from public.submit_match_result('99000000-0000-4000-8000-000000000104',
 select is((select losses from public.player_statistics where player_id='99000000-0000-4000-8000-000000000001'),1,'correction replays winner');
 select is((select wins from public.player_statistics where player_id='99000000-0000-4000-8000-000000000001'),0,'old win removed from projection');
 select set_config('request.jwt.claim.sub','99000000-0000-4000-8000-000000000002',true);
+select throws_ok($$select * from public.end_match_with_score('99000000-0000-4000-8000-000000000104','{"games":[{"sideA":11,"sideB":0}]}','99000000-0000-4000-8000-000000000109')$$,'P0001',null,'ordinary player cannot finish a match');
 select throws_ok($$select * from public.submit_match_result('99000000-0000-4000-8000-000000000104','{"games":[{"sideA":11,"sideB":0}]}','99000000-0000-4000-8000-000000000107')$$,'P0001',null,'participant cannot edit finalized score');
 update public.official_results set effect_state='suspended' where match_id='99000000-0000-4000-8000-000000000104';
 select private.rebuild_competition_after_dispute((select result_id from bayes_end));
 select is((select rating from public.player_statistics where player_id='99000000-0000-4000-8000-000000000001'),1500::numeric,'suspension removes rating effect');
 select is((select rating_deviation from public.player_statistics where player_id='99000000-0000-4000-8000-000000000001'),350::numeric,'suspension restores uncertainty');
 select is((select count(*)::int from public.result_revisions where match_id='99000000-0000-4000-8000-000000000104'),2,'original and corrected scores retained');
+set local role anon;
+select is((select count(*)::int from public.public_match_history where match_id='99000000-0000-4000-8000-000000000104'),4,'anonymous history preserved');
+select is((select score->'games'->0->>'sideA' from public.public_match_history where player_id='99000000-0000-4000-8000-000000000001' and match_id='99000000-0000-4000-8000-000000000104'),'5','corrected score synchronized');
+select lives_ok($$select * from public.public_player_profiles; select * from public.public_player_statistics; select * from public.public_leaderboards$$,'anonymous invoker views work');
+reset role;
+update public.players set visibility='private' where id='99000000-0000-4000-8000-000000000002';
+set local role anon;
+select is((select count(*)::int from public.public_match_history where player_id='99000000-0000-4000-8000-000000000002'),0,'private subject hidden immediately');
+select ok(not exists(select 1 from public.public_match_history where participants::text like '%bayes-test-2%'),'private opponent slug removed');
+select ok(not has_table_privilege('anon','public.result_revisions','SELECT'),'raw score revisions remain protected');
+select throws_ok($$delete from public.player_match_history_public$$,'42501','permission denied for table player_match_history_public','public history is immutable to clients');
+reset role;
+set local role authenticated;
+select lives_ok($$select * from public.public_match_history; select * from public.public_player_profiles; select * from public.public_player_statistics; select * from public.public_leaderboards$$,'authenticated invoker views work');
+reset role;
 select * from finish();
 rollback;

@@ -22,8 +22,9 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto max-w-lg p-6">
-      <h1>Log in</h1>
-      <p>Use your verified player account.</p>
+      <p className="courtside-kicker">Back to the court</p>
+      <h1>Welcome back.</h1>
+      <p>Log in to find your next match and follow your progress.</p>
       <GoogleAuthButton next={next} />
       <LoginForm next={next} />
       <div className="mt-4 flex gap-4">

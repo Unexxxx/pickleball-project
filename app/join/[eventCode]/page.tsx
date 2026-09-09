@@ -108,6 +108,23 @@ export default async function JoinPage({
 
   return (
     <main className="public-event-page">
+      {event.status === "in_progress" &&
+        user &&
+        ownRegistration?.status === "confirmed" && (
+          <section className="player-hub-card" aria-label="Live event">
+            <h2>Your event is in progress</h2>
+            <p>
+              See who is playing, the standby match, and your place in the
+              queue.
+            </p>
+            <Link
+              className="button"
+              href={`/dashboard/clubs/${event.club_slug}/events/${event.id}/queue`}
+            >
+              View live queue
+            </Link>
+          </section>
+        )}
       <header className="public-event-hero">
         <div className="public-event-hero__copy">
           <Link className="event-host" href={`/clubs/${event.club_slug}`}>
@@ -211,7 +228,7 @@ export default async function JoinPage({
             <div>
               <h2 id="join-event-heading">Join this event</h2>
               <p>
-                {event.status === "canceled"
+                {event.status !== "published"
                   ? "Registration closed"
                   : !user
                     ? "Sign in to view availability and join"
@@ -233,7 +250,13 @@ export default async function JoinPage({
             </Link>
           ) : (
             <p className="event-registration-closed">
-              Registration is closed because this event was canceled.
+              {event.status === "in_progress"
+                ? "This event is in progress. Registration is closed."
+                : event.status === "completed"
+                  ? "This event has ended."
+                  : event.status === "canceled"
+                    ? "This event was canceled."
+                    : "Registration is closed for this event."}
             </p>
           )}
           <ShareEventLink shareUrl={shareUrl} />

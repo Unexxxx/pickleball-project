@@ -1,6 +1,21 @@
 # Current Features
 
-Updated September 8, 2026.
+Updated September 9, 2026.
+
+## September 9 update notes
+
+- Established the approved Courtside design direction in [design.md](../design.md): premium sports minimalism, forest green, warm surfaces, controlled lime accents, and a distinct identity rather than a Reclub-style tile dashboard.
+- Restyled the authentication layout, login, and registration screens while preserving authentication behavior. The shared account layout also styles recovery and verification pages.
+- Restructured the dashboard around the player's next event or event discovery, with prominent live-queue access and compact secondary navigation for clubs, rankings, history, and profile.
+- Added joined-event and live-event sections, public discovery, and name search across people, clubs, and events. Confirmed players can follow live queue links from the dashboard and event page; waitlisted players retain their waitlist status.
+- Fixed invitation lookup across published, registration-closed, in-progress, completed, and canceled events; drafts stay hidden and registration rules are unchanged.
+- Made the bench visible by default with compact single-line entries and contained horizontal scrolling on mobile. Entries include event W–L, win rate, match count, and current rating; unavailable statistics show a dash.
+- Restricted queue management UI to club owners/organizers, retained existing server checks for assignment/reordering, and added an admin-only database guard for finishing matches. Players retain read-only bench and live-court views.
+- Enabled RLS on leaderboard rules and removed excess API-role privileges, preserving public read-only access.
+- Converted four public-facing views to security-invoker mode. Public match history uses a sanitized, RLS-protected projection synchronized with results and player privacy changes, without exposing operational score-revision tables.
+- Added regression coverage for event-link lifecycle, public-view privacy, rule-table permissions, joined-event navigation, and bench permissions/statistics.
+
+Validation during this update: TypeScript and lint passed; all 88 unit/integration tests and 211 database assertions passed. Login and dashboard were checked on mobile and desktop, including test-account sign-in. The complete end-to-end browser suite was not rerun. The four September 9 database migrations have already been applied to the linked Supabase project.
 
 ## September 8 update notes
 

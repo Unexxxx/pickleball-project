@@ -127,7 +127,6 @@ export function LiveEventBoard({
   clubSlug,
   eventId,
   canManage,
-  viewerPlayerId,
   courtAvailable,
   queueVersion,
   matchDurationMinutes,
@@ -200,10 +199,7 @@ export function LiveEventBoard({
                       </span>
                       <MatchTeam label="Side B" players={sideB} side="b" />
                     </div>
-                    {canManage ||
-                    match.players.some(
-                      (player) => player.playerId === viewerPlayerId,
-                    ) ? (
+                    {canManage ? (
                       <EndMatchScore
                         clubSlug={clubSlug}
                         eventId={eventId}

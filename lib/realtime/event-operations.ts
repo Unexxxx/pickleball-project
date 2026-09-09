@@ -9,6 +9,9 @@ export type QueueItem = {
   displayName?: string;
   avatarUrl?: string | null;
   totalMatches?: number;
+  eventWins?: number;
+  eventLosses?: number;
+  rating?: number;
 };
 export type QueueSnapshot = {
   eventId: string;

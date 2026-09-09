@@ -9,12 +9,14 @@ export async function resolveEventJoin(code: string) {
 
 export async function getEventJoinRoster(code: string, eventId: string) {
   const s = await createClient();
+  const { data: playerId } = await s.rpc("current_player_id");
   const [{ data: roster }, { data: ownRegistration }] = await Promise.all([
     s.rpc("get_event_join_roster", { p_join_code: code }),
     s
       .from("event_registrations")
       .select("id,status")
       .eq("event_id", eventId)
+      .eq("player_id", playerId ?? "00000000-0000-0000-0000-000000000000")
       .in("status", ["confirmed", "waitlisted"])
       .maybeSingle(),
   ]);

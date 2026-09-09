@@ -100,6 +100,25 @@ export default async function QueuePage({
     ]),
   );
   const eventMatchCounts = new Map<string, number>();
+  const eventRecords = new Map<string, { wins: number; losses: number }>();
+  const history = completedMatches?.length
+    ? await s
+        .from("public_match_history")
+        .select("player_id,won,result_status,effect_state")
+        .in(
+          "match_id",
+          completedMatches.map((match) => match.id),
+        )
+        .eq("result_status", "finalized")
+    : { data: [], error: null };
+  for (const row of history.data ?? []) {
+    if (!row.player_id || row.effect_state === "suspended" || row.won === null)
+      continue;
+    const record = eventRecords.get(row.player_id) ?? { wins: 0, losses: 0 };
+    if (row.won) record.wins++;
+    else record.losses++;
+    eventRecords.set(row.player_id, record);
+  }
   for (const match of completedMatches ?? []) {
     for (const participant of match.match_participants) {
       eventMatchCounts.set(
@@ -122,6 +141,19 @@ export default async function QueuePage({
             .publicUrl
         : null,
       totalMatches: eventMatchCounts.get(q.player_id) ?? 0,
+      eventWins:
+        history.error ||
+        !playerCompetition.has(q.player_id) ||
+        (history.data?.length ?? 0) >= 1000
+          ? undefined
+          : (eventRecords.get(q.player_id)?.wins ?? 0),
+      eventLosses:
+        history.error ||
+        !playerCompetition.has(q.player_id) ||
+        (history.data?.length ?? 0) >= 1000
+          ? undefined
+          : (eventRecords.get(q.player_id)?.losses ?? 0),
+      rating: playerCompetition.get(q.player_id)?.rating,
     }))
     .sort((a, b) => a.position - b.position) satisfies QueueItem[];
   const format =
@@ -202,6 +234,11 @@ export default async function QueuePage({
           <p className="eyebrow">Event operations</p>
           <h1>Live queue</h1>
           <p>Follow the current courts, next lineup, and upcoming rotation.</p>
+          {membership?.role !== "owner" && membership?.role !== "organizer" && (
+            <p>
+              View only — the club manages court assignments and queue order.
+            </p>
+          )}
         </div>
         <RealtimeQueue clubId={club.id} initial={snapshot} />
       </header>
@@ -222,18 +259,21 @@ export default async function QueuePage({
         queueVersion={data.queue_version}
         matchDurationMinutes={configuredDuration}
       />
-      <QueueCard
-        eventId={eventId}
-        state={playerQueueState}
-        position={ownReadyIndex >= 0 ? ownReadyIndex + 1 : undefined}
-      />
       {membership?.role === "owner" || membership?.role === "organizer" ? (
-        <QueueBoard
-          clubId={club.id}
+        <QueueCard
           eventId={eventId}
-          entries={queue.slice(format === "singles" ? 4 : 8)}
+          state={playerQueueState}
+          position={ownReadyIndex >= 0 ? ownReadyIndex + 1 : undefined}
         />
       ) : null}
+      <QueueBoard
+        clubId={club.id}
+        eventId={eventId}
+        entries={queue.slice(format === "singles" ? 4 : 8)}
+        canManage={
+          membership?.role === "owner" || membership?.role === "organizer"
+        }
+      />
     </main>
   );
 }
