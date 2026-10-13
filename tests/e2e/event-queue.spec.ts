@@ -20,8 +20,13 @@ test.describe("mobile player queue journey", () => {
       .getAttribute("data-version");
 
     await context.setOffline(true);
-    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
-    await expect(page.getByText(/offline|stale/i)).toBeVisible();
+    // Retry until the queue has hydrated and is listening for the event.
+    await expect(async () => {
+      await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+      await expect(page.getByText(/offline|stale/i)).toBeVisible({
+        timeout: 1_000,
+      });
+    }).toPass();
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
     await page.reload();

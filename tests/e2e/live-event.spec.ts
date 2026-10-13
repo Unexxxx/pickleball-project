@@ -93,12 +93,12 @@ test("organizer runs a live event from check-in to final score", async ({
   });
 
   await test.step("organizer finishes the match with a score", async () => {
-    await page
-      .getByRole("region", { name: "Active matches" })
+    const activeMatches = page.getByRole("region", { name: "Active matches" });
+    await activeMatches
       .getByRole("button", { name: "Finish & Enter Score" })
       .click();
-    await page.getByLabel("Side A", { exact: true }).fill("11");
-    await page.getByLabel("Side B", { exact: true }).fill("7");
+    await activeMatches.getByRole("spinbutton", { name: "Side A" }).fill("11");
+    await activeMatches.getByRole("spinbutton", { name: "Side B" }).fill("7");
     await page
       .getByRole("button", { name: "Submit score & release court" })
       .click();

@@ -56,10 +56,12 @@ export function RealtimeQueue({
     );
     const online = () => void refresh();
     window.addEventListener("online", online);
-    window.addEventListener("offline", () => setStale(true));
+    const offline = () => setStale(true);
+    window.addEventListener("offline", offline);
     return () => {
       unsubscribe();
       window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
     };
   }, [clubId, initial.eventId, router]);
   return (
