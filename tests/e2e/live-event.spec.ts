@@ -102,9 +102,13 @@ test("organizer runs a live event from check-in to final score", async ({
     await page
       .getByRole("button", { name: "Submit score & release court" })
       .click();
+    // A finished match leaves the board and the court handoff opens.
     await expect(
-      page.getByText("Match ended. Court is now available."),
+      page.getByRole("dialog", { name: /^Proceed to E2E Court/ }),
     ).toBeVisible();
+    await expect(
+      activeMatches.getByRole("button", { name: "Finish & Enter Score" }),
+    ).toHaveCount(0);
   });
 
   await test.step("the finished match has a public result", async () => {
