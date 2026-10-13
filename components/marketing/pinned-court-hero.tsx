@@ -251,10 +251,7 @@ export function PinnedCourtHero() {
       // Posts at each end, a touch taller than the mesh, plus a top rail.
       ctx!.strokeStyle = "oklch(32% 0.015 255)";
       ctx!.lineWidth = Math.max(1.2, scale * 1.8);
-      [
-        [x1, y1] as const,
-        [x2, y2] as const,
-      ].forEach(([px, py]) => {
+      [[x1, y1] as const, [x2, y2] as const].forEach(([px, py]) => {
         ctx!.beginPath();
         ctx!.moveTo(...proj(px, py, 0));
         ctx!.lineTo(...proj(px, py, fenceHeight + 4));
@@ -609,8 +606,8 @@ export function PinnedCourtHero() {
           </p>
           <h1 className="ls-hero-title">Play. Confirm. Climb.</h1>
           <p className="ls-hero-lede">
-            Run fair club events, confirm every result, and build one
-            auditable pickleball record that follows you everywhere.
+            Run fair club events, confirm every result, and build one auditable
+            pickleball record that follows you everywhere.
           </p>
           <div className="ls-hero-actions">
             <Link href="/register" className="button">

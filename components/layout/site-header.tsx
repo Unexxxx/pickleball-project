@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  LogIn,
-  LogOut,
-  Trophy,
-} from "lucide-react";
+import { LayoutDashboard, LogIn, LogOut, Trophy } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 
 export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {

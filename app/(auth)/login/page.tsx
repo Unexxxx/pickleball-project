@@ -24,9 +24,7 @@ export default async function LoginPage({
     <main className="auth-main">
       <p className="auth-kicker">Welcome back</p>
       <h1>Log in to UNEX</h1>
-      <p className="auth-sub">
-        Find your next match and follow your progress.
-      </p>
+      <p className="auth-sub">Find your next match and follow your progress.</p>
       <GoogleAuthButton next={next} />
       <LoginForm next={next} />
       <div className="auth-links">

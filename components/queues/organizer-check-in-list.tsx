@@ -55,9 +55,9 @@ export function OrganizerCheckInList({
                   ? "In the bench queue"
                   : player.queueState === "assigned"
                     ? "Standby, upcoming, or playing"
-                  : player.checkedIn
-                    ? "Checked in"
-                    : "Not checked in"}
+                    : player.checkedIn
+                      ? "Checked in"
+                      : "Not checked in"}
               </small>
             </div>
             {player.queueState === "ready" ? (

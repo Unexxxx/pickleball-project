@@ -32,18 +32,18 @@ tokens through the semantic aliases below, so a color change is a one-line edit.
 
 All values live in `app/globals.css` `:root`. Copy verbatim; don't approximate.
 
-| Token | Value | Role |
-| --- | --- | --- |
-| `--dink-surface-dark` | `rgb(10 41 82)` | **The base.** Page background, darkest band. |
-| `--dink-surface-dark-2` | `rgb(17 57 108)` | One step lighter: cards, panels, alternate bands. |
-| `--dink-cream` | `rgb(237 230 196)` | Primary text and headings on dark — **not** white. |
-| `--dink-cream-muted` | `rgb(237 230 196 / 0.72)` | Secondary / lede text on dark. |
-| `--dink-volt` | `oklch(80% 0.19 125)` | **The accent.** Primary CTA fill, links, kickers, active states, key numbers. |
-| `--dink-volt-ink` | `oklch(28% 0.09 125)` | Text *on* volt fills (dark olive — never black or white). |
-| `--dink-ink` | `oklch(18% 0.03 255)` | Near-black navy. Text on light/cream surfaces. |
-| `--dink-ink-soft` / `--dink-ink-faint` | `oklch(45% 0.02 255)` / `oklch(65% 0.015 255)` | Secondary / tertiary text on light surfaces only. |
-| `--dink-paper` (`-2`, `-3`) | `oklch(97.5% 0.008 90)` … | Light bands (landing "three steps", CTA, footer). |
-| `--dink-coral` | `oklch(74% 0.19 35)` | Reserved secondary accent / warning. |
+| Token                                  | Value                                          | Role                                                                          |
+| -------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| `--dink-surface-dark`                  | `rgb(10 41 82)`                                | **The base.** Page background, darkest band.                                  |
+| `--dink-surface-dark-2`                | `rgb(17 57 108)`                               | One step lighter: cards, panels, alternate bands.                             |
+| `--dink-cream`                         | `rgb(237 230 196)`                             | Primary text and headings on dark — **not** white.                            |
+| `--dink-cream-muted`                   | `rgb(237 230 196 / 0.72)`                      | Secondary / lede text on dark.                                                |
+| `--dink-volt`                          | `oklch(80% 0.19 125)`                          | **The accent.** Primary CTA fill, links, kickers, active states, key numbers. |
+| `--dink-volt-ink`                      | `oklch(28% 0.09 125)`                          | Text _on_ volt fills (dark olive — never black or white).                     |
+| `--dink-ink`                           | `oklch(18% 0.03 255)`                          | Near-black navy. Text on light/cream surfaces.                                |
+| `--dink-ink-soft` / `--dink-ink-faint` | `oklch(45% 0.02 255)` / `oklch(65% 0.015 255)` | Secondary / tertiary text on light surfaces only.                             |
+| `--dink-paper` (`-2`, `-3`)            | `oklch(97.5% 0.008 90)` …                      | Light bands (landing "three steps", CTA, footer).                             |
+| `--dink-coral`                         | `oklch(74% 0.19 35)`                           | Reserved secondary accent / warning.                                          |
 
 ### App base (every page except the landing hero)
 
@@ -52,18 +52,18 @@ near-black navy and near-white text, **not** the actl.me navy above — that
 navy/cream pair is reserved for the landing hero and the cream "three steps"
 band.
 
-| Alias | Value | Role |
-| --- | --- | --- |
-| `--background` | `oklch(15% 0.025 255)` | Page background, darkest surface. |
-| `--surface` | `oklch(21% 0.03 255)` | Cards, panels, alternate bands. |
-| `--muted` | `oklch(24% 0.03 255)` | Nested tiles on a card. |
-| `--border` | `oklch(28% 0.03 255)` | Hairlines and tile borders. |
-| `--foreground` | `oklch(97.5% 0.008 90)` | Primary text and headings (the artifact's "paper"). |
-| `--muted-foreground` | `oklch(75% 0.02 255)` | Secondary text. |
-| `--primary` / `--accent` | `--dink-volt` | CTA fill, links, kickers, key numbers. |
-| `--primary-foreground` / `--accent-foreground` | `--dink-volt-ink` | Text on volt fills. |
-| `--danger` | `rgb(255 138 128)` | Errors — pair with text, never color alone. |
-| `--ring` | `--dink-volt` | Focus ring. |
+| Alias                                          | Value                   | Role                                                |
+| ---------------------------------------------- | ----------------------- | --------------------------------------------------- |
+| `--background`                                 | `oklch(15% 0.025 255)`  | Page background, darkest surface.                   |
+| `--surface`                                    | `oklch(21% 0.03 255)`   | Cards, panels, alternate bands.                     |
+| `--muted`                                      | `oklch(24% 0.03 255)`   | Nested tiles on a card.                             |
+| `--border`                                     | `oklch(28% 0.03 255)`   | Hairlines and tile borders.                         |
+| `--foreground`                                 | `oklch(97.5% 0.008 90)` | Primary text and headings (the artifact's "paper"). |
+| `--muted-foreground`                           | `oklch(75% 0.02 255)`   | Secondary text.                                     |
+| `--primary` / `--accent`                       | `--dink-volt`           | CTA fill, links, kickers, key numbers.              |
+| `--primary-foreground` / `--accent-foreground` | `--dink-volt-ink`       | Text on volt fills.                                 |
+| `--danger`                                     | `rgb(255 138 128)`      | Errors — pair with text, never color alone.         |
+| `--ring`                                       | `--dink-volt`           | Focus ring.                                         |
 
 ### State tints (on dark)
 

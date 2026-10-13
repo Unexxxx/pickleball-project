@@ -28,42 +28,47 @@ invalidation-only.
 **Done and approved by the user:** the landing page (`app/page.tsx`) and the
 design overhaul. The whole app now uses the dark navy + volt-lime system.
 
-| Area | State |
-| --- | --- |
-| Landing page | Finished. Pinned scroll hero with canvas court, scrubbed paddle video band, organizer board, cream CTA/footer. User is happy with it. |
-| Design system | One source of truth: `design-system/dink-palette.md`. Old Courtside / Pickleball Record docs deleted. |
-| Theme | App-wide via semantic tokens in `app/globals.css` `:root` (`--background`, `--surface`, `--foreground`, `--primary`…). Fonts: Bricolage Grotesque (headings) + Archivo (body) loaded in `app/layout.tsx`. |
-| Auth pages | `/login` redesigned (hero court + form card); register/recover/verify share the layout. |
-| Public pages | Leaderboards, player profile checked visually after the recolor. |
-| **Dashboard & other logged-in pages** | **Recolored by rules but never seen.** Needs login; not visually verified. This is the next focus. |
-| Header | Transparent, borderless, scrolls away on non-landing pages; fixed + transparent on landing (text flips dark over light bands). Phones have no bottom tab bar anywhere. |
-| Brand | Script UNEX wordmark (`public/unex-logo.png`, used as a CSS mask) and generated app icons. |
-| Tests | `tsc`, `eslint` clean. Unit tests: 85 pass, **3 fail** (`tests/integration/events/event-actions.test.ts`, hard-coded Oct 1 2026 dates now in the past — pre-existing, unrelated). E2E suite not run (needs hosted Supabase login). |
-| Git | **Nothing committed yet.** Branch `001-club-leaderboard`. |
+| Area                                  | State                                                                                                                                                                                                                              |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Landing page                          | Finished. Pinned scroll hero with canvas court, scrubbed paddle video band, organizer board, cream CTA/footer. User is happy with it.                                                                                              |
+| Design system                         | One source of truth: `design-system/dink-palette.md`. Old Courtside / Pickleball Record docs deleted.                                                                                                                              |
+| Theme                                 | App-wide via semantic tokens in `app/globals.css` `:root` (`--background`, `--surface`, `--foreground`, `--primary`…). Fonts: Bricolage Grotesque (headings) + Archivo (body) loaded in `app/layout.tsx`.                          |
+| Auth pages                            | `/login` redesigned (hero court + form card); register/recover/verify share the layout.                                                                                                                                            |
+| Public pages                          | Leaderboards, player profile checked visually after the recolor.                                                                                                                                                                   |
+| **Dashboard & other logged-in pages** | **Recolored by rules but never seen.** Needs login; not visually verified. This is the next focus.                                                                                                                                 |
+| Header                                | Transparent, borderless, scrolls away on non-landing pages; fixed + transparent on landing (text flips dark over light bands). Phones have no bottom tab bar anywhere.                                                             |
+| Brand                                 | Script UNEX wordmark (`public/unex-logo.png`, used as a CSS mask) and generated app icons.                                                                                                                                         |
+| Tests                                 | `tsc`, `eslint` clean. Unit tests: 85 pass, **3 fail** (`tests/integration/events/event-actions.test.ts`, hard-coded Oct 1 2026 dates now in the past — pre-existing, unrelated). E2E suite not run (needs hosted Supabase login). |
+| Git                                   | **Nothing committed yet.** Branch `001-club-leaderboard`.                                                                                                                                                                          |
 
 ## 3. Active files
 
 Design / theme
+
 - `design-system/dink-palette.md` — single design source (rewritten).
 - `app/globals.css` — ~5,000 lines; tokens at `:root`; auth section and landing (`.ls-*`, `.pch-*`) near the end.
 - `app/layout.tsx`, `app/manifest.ts`, `components/layout/site-header.tsx`.
 
 Landing page
+
 - `app/page.tsx`
 - `components/marketing/pinned-court-hero.tsx` — canvas court, scroll-pinned; phone layout (`isPhone`).
 - `components/marketing/landing-motion.tsx` — reveal observer, parallax, video scrub, header light/dark flip.
 - `public/videos/paddle-parallax.mp4`, `public/unex-logo.png`, `public/icons/*`, `app/icon.png`, `app/apple-icon.png`.
 
 Auth
+
 - `app/(auth)/layout.tsx`, `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx`
 - `components/auth/login-form.tsx`, `components/auth/google-auth-button.tsx`
 
 Dashboard (next focus)
+
 - `app/dashboard/page.tsx` (410 lines, class names `dash-*` in `globals.css` top)
 - `app/dashboard/profile/`, `app/dashboard/clubs/[clubSlug]/` (events, members, reports, layout)
 - `components/events/*`, `components/queues/*`, `components/clubs/*`, `components/matches/*`
 
 Docs / tooling
+
 - `docs/current-features.md` (has an Oct 14 note), `CLAUDE.md` + `.claude/` (Graphify), `.gitignore` (now ignores `graphify-out/`).
 
 ## 4. Changes made recently (this session)
@@ -79,7 +84,7 @@ Docs / tooling
 
 ## 5. Failed or abandoned attempts (so nobody repeats them)
 
-- **Court-only JS bounce at the page top** — wrong. The reference (actl.me) is the browser's native elastic scroll moving the *whole* hero. Removed; native overscroll restored.
+- **Court-only JS bounce at the page top** — wrong. The reference (actl.me) is the browser's native elastic scroll moving the _whole_ hero. Removed; native overscroll restored.
 - **Gradient on the root background to hide overscroll** — browsers only paint a flat color there. Fixed by making the hero's top edge a flat near-black and the root the same color.
 - **Play-in-view looping paddle video** — user rejected; went back to scroll-scrub, starting when the band first enters the viewport. Forward-scroll lag remains possible because the file has few keyframes; **ffmpeg isn't installed**, so it couldn't be re-encoded.
 - **Canvas `var(--…)` colors** silently fail — canvas needs literal `oklch()`.
@@ -97,20 +102,24 @@ Preview-pane quirks (not app bugs): animations lag and the first JS call after `
 The user wants to focus on the dashboard and its features next.
 
 **A. See the dashboard first (blocker for everything else)**
+
 - Log in with a **local** test account (`supabase/seed/README.md`; never against hosted data with real credentials) or ask the user to share screenshots. Walk through: `/dashboard`, `/dashboard/profile`, clubs, club events, event detail, check-in, queue, courts, matches, disputes, members, reports, admin.
 - Fix recolor misses (tinted badges, live court cards, form errors, tables, the sticky event nav and club sidebar offsets I changed when the header stopped being sticky).
 
 **B. Dashboard design pass** (`app/dashboard/page.tsx`)
-- The earlier product intent (from the deleted Courtside doc) still holds: one primary focus by situation — *before an event* (joined event + prep), *during* (current event, court, standby, live queue), *after* (results, progress), *none* (find a game). Never fabricate queue positions or activity.
+
+- The earlier product intent (from the deleted Courtside doc) still holds: one primary focus by situation — _before an event_ (joined event + prep), _during_ (current event, court, standby, live queue), _after_ (results, progress), _none_ (find a game). Never fabricate queue positions or activity.
 - Rebuild the cards with the new system: surface cards on the base, volt for the primary action, tiles in `--muted`.
 
 **C. Functionality to review with the user** (ask which matter most)
+
 - Player flow: join/withdraw, waitlist, check-in, live queue status, score confirmation, disputes.
 - Organizer flow: event creation/edit, roster import (Reclub), court editor, assignment, finishing matches, completing events.
 - Club management: members/roles, reports, trust score.
 - Known gaps to confirm: CSV export link removed from leaderboards; no notifications; no messaging/feeds (intentionally not faked).
 
 **D. Quality / hygiene**
+
 - Fix the 3 date-fragile tests (use relative dates).
 - Run the full e2e suite against a safe environment.
 - Update `docs/current-features.md` after dashboard changes; keep `dink-palette.md` the only design file.
