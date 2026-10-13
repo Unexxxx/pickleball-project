@@ -4283,7 +4283,7 @@ form.grid button {
 .ls-page {
   --ax-ink: oklch(18% 0.03 255);
   --ax-ink-soft: oklch(45% 0.02 255);
-  --ax-ink-faint: oklch(65% 0.015 255);
+  --ax-ink-faint: oklch(53% 0.015 255);
   --ax-paper: oklch(97.5% 0.008 90);
   --ax-line: oklch(87% 0.012 90);
   --ax-dark: oklch(15% 0.025 255);

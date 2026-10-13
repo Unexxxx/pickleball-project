@@ -41,7 +41,7 @@ All values live in `app/globals.css` `:root`. Copy verbatim; don't approximate.
 | `--dink-volt`                          | `oklch(80% 0.19 125)`                          | **The accent.** Primary CTA fill, links, kickers, active states, key numbers. |
 | `--dink-volt-ink`                      | `oklch(28% 0.09 125)`                          | Text _on_ volt fills (dark olive — never black or white).                     |
 | `--dink-ink`                           | `oklch(18% 0.03 255)`                          | Near-black navy. Text on light/cream surfaces.                                |
-| `--dink-ink-soft` / `--dink-ink-faint` | `oklch(45% 0.02 255)` / `oklch(65% 0.015 255)` | Secondary / tertiary text on light surfaces only.                             |
+| `--dink-ink-soft` / `--dink-ink-faint` | `oklch(45% 0.02 255)` / `oklch(53% 0.015 255)` | Secondary / tertiary text on light surfaces only.                             |
 | `--dink-paper` (`-2`, `-3`)            | `oklch(97.5% 0.008 90)` …                      | Light bands (landing "three steps", CTA, footer).                             |
 | `--dink-coral`                         | `oklch(74% 0.19 35)`                           | Reserved secondary accent / warning.                                          |
 

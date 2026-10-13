@@ -10,5 +10,7 @@ test("anonymous visitor discovers a privacy-safe player record", async ({
 });
 test("filters ranked match history", async ({ page }) => {
   await page.goto(`/players/${slug}?class=ranked`);
-  await expect(page.getByRole("link", { name: "Ranked" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Ranked", exact: true }),
+  ).toBeVisible();
 });
