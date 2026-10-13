@@ -102,10 +102,17 @@ test("organizer runs a live event from check-in to final score", async ({
     await page
       .getByRole("button", { name: "Submit score & release court" })
       .click();
-    // A finished match leaves the board and the court handoff opens.
-    await expect(
-      page.getByRole("dialog", { name: /^Proceed to E2E Court/ }),
-    ).toBeVisible();
+    // A finished match leaves the board and the court handoff opens; a
+    // failed submit leaves its message in the score form instead.
+    const handoff = page.getByRole("dialog", { name: /^Proceed to E2E Court/ });
+    const scoreError = activeMatches
+      .locator(".end-match-control [role=status]:not(:empty)")
+      .filter({ hasNotText: "Match ended." });
+    await expect(handoff.or(scoreError)).toBeVisible({ timeout: 20_000 });
+    expect((await scoreError.count()) ? await scoreError.innerText() : "").toBe(
+      "",
+    );
+    await expect(handoff).toBeVisible();
     await expect(
       activeMatches.getByRole("button", { name: "Finish & Enter Score" }),
     ).toHaveCount(0);
