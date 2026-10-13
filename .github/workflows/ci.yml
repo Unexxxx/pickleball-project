@@ -42,13 +42,23 @@ jobs:
             fi
           done
           # Export only the secrets that are set, so tests fall back to their defaults.
+          # Trim whitespace and surrounding quotes pasted from a .env file.
           for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
             SUPABASE_SERVICE_ROLE_KEY E2E_USER_EMAIL E2E_USER_PASSWORD \
             E2E_CLUB_SLUG E2E_OTHER_CLUB_SLUG E2E_EVENT_ID E2E_MATCH_ID E2E_PLAYER_SLUG; do
-            if [ -n "${!name}" ]; then
-              echo "$name=${!name}" >> "$GITHUB_ENV"
+            value="$(printf '%s' "${!name}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")"
+            if [ -n "$value" ]; then
+              echo "::add-mask::$value"
+              printf -v "$name" '%s' "$value"
+              echo "$name=$value" >> "$GITHUB_ENV"
             fi
           done
+          url="$NEXT_PUBLIC_SUPABASE_URL"
+          if [[ "$url" != http://* && "$url" != https://* ]] ||
+            [[ "$url" == *[[:space:]\"\'\[\]\(\)]* ]]; then
+            echo "::error::Secret NEXT_PUBLIC_SUPABASE_URL must be only the URL, like https://<project>.supabase.co (no name=, quotes, spaces or brackets)"
+            exit 1
+          fi
       - run: npm run test:e2e
 
   database:
