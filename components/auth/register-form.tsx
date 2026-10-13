@@ -43,7 +43,7 @@ export function RegisterForm() {
       {state?.ok ? (
         <p role="status">Check your inbox to verify your account.</p>
       ) : null}
-      <button disabled={pending} className="bg-emerald-700 p-3 text-white">
+      <button disabled={pending} className="bg-[var(--dink-volt)] p-3 text-[var(--dink-volt-ink)]">
         Create account
       </button>
     </form>

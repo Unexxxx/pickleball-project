@@ -20,7 +20,7 @@ export function ClubProfileHero({
         style={
           backgroundImageUrl
             ? {
-                backgroundImage: `linear-gradient(180deg, transparent, rgb(10 42 26 / .55)), url(${backgroundImageUrl})`,
+                backgroundImage: `linear-gradient(180deg, transparent, oklch(15% 0.025 255 / .55)), url(${backgroundImageUrl})`,
               }
             : undefined
         }

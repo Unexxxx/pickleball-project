@@ -6,7 +6,7 @@ export function FormErrorSummary({ errors }: { errors: string[] }) {
       <div
         role="alert"
         aria-labelledby="error-summary-title"
-        className="rounded-lg border border-red-700 p-3"
+        className="rounded-lg border border-red-400 p-3"
       >
         <h2 id="error-summary-title">Please correct these problems</h2>
         <ul>

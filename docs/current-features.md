@@ -2,9 +2,14 @@
 
 Updated September 9, 2026.
 
+## October 14 update notes
+
+- Renamed the product to **UNEX** and adopted a single design source of truth, [design-system/dink-palette.md](../design-system/dink-palette.md): dark navy base, volt-lime accent, cream text, Bricolage Grotesque + Archivo everywhere, and the script UNEX wordmark as the logo and app icon. The earlier Courtside and Pickleball Record design docs were removed.
+- Rebuilt the landing page: pinned scroll hero with an animated canvas pickleball court, scroll-scrubbed paddle video band, organizer board preview, and cream CTA/footer sections. Phones drop the bottom tab bar on the landing page and show Rankings/Log in in the header.
+
 ## September 9 update notes
 
-- Established the approved Courtside design direction in [design.md](../design.md): premium sports minimalism, forest green, warm surfaces, controlled lime accents, and a distinct identity rather than a Reclub-style tile dashboard.
+- Established the Courtside design direction (premium sports minimalism, forest green, warm surfaces, controlled lime accents). Superseded on October 14 by [design-system/dink-palette.md](../design-system/dink-palette.md).
 - Restyled the authentication layout, login, and registration screens while preserving authentication behavior. The shared account layout also styles recovery and verification pages.
 - Restructured the dashboard around the player's next event or event discovery, with prominent live-queue access and compact secondary navigation for clubs, rankings, history, and profile.
 - Added joined-event and live-event sections, public discovery, and name search across people, clubs, and events. Confirmed players can follow live queue links from the dashboard and event page; waitlisted players retain their waitlist status.

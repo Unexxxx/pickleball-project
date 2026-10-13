@@ -14,7 +14,7 @@ export default async function RegisterPage({
       : "/dashboard";
   return (
     <main className="mx-auto max-w-lg p-6">
-      <p className="courtside-kicker">One player. One record.</p>
+      <p className="auth-kicker">One player. One record.</p>
       <h1>Your game starts here.</h1>
       <p>Use Google for the fastest setup, or create an account with email.</p>
       <GoogleAuthButton next={next} />

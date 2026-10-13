@@ -29,7 +29,7 @@ export function ClubForm() {
         Name
         <input name="name" required className="block w-full border p-3" />
       </label>
-      <button className="bg-emerald-700 p-3 text-white">Create Club</button>
+      <button className="bg-[var(--dink-volt)] p-3 text-[var(--dink-volt-ink)]">Create Club</button>
       <p role="status">{message}</p>
     </form>
   );

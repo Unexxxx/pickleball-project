@@ -15,7 +15,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getPublicPlayer((await params).playerSlug);
   return {
-    title: p ? `${p.display_name} · Pickleball record` : "Player not found",
+    title: p ? p.display_name : "Player not found",
   };
 }
 export default async function Page({ params, searchParams }: Props) {

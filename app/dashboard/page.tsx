@@ -120,7 +120,7 @@ export default async function Dashboard({
     .limit(24);
 
   return (
-    <main className="player-dashboard courtside-dashboard">
+    <main className="player-dashboard dash-home">
       <header className="player-dashboard-welcome">
         <Link
           className="dashboard-avatar"
@@ -145,9 +145,9 @@ export default async function Dashboard({
         </Link>
       </header>
       {!q && view === "joined" && (
-        <section className="courtside-focus" aria-labelledby="focus-heading">
-          <div className="courtside-focus-copy">
-            <p className="courtside-kicker">
+        <section className="dash-focus" aria-labelledby="focus-heading">
+          <div className="dash-focus-copy">
+            <p className="dash-kicker">
               {joinedEvents[0]?.status === "in_progress"
                 ? "The courts are live"
                 : joinedEvents.length
@@ -181,12 +181,12 @@ export default async function Dashboard({
                 : "Find a game"}
             </Link>
           </div>
-          <div className="courtside-court" aria-hidden="true">
+          <div className="dash-court" aria-hidden="true">
             <span />
           </div>
         </section>
       )}
-      <nav className="courtside-links" aria-label="Quick access">
+      <nav className="dash-links" aria-label="Quick access">
         {[
           { label: "My events", href: "/dashboard", icon: CalendarDays },
           { label: "Live queue", href: "/dashboard?view=live", icon: Radio },

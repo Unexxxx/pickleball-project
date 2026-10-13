@@ -1,12 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { MobileNav } from "@/components/layout/mobile-nav";
+import { Archivo, Bricolage_Grotesque } from "next/font/google";
 import { SiteHeader } from "@/components/layout/site-header";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
+// One type system for the whole app (design-system/dink-palette.md).
+const headingFont = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-heading",
+});
+const bodyFont = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+});
+
 export const metadata: Metadata = {
-  title: { default: "Pickleball Record", template: "%s · Pickleball Record" },
+  title: { default: "UNEX", template: "%s · UNEX" },
   description: "Trusted club competition records and all-time leaderboards.",
 };
 export const viewport: Viewport = {
@@ -14,8 +26,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#176b42" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b3320" },
+    { media: "(prefers-color-scheme: light)", color: "#0a2952" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a2952" },
   ],
 };
 
@@ -33,7 +45,7 @@ async function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   const isAuthenticated = Boolean(user);
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
       <body>
         <a className="skip-link" href="#main-content">
           Skip to main content
@@ -43,7 +55,6 @@ async function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
           <div className="app-content" id="main-content">
             {children}
           </div>
-          <MobileNav isAuthenticated={isAuthenticated} />
         </div>
       </body>
     </html>

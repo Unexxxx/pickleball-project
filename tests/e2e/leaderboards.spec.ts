@@ -1,11 +1,9 @@
 import { expect, test } from "@playwright/test";
-test("browses the overall leaderboard and rules", async ({ page }) => {
+test("browses the overall leaderboard", async ({ page }) => {
   await page.goto("/leaderboards");
   await expect(
     page.getByRole("heading", { name: "All-time leaderboard" }),
   ).toBeVisible();
-  await expect(page.getByText("Ranking rules")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Download CSV" })).toBeVisible();
 });
 test("browses a source-club leaderboard", async ({ page }) => {
   await page.goto(

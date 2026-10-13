@@ -82,12 +82,12 @@ function ManagedCourtEditor({
   return (
     <>
       {canManage ? (
-        <section className="flex flex-col gap-4 rounded-2xl border border-emerald-950/15 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <section className="flex flex-col gap-4 rounded-2xl border border-white/15 bg-[var(--surface)] p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-emerald-800">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[var(--dink-volt)]">
               Court controls
             </p>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
               {courts.length} active {courts.length === 1 ? "court" : "courts"}.
               Only available courts can be reduced.
             </p>
@@ -96,7 +96,7 @@ function ManagedCourtEditor({
             type="button"
             onClick={add}
             disabled={pending || !changesAllowed}
-            className="min-h-11 rounded-xl bg-emerald-800 px-5 py-2.5 font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 rounded-xl bg-[var(--dink-volt)] px-5 py-2.5 font-semibold text-[var(--dink-volt-ink)] transition hover:bg-[oklch(85%_0.2_125)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending && active === "add" ? "Adding…" : "+ Add court"}
           </button>
@@ -105,7 +105,7 @@ function ManagedCourtEditor({
       {message ? (
         <p
           role="status"
-          className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
+          className="rounded-xl bg-white/10 px-4 py-3 text-sm text-[var(--foreground)]"
         >
           {message}
         </p>
@@ -117,15 +117,15 @@ function ManagedCourtEditor({
           return (
             <article
               key={court.id}
-              className="flex min-h-48 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="flex min-h-48 flex-col rounded-2xl border border-white/15 bg-[var(--surface)] p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-2xl font-bold text-emerald-950">
+                  <h2 className="text-2xl font-bold text-[var(--foreground)]">
                     {court.label}
                   </h2>
                   <p
-                    className={`mt-1 font-medium capitalize ${available ? "text-emerald-700" : "text-amber-700"}`}
+                    className={`mt-1 font-medium capitalize ${available ? "text-[var(--dink-volt)]" : "text-amber-300"}`}
                   >
                     {court.status.replaceAll("_", " ")}
                   </p>
@@ -135,7 +135,7 @@ function ManagedCourtEditor({
                   aria-hidden="true"
                 />
               </div>
-              <p className="mt-3 break-words text-sm text-slate-600">
+              <p className="mt-3 break-words text-sm text-[var(--muted-foreground)]">
                 {court.currentMatchId
                   ? `Active match ${court.currentMatchId}`
                   : "Ready for the next assignment"}
@@ -157,7 +157,7 @@ function ManagedCourtEditor({
                         ? "At least one court is required"
                         : undefined
                   }
-                  className="mt-auto min-h-10 self-start rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                  className="mt-auto min-h-10 self-start rounded-lg border border-red-300/50 px-3 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:border-white/15 disabled:text-white/40"
                 >
                   {pending && active === court.id
                     ? "Reducing…"

@@ -21,13 +21,15 @@ export default async function LoginPage({
   if (user) redirect(next);
 
   return (
-    <main className="mx-auto max-w-lg p-6">
-      <p className="courtside-kicker">Back to the court</p>
-      <h1>Welcome back.</h1>
-      <p>Log in to find your next match and follow your progress.</p>
+    <main className="auth-main">
+      <p className="auth-kicker">Welcome back</p>
+      <h1>Log in to UNEX</h1>
+      <p className="auth-sub">
+        Find your next match and follow your progress.
+      </p>
       <GoogleAuthButton next={next} />
       <LoginForm next={next} />
-      <div className="mt-4 flex gap-4">
+      <div className="auth-links">
         <Link href="/recover">Forgot password?</Link>
         <Link href="/register">Create account</Link>
       </div>

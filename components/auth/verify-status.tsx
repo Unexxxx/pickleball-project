@@ -50,7 +50,7 @@ export function VerifyStatus() {
             </label>
             <button
               disabled={pending}
-              className="bg-emerald-700 p-3 text-white disabled:opacity-60"
+              className="bg-[var(--dink-volt)] p-3 text-[var(--dink-volt-ink)] disabled:opacity-60"
             >
               {pending ? "Sending…" : "Send a new verification email"}
             </button>

@@ -41,13 +41,13 @@ export default async function CourtsPage({
   return (
     <main className="space-y-5">
       <header>
-        <p className="text-sm font-bold uppercase tracking-[0.14em] text-emerald-800">
+        <p className="text-sm font-bold uppercase tracking-[0.14em] text-[var(--dink-volt)]">
           Event operations
         </p>
-        <h1 className="text-4xl font-bold tracking-tight text-emerald-950 sm:text-5xl">
+        <h1 className="text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl">
           Courts
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-[var(--muted-foreground)]">
           {event.name} court availability and player assignments.
         </p>
       </header>
