@@ -14,6 +14,19 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - name: Export local Supabase credentials
+        run: |
+          supabase status -o json > "$RUNNER_TEMP/supabase.json"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$(jq -r .API_URL "$RUNNER_TEMP/supabase.json")"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(jq -r .ANON_KEY "$RUNNER_TEMP/supabase.json")"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$(jq -r .SERVICE_ROLE_KEY "$RUNNER_TEMP/supabase.json")"
+            echo "NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000"
+          } >> "$GITHUB_ENV"
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
