@@ -250,6 +250,10 @@
   color: var(--muted-foreground);
   margin: 12px 0;
 }
+.queue-reason-field {
+  margin: 0 0 12px;
+  max-width: 28rem;
+}
 .bench-board .organizer-queue-list > li {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;

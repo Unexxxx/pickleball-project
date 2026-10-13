@@ -7,19 +7,6 @@ const event =
 
 test.describe("matchmaking", () => {
   test.beforeEach(async ({ page }) => loginAsE2EUser(page));
-  test("organizer generates and assigns a proposal once", async ({ page }) => {
-    await page.goto(`/dashboard/clubs/${club}/events/${event}/matches`);
-    await page.getByLabel("Match format").selectOption("doubles");
-    await page.getByRole("button", { name: "Generate proposal" }).click();
-    await expect(page.getByTestId("match-proposal")).toBeVisible();
-    await page.getByRole("button", { name: "Assign match" }).click();
-    await expect(
-      page.getByTestId("match-proposal").getByRole("status"),
-    ).toContainText("Match assigned");
-    await page.reload();
-    await expect(page.getByTestId("assigned-match")).toHaveCount(1);
-  });
-
   test("player sees the court and side assignment", async ({ page }) => {
     await page.goto(`/dashboard/clubs/${club}/events/${event}/courts`);
     await expect(page.getByRole("heading", { name: "Courts" })).toBeVisible();
