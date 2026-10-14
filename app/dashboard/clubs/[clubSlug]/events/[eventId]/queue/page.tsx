@@ -25,6 +25,7 @@ export default async function QueuePage({
     { data: completedMatches },
     { data: courts },
     { data: membership },
+    { data: reservedSlots, error: reservedSlotsError },
   ] = await Promise.all([
     s
       .from("events")
@@ -59,6 +60,7 @@ export default async function QueuePage({
       .eq("player_id", playerId ?? "")
       .eq("status", "active")
       .maybeSingle(),
+    s.rpc("event_rotation_slot_sizes", { p_event_id: eventId }),
   ]);
   if (!data) notFound();
   const competitionPlayerIds = [
@@ -156,10 +158,18 @@ export default async function QueuePage({
       rating: playerCompetition.get(q.player_id)?.rating,
     }))
     .sort((a, b) => a.position - b.position) satisfies QueueItem[];
-  const format =
-    data.formats.includes("singles") && !data.formats.includes("doubles")
-      ? "singles"
-      : "doubles";
+  const format = data.formats[0] === "singles" ? "singles" : "doubles";
+  // Queue order lists the saved Standby/Upcoming lineups first; only those
+  // players are reserved, everyone after them is on the bench.
+  const playersPerMatch = format === "singles" ? 2 : 4;
+  const slotSizes = reservedSlotsError
+    ? // Database not yet migrated: fall back to the first two lineups by position.
+      [
+        Math.min(playersPerMatch, queue.length),
+        Math.min(playersPerMatch, Math.max(0, queue.length - playersPerMatch)),
+      ].filter((size) => size > 0)
+    : (reservedSlots ?? []);
+  const reservedCount = slotSizes.reduce((total, size) => total + size, 0);
   const ownReadyIndex = queue.findIndex((entry) => entry.playerId === playerId);
   const ownAssigned = data.event_queue_entries.some(
     (entry) => entry.player_id === playerId && entry.state === "assigned",
@@ -258,6 +268,7 @@ export default async function QueuePage({
         )}
         queueVersion={data.queue_version}
         matchDurationMinutes={configuredDuration}
+        reservedSlots={slotSizes}
       />
       {membership?.role === "owner" || membership?.role === "organizer" ? (
         <QueueCard
@@ -269,7 +280,7 @@ export default async function QueuePage({
       <QueueBoard
         clubId={club.id}
         eventId={eventId}
-        entries={queue.slice(format === "singles" ? 4 : 8)}
+        entries={queue.slice(reservedCount)}
         canManage={
           membership?.role === "owner" || membership?.role === "organizer"
         }

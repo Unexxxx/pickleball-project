@@ -55,6 +55,33 @@ describe("event contracts", () => {
         idempotencyKey: crypto.randomUUID(),
       }).success,
     ).toBe(false));
+  it("requires exactly one match format", () => {
+    const base = {
+      clubId: id,
+      type: "open_play",
+      name: "Singles Night",
+      venue: "Central Courts",
+      mapUrl: null,
+      notes: null,
+      startsAt: daysFromNow(30, 10),
+      endsAt: daysFromNow(30, 12),
+      capacity: 16,
+      courtCount: 4,
+      recordClass: "unranked",
+      initialStatus: "published",
+      isPrivate: false,
+      accessCode: null,
+      idempotencyKey: crypto.randomUUID(),
+    };
+    expect(
+      eventSchema.safeParse({ ...base, formats: ["singles"] }).success,
+    ).toBe(true);
+    expect(
+      eventSchema.safeParse({ ...base, formats: ["singles", "doubles"] })
+        .success,
+    ).toBe(false);
+    expect(eventSchema.safeParse({ ...base, formats: [] }).success).toBe(false);
+  });
   it("rejects invalid lifecycle transitions", () =>
     expect(
       eventTransitionSchema.safeParse({

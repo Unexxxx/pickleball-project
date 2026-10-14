@@ -21,7 +21,8 @@ export const eventSchema = z
       .min(2, "Use at least 2 players")
       .max(1000),
     courtCount: z.coerce.number().int().min(1, "Use at least 1 court").max(100),
-    formats: z.array(z.enum(["singles", "doubles"])).min(1),
+    // An event is either singles or doubles (events_single_format).
+    formats: z.array(z.enum(["singles", "doubles"])).length(1),
     recordClass: z.enum(["ranked", "unranked"]),
     initialStatus: z.enum(["draft", "published"]),
     isPrivate: z.coerce.boolean(),

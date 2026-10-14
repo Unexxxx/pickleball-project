@@ -1,9 +1,13 @@
-// Usage: ROTATION_PGLITE_PATH=/path/to/@electric-sql/pglite/dist/index.js node scripts/test-rotation-database.mjs
+// Usage: npm run test:rotation
+// (ROTATION_PGLITE_PATH=/path/to/@electric-sql/pglite/dist/index.js overrides
+// the installed @electric-sql/pglite package.)
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 const { PGlite } = await import(
-  pathToFileURL(process.env.ROTATION_PGLITE_PATH)
+  process.env.ROTATION_PGLITE_PATH
+    ? pathToFileURL(process.env.ROTATION_PGLITE_PATH).href
+    : "@electric-sql/pglite"
 );
 const db = new PGlite();
 const load = async (path) => db.exec(await readFile(path, "utf8"));
@@ -14,6 +18,8 @@ await load(
   "supabase/migrations/202609050050_queue_reorder_and_upcoming_replacement.sql",
 );
 await load("supabase/migrations/202609080050_rotation_matchmaking_v3.sql");
+await load("supabase/migrations/202610140020_single_format_events.sql");
+await load("supabase/migrations/202610140030_rotation_rank_and_slots.sql");
 const id = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const event = id(100),
   club = id(101),
@@ -288,7 +294,78 @@ const [{ single }] = await query(
 );
 assert.equal(single.entryIds.length, 2);
 assert.ok(single.entryIds.includes(id(1)));
+// Events carry exactly one format.
+await assert.rejects(
+  query(
+    "insert into public.events(id,club_id,formats) values($1,$2,array['singles','doubles'])",
+    [id(600), club],
+  ),
+  (e) => e.message.includes("events_single_format"),
+);
+// Private profiles keep their real overall rank. All four share the default
+// rating, so rank decides: #1 should partner #4 (25%+100% vs 50%+75%).
+const rankEvent = id(601);
+await query("insert into public.events(id,club_id) values($1,$2)", [
+  rankEvent,
+  club,
+]);
+await db.exec("begin");
+for (let n = 1; n <= 4; n++) {
+  await query("insert into public.players(id,visibility) values($1,$2)", [
+    id(700 + n),
+    n === 1 ? "private" : "public",
+  ]);
+  await query("insert into public.accounts values($1,now())", [id(700 + n)]);
+  await query(
+    "insert into public.leaderboard_entries(scope,player_id,rating,wins) values('overall',$1,$2,1)",
+    [id(700 + n), 1800 - n * 100],
+  );
+  await query(
+    "insert into public.event_queue_entries(id,club_id,event_id,player_id,position_key,position_sequence) values($1,$2,$3,$4,$5,$5)",
+    [id(800 + n), club, rankEvent, id(700 + n), n * 1000],
+  );
+}
+await db.exec("commit");
+const [rankSlot] = await query(
+  "select entry_ids,metrics from private.event_rotation_lineups where event_id=$1",
+  [rankEvent],
+);
+const teamOf = (entry) => (rankSlot.entry_ids.indexOf(entry) < 2 ? "A" : "B");
+assert.equal(teamOf(id(801)), teamOf(id(804)), "rank #1 partners rank #4");
+assert.ok(Number(rankSlot.metrics.rankPercentileDifference) < 0.00001);
+// Slot sizes report only saved reservations: 3 singles players fill Standby
+// (2) and leave Upcoming unreserved.
+assert.deepEqual(
+  (await query("select public.event_rotation_slot_sizes($1) s", [event]))[0].s,
+  [4, 4],
+);
+const singlesEvent = id(602);
+await query(
+  "insert into public.events(id,club_id,formats) values($1,$2,array['singles'])",
+  [singlesEvent, club],
+);
+await db.exec("begin");
+for (let n = 1; n <= 3; n++) {
+  await query("insert into public.players values($1)", [id(900 + n)]);
+  await query("insert into public.accounts values($1,now())", [id(900 + n)]);
+  await query(
+    "insert into public.event_queue_entries(id,club_id,event_id,player_id,position_key,position_sequence) values($1,$2,$3,$4,$5,$5)",
+    [id(950 + n), club, singlesEvent, id(900 + n), n * 1000],
+  );
+}
+await db.exec("commit");
+assert.deepEqual(
+  (
+    await query("select public.event_rotation_slot_sizes($1) s", [singlesEvent])
+  )[0].s,
+  [2],
+);
+await query("select set_config('test.actor','',false)");
+await assert.rejects(
+  query("select public.event_rotation_slot_sizes($1)", [event]),
+  (e) => e.detail === "PERMISSION_DENIED",
+);
 console.log(
-  "PASS: stable reservations, idempotent assignment, preview parity, 55-match rotation, checkout repair, late arrival, bench moves, upcoming replacement, organizer permissions, skill balance, singles selector.",
+  "PASS: stable reservations, idempotent assignment, preview parity, 55-match rotation, checkout repair, late arrival, bench moves, upcoming replacement, organizer permissions, skill balance, singles selector, single-format events, private-profile ranks, reserved slot sizes.",
 );
 await db.close();

@@ -130,6 +130,7 @@ export function LiveEventBoard({
   courtAvailable,
   queueVersion,
   matchDurationMinutes,
+  reservedSlots,
 }: {
   matches: LiveCourtMatch[];
   queue: QueueItem[];
@@ -142,12 +143,22 @@ export function LiveEventBoard({
   courtAvailable: boolean;
   queueVersion: number;
   matchDurationMinutes: number;
+  /** Sizes of the lineups the database has saved, Standby first. */
+  reservedSlots: number[];
 }) {
   const playersPerMatch = format === "singles" ? 2 : 4;
-  const standby = queue.slice(0, playersPerMatch);
-  const waiting = queue.slice(playersPerMatch);
-  const upcoming = waiting.slice(0, playersPerMatch);
-  const bench = waiting.slice(playersPerMatch);
+  const standbySize = reservedSlots[0] ?? 0;
+  const upcomingSize = reservedSlots[1] ?? 0;
+  const standby = queue.slice(0, standbySize);
+  const waiting = queue.slice(standbySize);
+  const upcoming = waiting.slice(0, upcomingSize);
+  const bench = waiting.slice(upcomingSize);
+  // Players still needed before the database can save each lineup.
+  const standbyShortfall = Math.max(0, playersPerMatch - queue.length);
+  const upcomingShortfall = Math.max(
+    0,
+    playersPerMatch - (queue.length - standbySize),
+  );
   const [handoffCourt, setHandoffCourt] = useState<string | null>(null);
   const closeHandoff = useCallback(() => setHandoffCourt(null), []);
 
@@ -257,14 +268,12 @@ export function LiveEventBoard({
                 />
               )
             ) : (
-              <p className="live-stage-empty">
-                No players are waiting on standby.
-              </p>
+              <p className="live-stage-empty">No lineup is on standby yet.</p>
             )}
-            {standby.length > 0 && standby.length < playersPerMatch ? (
+            {standby.length < playersPerMatch && standbyShortfall > 0 ? (
               <p className="live-waiting-note">
-                Waiting for {playersPerMatch - standby.length} more{" "}
-                {playersPerMatch - standby.length === 1 ? "player" : "players"}.
+                Waiting for {standbyShortfall} more{" "}
+                {standbyShortfall === 1 ? "player" : "players"}.
               </p>
             ) : null}
             {canManage ? (
@@ -323,7 +332,18 @@ export function LiveEventBoard({
                 </article>
               </div>
             ) : (
-              <p className="live-stage-empty">No upcoming lineup is waiting.</p>
+              <>
+                <p className="live-stage-empty">
+                  No upcoming lineup is waiting.
+                </p>
+                {standby.length === playersPerMatch && upcomingShortfall > 0 ? (
+                  <p className="live-waiting-note">
+                    Forms when {upcomingShortfall} more{" "}
+                    {upcomingShortfall === 1 ? "player is" : "players are"}{" "}
+                    waiting.
+                  </p>
+                ) : null}
+              </>
             )}
           </section>
         </div>

@@ -2460,6 +2460,10 @@ export type Database = {
           version: number;
         }[];
       };
+      event_rotation_slot_sizes: {
+        Args: { p_event_id: string };
+        Returns: number[];
+      };
       replace_standby_player: {
         Args: {
           p_event_id: string;

@@ -187,7 +187,7 @@ await one(
     starts_at: startsAt,
     ends_at: endsAt,
     capacity: 20,
-    formats: ["singles", "doubles"],
+    formats: ["doubles"],
     record_class: "ranked",
     status: "published",
     join_code: "HOSTED-E2E",
