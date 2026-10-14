@@ -32,7 +32,7 @@ test("disposable hosted account reaches its dashboard", async ({ page }) => {
   );
   await loginAsE2EUser(page);
   await expect(
-    page.getByRole("heading", { name: "Your next game starts here." }),
+    page.getByRole("heading", { level: 1, name: /^Hi, / }),
   ).toBeVisible();
   await page.goto("/login?next=%2Fdashboard");
   await expect(page).toHaveURL(/\/dashboard$/);

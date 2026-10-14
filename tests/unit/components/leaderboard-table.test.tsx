@@ -25,8 +25,6 @@ describe("leaderboard rating display", () => {
         ]}
       />,
     );
-    expect(
-      screen.getByRole("cell", { name: display }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: display })).toBeInTheDocument();
   });
 });

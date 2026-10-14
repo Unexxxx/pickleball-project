@@ -13,7 +13,9 @@ export default async function Page({
         "match_id,effect_state,calculation_version,score,winner_side,format,record_class,result_status,has_revision_history",
       )
       .eq("match_id", matchId)
-      .single();
+      // The view has one row per participant; these columns are match-level.
+      .limit(1)
+      .maybeSingle();
   if (!data) notFound();
   return (
     <main>

@@ -6,6 +6,12 @@ import {
   registrationSchema,
 } from "@/lib/validation/events";
 const id = crypto.randomUUID();
+const daysFromNow = (days: number, hour: number) => {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + days);
+  date.setUTCHours(hour, 0, 0, 0);
+  return date.toISOString();
+};
 describe("event contracts", () => {
   it("accepts an open-play event", () =>
     expect(
@@ -16,8 +22,8 @@ describe("event contracts", () => {
         venue: "Central Courts",
         mapUrl: "https://maps.google.com/?q=Central+Courts",
         notes: "Bring water.\nRespect court rotations.",
-        startsAt: "2026-10-01T10:00:00.000Z",
-        endsAt: "2026-10-01T12:00:00.000Z",
+        startsAt: daysFromNow(30, 10),
+        endsAt: daysFromNow(30, 12),
         capacity: 16,
         courtCount: 4,
         formats: ["doubles"],
@@ -67,8 +73,8 @@ describe("event contracts", () => {
       venue: "Central Courts",
       mapUrl: null,
       notes: null,
-      startsAt: "2026-10-01T10:00:00.000Z",
-      endsAt: "2026-10-01T12:00:00.000Z",
+      startsAt: daysFromNow(30, 10),
+      endsAt: daysFromNow(30, 12),
       capacity: 16,
       courtCount: 4,
       formats: ["doubles"],
@@ -103,8 +109,8 @@ describe("event contracts", () => {
         venue: "Central Courts",
         mapUrl: "https://maps.google.com/?q=Central+Courts",
         notes: "New schedule. Bring water.",
-        startsAt: "2026-10-02T10:00:00.000Z",
-        endsAt: "2026-10-02T12:00:00.000Z",
+        startsAt: daysFromNow(31, 10),
+        endsAt: daysFromNow(31, 12),
         capacity: 20,
         idempotencyKey: crypto.randomUUID(),
       }).success,

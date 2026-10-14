@@ -7,3 +7,6 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 supabase/.temp/
+.claude/
+.codex/
+graphify-out/

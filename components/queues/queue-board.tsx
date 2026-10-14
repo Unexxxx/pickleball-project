@@ -18,6 +18,15 @@ export function QueueBoard({
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
+  const [reason, setReason] = useState("");
+  const moveReason = (fallback: string) => {
+    const note = reason.trim();
+    if (note && note.length < 3) {
+      setMsg("A reason needs at least 3 characters, or leave it blank.");
+      return null;
+    }
+    return note || fallback;
+  };
   return (
     <section
       className="organizer-queue-board bench-board"
@@ -36,6 +45,17 @@ export function QueueBoard({
         Wins, losses and win rate are for finalized results in this event.
         Rating is your current overall rating.
       </p>
+      {canManage && entries.length > 1 ? (
+        <label className="queue-reason-field">
+          Reason for the next move (optional)
+          <input
+            value={reason}
+            maxLength={300}
+            placeholder="e.g. Arrived early"
+            onChange={(event) => setReason(event.target.value)}
+          />
+        </label>
+      ) : null}
       {entries.length ? (
         <div
           className="bench-scroll"
@@ -96,6 +116,8 @@ export function QueueBoard({
                       disabled={index === 0 || busyId !== null}
                       aria-label={`Move ${entry.displayName ?? "player"} up`}
                       onClick={async () => {
+                        const note = moveReason("Organizer moved player up");
+                        if (!note) return;
                         setBusyId(entry.id);
                         const result = await adjustQueue({
                           clubId,
@@ -103,7 +125,7 @@ export function QueueBoard({
                           queueEntryId: entry.id,
                           expectedVersion: entry.version ?? 1,
                           beforeEntryId: entries[index - 1]?.id ?? null,
-                          reason: "Organizer moved player up",
+                          reason: note,
                           idempotencyKey: crypto.randomUUID(),
                         });
                         setMsg(
@@ -112,7 +134,10 @@ export function QueueBoard({
                             : result.error.message,
                         );
                         setBusyId(null);
-                        if (result.ok) router.refresh();
+                        if (result.ok) {
+                          setReason("");
+                          router.refresh();
+                        }
                       }}
                     >
                       <ChevronUp aria-hidden="true" size={17} />
@@ -124,6 +149,8 @@ export function QueueBoard({
                       onClick={async () => {
                         const next = entries[index + 1];
                         if (!next) return;
+                        const note = moveReason("Organizer moved player down");
+                        if (!note) return;
                         setBusyId(entry.id);
                         const result = await adjustQueue({
                           clubId,
@@ -131,7 +158,7 @@ export function QueueBoard({
                           queueEntryId: next.id,
                           expectedVersion: next.version ?? 1,
                           beforeEntryId: entry.id,
-                          reason: "Organizer moved player down",
+                          reason: note,
                           idempotencyKey: crypto.randomUUID(),
                         });
                         setMsg(
@@ -140,7 +167,10 @@ export function QueueBoard({
                             : result.error.message,
                         );
                         setBusyId(null);
-                        if (result.ok) router.refresh();
+                        if (result.ok) {
+                          setReason("");
+                          router.refresh();
+                        }
                       }}
                     >
                       <ChevronDown aria-hidden="true" size={17} />

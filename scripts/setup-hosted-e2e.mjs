@@ -136,7 +136,8 @@ for (let index = 1; index <= 4; index += 1) {
   fixturePlayers.push(playerId);
 }
 
-const startsAt = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+// events_future_schedule rejects a start time that is already past.
+const startsAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 const endsAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 const existingMatches = await one(
   client.from("matches").select("id").eq("event_id", eventId),

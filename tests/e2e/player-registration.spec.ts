@@ -4,7 +4,7 @@ test("registration exposes verification and recovery paths", async ({
 }) => {
   await page.goto("/register");
   await expect(
-    page.getByRole("heading", { name: "Create your player account" }),
+    page.getByRole("heading", { name: "Your game starts here." }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Continue with Google" }),

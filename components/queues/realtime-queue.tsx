@@ -56,18 +56,25 @@ export function RealtimeQueue({
     );
     const online = () => void refresh();
     window.addEventListener("online", online);
-    window.addEventListener("offline", () => setStale(true));
+    const offline = () => setStale(true);
+    window.addEventListener("offline", offline);
     return () => {
       unsubscribe();
       window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
     };
   }, [clubId, initial.eventId, router]);
   return (
-    <div className={`queue-sync-status${stale ? " is-stale" : ""}`} role="status">
-      {stale ? <WifiOff aria-hidden="true" size={17} /> : <Wifi aria-hidden="true" size={17} />}
-      <span>
-        {stale ? "Offline — queue may be stale" : "Queue is current"}
-      </span>
+    <div
+      className={`queue-sync-status${stale ? " is-stale" : ""}`}
+      role="status"
+    >
+      {stale ? (
+        <WifiOff aria-hidden="true" size={17} />
+      ) : (
+        <Wifi aria-hidden="true" size={17} />
+      )}
+      <span>{stale ? "Offline — queue may be stale" : "Queue is current"}</span>
       <span data-testid="queue-version" data-version={snapshot.eventVersion} />
     </div>
   );

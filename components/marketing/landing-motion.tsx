@@ -120,7 +120,9 @@ export function LandingMotion() {
     // the very top of the viewport and flip a class when a light section is
     // underneath it.
     const header = document.querySelector<HTMLElement>(".site-header");
-    const lightBands = document.querySelectorAll(".ls-steps-section, .ls-final-cta, .ls-footer");
+    const lightBands = document.querySelectorAll(
+      ".ls-steps-section, .ls-final-cta, .ls-footer",
+    );
     const overlap = new Set<Element>();
     const lightObserver = new IntersectionObserver(
       (entries) => {

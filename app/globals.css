@@ -178,7 +178,8 @@
 .dashboard-sections a:focus-visible {
   outline: 3px solid var(--primary);
   outline-offset: 3px;
-}.dashboard-sections {
+}
+.dashboard-sections {
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -248,6 +249,10 @@
   font-size: 0.85rem;
   color: var(--muted-foreground);
   margin: 12px 0;
+}
+.queue-reason-field {
+  margin: 0 0 12px;
+  max-width: 28rem;
 }
 .bench-board .organizer-queue-list > li {
   display: grid;
@@ -622,7 +627,11 @@ body {
   margin: 0;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 8% -5%, oklch(80% 0.19 125 / 0.1), transparent 25rem),
+    radial-gradient(
+      circle at 8% -5%,
+      oklch(80% 0.19 125 / 0.1),
+      transparent 25rem
+    ),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-body), Archivo, ui-sans-serif, system-ui, sans-serif;
@@ -979,7 +988,6 @@ button:disabled {
   padding: 0.75rem 1rem;
 }
 
-
 .overflow-x-auto:not(.event-nav) {
   overflow-x: auto;
   border: 1px solid var(--border);
@@ -1056,7 +1064,6 @@ pre {
   color: var(--primary);
   margin-bottom: 1rem;
 }
-
 
 .club-layout {
   display: grid;
@@ -2106,16 +2113,19 @@ pre {
   transition:
     border-color 180ms ease,
     background-color 180ms ease;
-}.event-directions__actions a:hover {
+}
+.event-directions__actions a:hover {
   border-color: var(--primary);
   background: var(--muted);
-}.event-notes-card {
+}
+.event-notes-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   padding: clamp(1rem, 3vw, 1.5rem);
   box-shadow: var(--shadow-sm);
-}.event-notes-card > .eyebrow {
+}
+.event-notes-card > .eyebrow {
   margin: 0 0 0.5rem;
 }
 .event-notes-content {
@@ -2343,7 +2353,11 @@ pre {
 }
 .live-stage--standby {
   border-color: var(--border);
-  background: linear-gradient(145deg, rgb(80 200 140 / 0.14), var(--surface) 65%);
+  background: linear-gradient(
+    145deg,
+    rgb(80 200 140 / 0.14),
+    var(--surface) 65%
+  );
 }
 .live-rotation-stack {
   display: grid;
@@ -2407,7 +2421,11 @@ pre {
   max-width: 640px;
   border-color: oklch(80% 0.19 125 / 0.45);
   border-radius: var(--radius-lg);
-  background: linear-gradient(145deg, oklch(80% 0.19 125 / 0.16), var(--surface) 70%);
+  background: linear-gradient(
+    145deg,
+    oklch(80% 0.19 125 / 0.16),
+    var(--surface) 70%
+  );
   padding: clamp(0.8rem, 2vw, 1rem);
   box-shadow: 0 12px 28px rgb(15 42 29 / 8%);
   transition:
@@ -2417,7 +2435,11 @@ pre {
 }
 .live-court-card:has(.match-timer.is-overtime) {
   border-color: rgb(255 140 130 / 0.5);
-  background: linear-gradient(145deg, rgb(255 120 110 / 0.16), rgb(255 120 110 / 0.16) 70%);
+  background: linear-gradient(
+    145deg,
+    rgb(255 120 110 / 0.16),
+    rgb(255 120 110 / 0.16) 70%
+  );
   animation: overtime-card-glow 1.8s ease-in-out infinite alternate;
 }
 .live-court-card__heading,
@@ -3426,7 +3448,8 @@ pre {
   border-radius: var(--radius-md);
   background: var(--surface);
   padding: 0.85rem;
-}.standby-replace-heading {
+}
+.standby-replace-heading {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -3441,10 +3464,12 @@ pre {
 .standby-replace-panel label {
   margin: 0;
   font-size: 0.78rem;
-}.standby-replace-panel select,
+}
+.standby-replace-panel select,
 .standby-replace-panel input {
   width: 100%;
-}.standby-replace-panel > button {
+}
+.standby-replace-panel > button {
   width: 100%;
   justify-content: center;
 }
@@ -4087,13 +4112,17 @@ form.grid button {
   background:
     /* Opaque at the very top so the hero's top edge is one flat color that
        matches the page root behind any overscroll. */
-    linear-gradient(180deg, oklch(15% 0.025 255) 0%, oklch(15% 0.025 255 / 0) 24vh),
     linear-gradient(
-    100deg,
-    oklch(15% 0.025 255 / 0.92) 0%,
-    oklch(15% 0.025 255 / 0.74) 42%,
-    oklch(15% 0.025 255 / 0.32) 78%
-  );
+      180deg,
+      oklch(15% 0.025 255) 0%,
+      oklch(15% 0.025 255 / 0) 24vh
+    ),
+    linear-gradient(
+      100deg,
+      oklch(15% 0.025 255 / 0.92) 0%,
+      oklch(15% 0.025 255 / 0.74) 42%,
+      oklch(15% 0.025 255 / 0.32) 78%
+    );
 }
 .ls-hero-inner {
   position: relative;
@@ -4258,7 +4287,7 @@ form.grid button {
 .ls-page {
   --ax-ink: oklch(18% 0.03 255);
   --ax-ink-soft: oklch(45% 0.02 255);
-  --ax-ink-faint: oklch(65% 0.015 255);
+  --ax-ink-faint: oklch(53% 0.015 255);
   --ax-paper: oklch(97.5% 0.008 90);
   --ax-line: oklch(87% 0.012 90);
   --ax-dark: oklch(15% 0.025 255);

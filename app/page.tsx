@@ -75,15 +75,18 @@ export default function HomePage() {
         <PinnedCourtHero />
 
         {/* HOW IT WORKS */}
-        <section className="ls-steps-section" aria-labelledby="how-it-works-title">
+        <section
+          className="ls-steps-section"
+          aria-labelledby="how-it-works-title"
+        >
           <div className="ls-container">
             <div className="ls-reveal ls-steps-heading">
               <h2 id="how-it-works-title" className="ls-section-title">
                 From check-in to court in three steps.
               </h2>
               <p className="ls-steps-lede">
-                No clipboards, no shouted names — everything below happens on
-                a screen at the courtside table.
+                No clipboards, no shouted names — everything below happens on a
+                screen at the courtside table.
               </p>
             </div>
             <div className="ls-steps-grid">
@@ -106,7 +109,10 @@ export default function HomePage() {
         </section>
 
         {/* FEATURE GRID */}
-        <section className="ls-features-section" aria-labelledby="features-title">
+        <section
+          className="ls-features-section"
+          aria-labelledby="features-title"
+        >
           <div className="ls-container">
             <h2
               id="features-title"
@@ -177,9 +183,9 @@ export default function HomePage() {
                 Run the whole session from one board.
               </h2>
               <p className="ls-preview-body">
-                Courts, check-in, standby and bench order stay in sync with
-                what players see on their phones — start to complete, without
-                a second app.
+                Courts, check-in, standby and bench order stay in sync with what
+                players see on their phones — start to complete, without a
+                second app.
               </p>
               <Link href="/dashboard" className="button">
                 Open the organizer view
@@ -244,13 +250,39 @@ export default function HomePage() {
         <footer className="ls-footer">
           <div>
             <div className="ls-footer-brand">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
                 <circle cx="12" cy="12" r="9" fill="var(--dink-volt)" />
                 <circle cx="9" cy="9.5" r="1.1" fill="var(--dink-volt-ink)" />
-                <circle cx="14.5" cy="8.5" r="1.1" fill="var(--dink-volt-ink)" />
-                <circle cx="15.5" cy="13.5" r="1.1" fill="var(--dink-volt-ink)" />
-                <circle cx="10.5" cy="14.5" r="1.1" fill="var(--dink-volt-ink)" />
-                <circle cx="12.2" cy="11.5" r="1.1" fill="var(--dink-volt-ink)" />
+                <circle
+                  cx="14.5"
+                  cy="8.5"
+                  r="1.1"
+                  fill="var(--dink-volt-ink)"
+                />
+                <circle
+                  cx="15.5"
+                  cy="13.5"
+                  r="1.1"
+                  fill="var(--dink-volt-ink)"
+                />
+                <circle
+                  cx="10.5"
+                  cy="14.5"
+                  r="1.1"
+                  fill="var(--dink-volt-ink)"
+                />
+                <circle
+                  cx="12.2"
+                  cy="11.5"
+                  r="1.1"
+                  fill="var(--dink-volt-ink)"
+                />
               </svg>
               <span>UNEX</span>
             </div>

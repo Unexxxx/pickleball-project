@@ -14,7 +14,9 @@ export default async function ClubPage({
   const supabase = await createClient();
   const { data: events } = await supabase
     .from("events")
-    .select("id,name,venue,starts_at,ends_at,status,record_class,join_code,is_private")
+    .select(
+      "id,name,venue,starts_at,ends_at,status,record_class,join_code,is_private",
+    )
     .eq("club_id", club.id)
     .order("starts_at", { ascending: true });
   const profileImageUrl = club.profile_image_path

@@ -22,6 +22,6 @@ test("mobile player can reach every courtside action without page overflow", asy
 test("mobile organizer sees assignments", async ({ page }) => {
   await page.goto(`/dashboard/clubs/${club}/events/${event}/matches`);
   await expect(
-    page.getByRole("heading", { name: "Match assignments" }),
+    page.getByRole("heading", { level: 1, name: "Matches" }),
   ).toBeVisible();
 });
