@@ -19,6 +19,17 @@ export default async function RegisterPage({
       <p>Use Google for the fastest setup, or create an account with email.</p>
       <GoogleAuthButton next={next} />
       <RegisterForm />
+      <p className="mt-4 text-sm">
+        By creating an account, you agree to the{" "}
+        <Link href="/terms" className="underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="underline">
+          Privacy Policy
+        </Link>
+        .
+      </p>
       <div className="mt-4 flex gap-4">
         <Link href="/login">Log in</Link>
         <Link href="/recover">Recover account</Link>

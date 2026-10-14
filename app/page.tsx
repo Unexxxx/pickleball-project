@@ -298,9 +298,9 @@ export default function HomePage() {
               <Link href="/leaderboards">Rankings</Link>
             </div>
             <div>
-              <span>ACCOUNT</span>
-              <Link href="/login">Log in</Link>
-              <Link href="/register">Create account</Link>
+              <span>LEGAL</span>
+              <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/terms">Terms of Service</Link>
             </div>
           </nav>
         </footer>

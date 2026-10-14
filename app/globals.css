@@ -5422,3 +5422,71 @@ main.ph {
     transform: none;
   }
 }
+
+/* Privacy Policy and Terms of Service (/privacy, /terms) */
+.legal-page {
+  max-width: 48rem;
+}
+.legal-kicker {
+  margin: 0 0 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.legal-page h1 {
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+}
+.legal-page header > p:last-child {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+}
+.legal-body section {
+  margin-top: 2.25rem;
+}
+.legal-body h2 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+}
+.legal-body p,
+.legal-body li {
+  line-height: 1.65;
+}
+.legal-body p {
+  margin: 0.75rem 0 0;
+}
+.legal-body ul {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 68ch;
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  color: var(--muted-foreground);
+  list-style: disc;
+}
+.legal-body strong {
+  color: var(--foreground);
+}
+.legal-page a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.legal-footer p {
+  margin: 0;
+}
+.legal-footer nav {
+  display: flex;
+  gap: 1.25rem;
+}
