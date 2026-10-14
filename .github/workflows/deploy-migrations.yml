@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - 001-club-leaderboard
-      # Lets the pending fix reach the hosted project before this branch is
-      # merged; remove after merging.
-      - claude/relaxed-bardeen-loxpz5
     paths:
       - supabase/migrations/**
       - .github/workflows/deploy-migrations.yml
