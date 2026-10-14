@@ -42,6 +42,21 @@ jobs:
           fi
           echo "::add-mask::${BASH_REMATCH[1]}"
           echo "SUPABASE_PROJECT_REF=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          # Accept a token pasted as NAME=value, quoted, padded, or copied from
+          # the CLI's macOS keychain entry (go-keyring-base64:<base64>).
+          token="$(printf '%s' "$SUPABASE_ACCESS_TOKEN" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^SUPABASE_ACCESS_TOKEN=//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")"
+          if [[ "$token" == go-keyring-base64:* ]]; then
+            token="$(printf '%s' "${token#go-keyring-base64:}" | base64 -d)"
+          fi
+          if [[ "$token" != sbp_* ]]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN must be a personal access token starting with sbp_ (create one at https://supabase.com/dashboard/account/tokens)"
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          echo "SUPABASE_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
+          password="$(printf '%s' "$SUPABASE_DB_PASSWORD" | tr -d '\r\n' | sed -e 's/^SUPABASE_DB_PASSWORD=//')"
+          echo "::add-mask::$password"
+          echo "SUPABASE_DB_PASSWORD=$password" >> "$GITHUB_ENV"
       - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - run: supabase migration list
       - run: supabase db push
