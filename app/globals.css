@@ -673,8 +673,8 @@ button,
   z-index: 100;
   translate: 0 -200%;
   border-radius: var(--radius-sm);
-  background: var(--foreground);
-  color: var(--foreground);
+  background: var(--dink-volt);
+  color: var(--dink-volt-ink);
   padding: 0.65rem 1rem;
   font-weight: 700;
 }
@@ -1865,7 +1865,7 @@ pre {
       rgb(216 242 79 / 0.3),
       transparent 17rem
     ),
-    var(--foreground);
+    var(--surface);
   color: var(--foreground);
   padding: clamp(1.35rem, 4vw, 3rem);
   box-shadow: var(--shadow-md);
