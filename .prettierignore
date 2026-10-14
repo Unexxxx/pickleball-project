@@ -9,4 +9,5 @@ yarn.lock
 supabase/.temp/
 .claude/
 .codex/
+.agents/
 graphify-out/

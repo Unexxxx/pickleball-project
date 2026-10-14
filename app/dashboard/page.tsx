@@ -1,410 +1,286 @@
 import Link from "next/link";
-import {
-  CalendarDays,
-  Plus,
-  Trophy,
-  UserRound,
-  Users,
-  History,
-  Radio,
-  Search,
-} from "lucide-react";
-import { ClubForm } from "@/components/clubs/club-form";
-import { ClubSwitcher } from "@/components/clubs/club-switcher";
-import { requireUser } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { ArrowRight, Trophy } from "lucide-react";
+import { EventRow } from "@/components/dashboard/event-row";
+import { PlayHero } from "@/components/dashboard/play-hero";
 import { currentPlayerId } from "@/lib/auth/authorization";
+import { requireUser } from "@/lib/auth/session";
 import {
-  PlayerEventHub,
-  type JoinedEvent,
-} from "@/components/events/player-event-hub";
+  getClubsToDiscover,
+  getHostedEvents,
+  getJoinedEvents,
+  getLivePublicEvents,
+  getMyClubs,
+  getPlayStatus,
+  getUpcomingPublicEvents,
+  hostedClubIds,
+} from "@/lib/queries/player-home";
+import { createClient } from "@/lib/supabase/server";
+
+// Links from before the navigation overhaul pointed at ?view=… tabs here.
+const LEGACY_VIEWS: Record<string, string> = {
+  live: "/dashboard#live-now",
+  discover: "/dashboard/events?tab=discover",
+  clubs: "/dashboard/clubs",
+  search: "/dashboard/search",
+  joined: "/dashboard/events",
+};
+
 export default async function Dashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[]; view?: string }>;
+  searchParams: Promise<{ view?: string; q?: string }>;
 }) {
   await requireUser();
-  const supabase = await createClient();
   const params = await searchParams;
-  const input = params.q;
-  const view = ["live", "discover", "clubs", "search"].includes(
-    params.view ?? "",
-  )
-    ? params.view
-    : "joined";
-  const q = (typeof input === "string" ? input : "").trim().slice(0, 80);
-  const pattern = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
+  if (params.q) redirect(`/dashboard/search?q=${encodeURIComponent(params.q)}`);
+  const legacy = params.view ? LEGACY_VIEWS[params.view] : undefined;
+  if (legacy) redirect(legacy);
+
+  const supabase = await createClient();
   const playerId = await currentPlayerId();
-  const { data: profile } = playerId
-    ? await supabase
-        .from("players")
-        .select("display_name,public_slug")
-        .eq("id", playerId)
-        .maybeSingle()
-    : { data: null };
-  const joined = playerId
-    ? await supabase
-        .from("event_registrations")
-        .select(
-          "status,events!inner(id,name,venue,starts_at,ends_at,status,join_code,clubs(name,slug,timezone))",
-        )
-        .eq("player_id", playerId)
-        .in("status", ["confirmed", "waitlisted"])
-        .in("events.status", [
-          "published",
-          "registration_closed",
-          "in_progress",
-        ])
-    : null;
-  const joinedEvents: JoinedEvent[] = (joined?.data ?? [])
-    .flatMap((row) => {
-      const event = row.events;
-      const club = event?.clubs;
-      if (
-        !event ||
-        !club ||
-        (event.status !== "in_progress" &&
-          new Date(event.ends_at).getTime() < new Date().getTime())
-      )
-        return [];
-      return [
-        {
-          ...event,
-          clubSlug: club.slug,
-          clubName: club.name,
-          timezone: club.timezone,
-          registration: row.status,
-        },
-      ];
-    })
-    .sort(
-      (a, b) =>
-        Number(b.status === "in_progress") -
-          Number(a.status === "in_progress") ||
-        Date.parse(a.starts_at) - Date.parse(b.starts_at),
+  if (!playerId)
+    return (
+      <main className="ph">
+        <p role="alert">
+          Your player profile could not be loaded. Please refresh and try again.
+        </p>
+      </main>
     );
-  const results =
-    q.length >= 2
-      ? await Promise.all([
-          supabase
-            .from("public_player_profiles")
-            .select("player_id,display_name,public_slug")
-            .ilike("display_name", pattern)
-            .order("display_name")
-            .limit(12),
-          supabase
-            .from("clubs")
-            .select("id,name,slug")
-            .ilike("name", pattern)
-            .order("name")
-            .limit(12),
-          supabase
-            .from("events")
-            .select("id,name,join_code,status")
-            .eq("is_private", false)
-            .in("status", ["published", "registration_closed", "in_progress"])
-            .ilike("name", pattern)
-            .order("starts_at")
-            .limit(12),
-        ])
-      : null;
-  const { data: events } = await supabase
-    .from("events")
-    .select(
-      "id,club_id,name,venue,starts_at,status,record_class,join_code,is_private,clubs(name,slug)",
-    )
-    .eq("status", "published")
-    .eq("is_private", false)
-    .gte("ends_at", new Date().toISOString())
-    .order("starts_at", { ascending: true })
-    .limit(24);
+
+  const [
+    { data: profile },
+    joined,
+    myClubs,
+    live,
+    upcoming,
+    { data: stats },
+    { data: ranking },
+  ] = await Promise.all([
+    supabase
+      .from("players")
+      .select("display_name,public_slug")
+      .eq("id", playerId)
+      .maybeSingle(),
+    getJoinedEvents(supabase, playerId),
+    getMyClubs(supabase, playerId),
+    getLivePublicEvents(supabase, 4),
+    getUpcomingPublicEvents(supabase, 8),
+    supabase
+      .from("public_player_statistics")
+      .select("rating,wins,losses")
+      .eq("player_id", playerId)
+      .maybeSingle(),
+    supabase
+      .from("public_leaderboards")
+      .select("rank,rating")
+      .eq("scope", "overall")
+      .eq("player_id", playerId)
+      .maybeSingle(),
+  ]);
+  const [status, hosted, discoverClubs] = await Promise.all([
+    getPlayStatus(supabase, playerId, joined.events),
+    getHostedEvents(supabase, hostedClubIds(myClubs)),
+    getClubsToDiscover(
+      supabase,
+      myClubs.map((c) => c.id),
+      3,
+    ),
+  ]);
+
+  const heroEventId = status.kind === "idle" ? null : status.event.id;
+  const comingUp = joined.events.filter((e) => e.id !== heroEventId);
+  const joinedIds = new Set(joined.events.map((e) => e.id));
+  const openEvents = upcoming.events
+    .filter((e) => !joinedIds.has(e.id))
+    .slice(0, 4);
+  const firstName = profile?.display_name?.split(" ")[0] || "player";
 
   return (
-    <main className="player-dashboard dash-home">
-      <header className="player-dashboard-welcome">
-        <Link
-          className="dashboard-avatar"
-          href="/dashboard/profile"
-          aria-label="My profile"
-        >
-          {profile?.display_name?.slice(0, 1).toUpperCase() || (
-            <UserRound size={24} />
-          )}
-        </Link>
-        <div>
-          <p className="eyebrow">Your player hub</p>
-          <h1>Hi, {profile?.display_name?.split(" ")[0] || "player"}</h1>
-          <p>Play together. Find your next match.</p>
-        </div>
-        <Link
-          className="dashboard-search-shortcut"
-          href="/dashboard?view=search#search-heading"
-          aria-label="Search people, clubs and events"
-        >
-          <Search size={22} />
-        </Link>
-      </header>
-      {!q && view === "joined" && (
-        <section className="dash-focus" aria-labelledby="focus-heading">
-          <div className="dash-focus-copy">
-            <p className="dash-kicker">
-              {joinedEvents[0]?.status === "in_progress"
-                ? "The courts are live"
-                : joinedEvents.length
-                  ? "Coming up for you"
-                  : "Your next chapter"}
-            </p>
-            <h2 id="focus-heading">
-              {joinedEvents[0]?.name ?? "Good games start with showing up."}
-            </h2>
-            <p>
-              {joinedEvents[0]
-                ? `${joinedEvents[0].clubName} · ${joinedEvents[0].venue}`
-                : "Find your people, join an event, and let your game do the talking."}
-            </p>
-            <Link
-              className="button"
-              href={
-                joinedEvents[0]
-                  ? joinedEvents[0].status === "in_progress" &&
-                    joinedEvents[0].registration === "confirmed"
-                    ? `/dashboard/clubs/${joinedEvents[0].clubSlug}/events/${joinedEvents[0].id}/queue`
-                    : `/join/${joinedEvents[0].join_code}`
-                  : "/dashboard?view=discover"
-              }
-            >
-              {joinedEvents[0]
-                ? joinedEvents[0].status === "in_progress" &&
-                  joinedEvents[0].registration === "confirmed"
-                  ? "Follow the live queue"
-                  : "View your event"
-                : "Find a game"}
-            </Link>
-          </div>
-          <div className="dash-court" aria-hidden="true">
-            <span />
-          </div>
-        </section>
-      )}
-      <nav className="dash-links" aria-label="Quick access">
-        {[
-          { label: "My events", href: "/dashboard", icon: CalendarDays },
-          { label: "Live queue", href: "/dashboard?view=live", icon: Radio },
-          { label: "Rankings", href: "/leaderboards", icon: Trophy },
-          { label: "My clubs", href: "/dashboard?view=clubs", icon: Users },
-          {
-            label: "My history",
-            href: profile?.public_slug
-              ? `/players/${profile.public_slug}#recent-matches-title`
-              : "/dashboard/profile",
-            icon: History,
-          },
-          { label: "My profile", href: "/dashboard/profile", icon: UserRound },
-        ].map(({ label, href, icon: Icon }) => (
-          <Link key={label} href={href}>
-            <Icon size={24} aria-hidden="true" />
-            <span>{label}</span>
-          </Link>
-        ))}
-      </nav>
-      <nav className="dashboard-sections" aria-label="Dashboard sections">
-        {[
-          ["joined", "Joined"],
-          ["live", "Live now"],
-          ["discover", "Discover"],
-          ["clubs", "My clubs"],
-          ["search", "Search"],
-        ].map(([key, label]) => (
-          <Link
-            key={key}
-            href={`/dashboard?view=${key}`}
-            aria-current={view === key && !q ? "page" : undefined}
-          >
-            {label}
-            {key === "live" &&
-            joinedEvents.some((e) => e.status === "in_progress") ? (
-              <span className="dashboard-live-count">
-                {joinedEvents.filter((e) => e.status === "in_progress").length}
-              </span>
-            ) : null}
-          </Link>
-        ))}
-      </nav>
+    <main className="ph">
+      <h1 className="ph-greeting">Hi, {firstName}</h1>
 
-      {(view === "search" || q) && (
-        <section className="player-hub" aria-labelledby="search-heading">
-          <h2 id="search-heading">Find your community</h2>
-          <form
-            action="/dashboard"
-            method="get"
-            className="hub-search"
-            role="search"
-          >
-            <input type="hidden" name="view" value="search" />
-            <label htmlFor="hub-query">
-              Search people, clubs, and events by name
-            </label>
-            <div>
-              <input
-                id="hub-query"
-                name="q"
-                type="search"
-                defaultValue={q}
-                minLength={2}
-                maxLength={80}
-                placeholder="Enter a name…"
-              />
-              <button type="submit">Search</button>
-              {q && <Link href="/dashboard?view=search">Clear</Link>}
-            </div>
-          </form>
-          {q && q.length < 2 && <p>Enter at least two characters to search.</p>}
-          {results && (
-            <div className="hub-search-results" aria-label="Search results">
-              {[
-                {
-                  title: "People",
-                  error: results[0].error,
-                  items: (results[0].data ?? [])
-                    .filter((p) => p.public_slug)
-                    .map((p) => ({
-                      id: p.player_id!,
-                      name: p.display_name!,
-                      href: `/players/${p.public_slug}`,
-                    })),
-                },
-                {
-                  title: "Clubs",
-                  error: results[1].error,
-                  items: (results[1].data ?? []).map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                    href: `/clubs/${c.slug}`,
-                  })),
-                },
-                {
-                  title: "Events",
-                  error: results[2].error,
-                  items: (results[2].data ?? []).map((e) => ({
-                    id: e.id,
-                    name: e.name,
-                    href: `/join/${e.join_code}`,
-                  })),
-                },
-              ].map((group) => (
-                <section key={group.title}>
-                  <h3>{group.title}</h3>
-                  {group.error ? (
-                    <p role="alert">Unable to load results. Try again.</p>
-                  ) : group.items.length ? (
-                    <ul>
-                      {group.items.map((item) => (
-                        <li key={item.id}>
-                          <Link href={item.href}>{item.name}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No matching {group.title.toLowerCase()}.</p>
-                  )}
-                  {group.items.length === 12 && (
-                    <p>
-                      Showing the first 12 results. Refine your search for more
-                      specific results.
-                    </p>
-                  )}
-                </section>
+      <div className="ph-top">
+        <PlayHero status={status} hasLiveSessions={live.events.length > 0} />
+
+        <section className="ph-panel" aria-labelledby="coming-up-heading">
+          <header className="ph-panel__head">
+            <h2 id="coming-up-heading">Coming up</h2>
+            <Link href="/dashboard/events">All events</Link>
+          </header>
+          {joined.failed ? (
+            <p role="alert">Your events could not be loaded.</p>
+          ) : comingUp.length ? (
+            <ul className="ph-list">
+              {comingUp.slice(0, 4).map((event) => (
+                <EventRow
+                  key={event.id}
+                  href={`/join/${event.join_code}`}
+                  name={event.name}
+                  clubName={event.clubName}
+                  venue={event.venue}
+                  startsAt={event.starts_at}
+                  timezone={event.timezone}
+                  live={event.status === "in_progress"}
+                  badge={
+                    event.registration === "waitlisted" ? "Waitlist" : undefined
+                  }
+                />
               ))}
-            </div>
-          )}
-        </section>
-      )}
-      {!q && (view === "joined" || view === "live") && (
-        <PlayerEventHub
-          events={
-            view === "live"
-              ? joinedEvents.filter((e) => e.status === "in_progress")
-              : joinedEvents
-          }
-          liveOnly={view === "live"}
-          failed={Boolean(joined?.error) || !playerId}
-        />
-      )}
-
-      {!q && view === "discover" && (
-        <section aria-labelledby="events-heading">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Open to all players</p>
-              <h2 id="events-heading">Upcoming public events</h2>
-            </div>
-          </div>
-          {events?.length ? (
-            <div className="event-grid">
-              {events.map((event) => {
-                const club = Array.isArray(event.clubs)
-                  ? event.clubs[0]
-                  : event.clubs;
-                const start = new Date(event.starts_at);
-                return club ? (
-                  <article className="event-card" key={event.id}>
-                    <div className="event-card__date">
-                      <span>
-                        {start.toLocaleDateString(undefined, {
-                          month: "short",
-                        })}
-                      </span>
-                      <strong>{start.getDate()}</strong>
-                    </div>
-                    <div className="event-card__content">
-                      <div className="event-card__badges">
-                        <span>{club.name}</span>
-                        <span>{event.record_class}</span>
-                      </div>
-                      <h2>
-                        <Link href={`/join/${event.join_code}`}>
-                          {event.name}
-                        </Link>
-                      </h2>
-                      <p>{event.venue}</p>
-                      <p>
-                        {start.toLocaleString(undefined, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
-                      </p>
-                    </div>
-                  </article>
-                ) : null;
-              })}
-            </div>
+            </ul>
           ) : (
-            <div className="empty-state">
-              <CalendarDays aria-hidden="true" size={30} />
-              <h3>No public events coming up</h3>
-              <p>Check back soon or open an invitation from a club.</p>
-            </div>
+            <p className="ph-empty">
+              {heroEventId
+                ? "Nothing else booked yet."
+                : "Nothing booked yet. Events you join appear here."}
+            </p>
+          )}
+          {hosted.events.length > 0 && (
+            <Link className="ph-hosting" href="/dashboard/events?tab=hosting">
+              <span>
+                Hosting{" "}
+                <strong>
+                  {hosted.events.length}{" "}
+                  {hosted.events.length === 1 ? "event" : "events"}
+                </strong>
+              </span>
+              <ArrowRight aria-hidden="true" size={16} />
+            </Link>
           )}
         </section>
-      )}
+      </div>
 
-      {!q && view === "clubs" && (
-        <section className="dashboard-clubs" aria-labelledby="clubs-heading">
+      <section className="ph-connect" aria-labelledby="connect-heading">
+        <header className="ph-section-head">
           <div>
-            <p className="eyebrow">Your organizations</p>
-            <h2 id="clubs-heading">Clubs</h2>
-            <ClubSwitcher />
-            <details className="create-club-panel">
-              <summary>
-                <Plus aria-hidden="true" size={16} /> Create a club
-              </summary>
-              <div>
-                <ClubForm />
-              </div>
-            </details>
+            <h2 id="connect-heading">Connect &amp; compete</h2>
+            <p>Sessions, events and clubs open to every player.</p>
           </div>
-        </section>
-      )}
+          <Link className="ph-standing" href="/dashboard/profile">
+            <Trophy aria-hidden="true" size={18} />
+            <span>
+              <strong>{ranking?.rank ? `#${ranking.rank}` : "Unranked"}</strong>
+              <small>
+                {Number(ranking?.rating ?? stats?.rating ?? 1500).toFixed(0)}{" "}
+                rating · {stats?.wins ?? 0}–{stats?.losses ?? 0}
+              </small>
+            </span>
+          </Link>
+        </header>
+
+        <div className="ph-grid">
+          <section
+            className="ph-panel"
+            id="live-now"
+            aria-labelledby="live-heading"
+          >
+            <header className="ph-panel__head">
+              <h3 id="live-heading">Live now</h3>
+            </header>
+            <p className="ph-panel__hint">
+              Public sessions playing right now. Open one to watch or join.
+            </p>
+            {live.failed ? (
+              <p role="alert">Live sessions could not be loaded.</p>
+            ) : live.events.length ? (
+              <ul className="ph-list">
+                {live.events.map((event) => (
+                  <EventRow
+                    key={event.id}
+                    href={`/join/${event.join_code}`}
+                    name={event.name}
+                    clubName={event.clubName}
+                    venue={event.venue}
+                    startsAt={event.starts_at}
+                    timezone={event.timezone}
+                    live
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="ph-empty">No public sessions are live right now.</p>
+            )}
+          </section>
+
+          <section className="ph-panel" aria-labelledby="open-heading">
+            <header className="ph-panel__head">
+              <h3 id="open-heading">Upcoming events</h3>
+              <Link href="/dashboard/events?tab=discover">Browse</Link>
+            </header>
+            <p className="ph-panel__hint">
+              Public events from every club, soonest first.
+            </p>
+            {upcoming.failed ? (
+              <p role="alert">Events could not be loaded.</p>
+            ) : openEvents.length ? (
+              <ul className="ph-list">
+                {openEvents.map((event) => (
+                  <EventRow
+                    key={event.id}
+                    href={`/join/${event.join_code}`}
+                    name={event.name}
+                    clubName={event.clubName}
+                    venue={event.venue}
+                    startsAt={event.starts_at}
+                    timezone={event.timezone}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p className="ph-empty">No public events are scheduled yet.</p>
+            )}
+          </section>
+
+          <section className="ph-panel" aria-labelledby="clubs-heading">
+            <header className="ph-panel__head">
+              <h3 id="clubs-heading">Clubs</h3>
+              <Link href="/dashboard/clubs">All clubs</Link>
+            </header>
+            {myClubs.length > 0 && (
+              <ul className="ph-chips" aria-label="Your clubs">
+                {myClubs.slice(0, 4).map((club) => (
+                  <li key={club.id}>
+                    <Link href={`/dashboard/clubs/${club.slug}`}>
+                      {club.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {discoverClubs.length ? (
+              <p className="ph-panel__hint">
+                {myClubs.length
+                  ? "More clubs to explore"
+                  : "Join a club to play its events and climb its rankings."}
+              </p>
+            ) : null}
+            {discoverClubs.length ? (
+              <ul className="ph-list">
+                {discoverClubs.map((club) => (
+                  <li key={club.id}>
+                    <Link
+                      className="ph-row ph-row--club"
+                      href={`/clubs/${club.slug}`}
+                    >
+                      <span className="ph-row__avatar" aria-hidden="true">
+                        {club.name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="ph-row__body">
+                        <strong>{club.name}</strong>
+                        <span>View club</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="ph-panel__hint">
+                You&apos;re a member of every club on UNEX so far.
+              </p>
+            )}
+          </section>
+        </div>
+      </section>
     </main>
   );
 }

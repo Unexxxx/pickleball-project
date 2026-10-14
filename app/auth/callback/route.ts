@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const next =
     requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
       ? requestedNext
-      : "/dashboard/profile";
+      : "/dashboard/profile?edit=1";
 
   if (!code)
     return NextResponse.redirect(

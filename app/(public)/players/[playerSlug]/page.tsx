@@ -8,9 +8,11 @@ import { getPublicMatchHistory } from "@/lib/queries/matches";
 import { ProfileHeader } from "@/components/profiles/profile-header";
 import { StatGrid } from "@/components/profiles/stat-grid";
 import { MatchHistory } from "@/components/profiles/match-history";
+import { currentPlayerId } from "@/lib/auth/authorization";
+import { createClient } from "@/lib/supabase/server";
 type Props = {
   params: Promise<{ playerSlug: string }>;
-  searchParams: Promise<{ class?: string; page?: string }>;
+  searchParams: Promise<{ class?: string; page?: string; edit?: string }>;
 };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getPublicPlayer((await params).playerSlug);
@@ -18,13 +20,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: p ? p.display_name : "Player not found",
   };
 }
+// The one player profile: public stats and history for everyone. When the
+// signed-in player views their own page, the header becomes editable in place
+// (?edit=1 opens it) and offers Log out. Hiding the controls is not the
+// permission check — updateMyPlayerProfile only updates the caller's own row.
 export default async function Page({ params, searchParams }: Props) {
   const { playerSlug } = await params,
     q = await searchParams,
     player = await getPublicPlayer(playerSlug);
   if (!player) notFound();
-  const stats = await getPublicPlayerStatistics(playerSlug),
-    filter =
+  const supabase = await createClient();
+  const viewerId = await currentPlayerId();
+  const isOwner = Boolean(viewerId && viewerId === player.player_id);
+  const [stats, { data: ranking }, owner] = await Promise.all([
+    getPublicPlayerStatistics(playerSlug),
+    supabase
+      .from("public_leaderboards")
+      .select("rank")
+      .eq("scope", "overall")
+      .eq("player_id", player.player_id!)
+      .maybeSingle(),
+    isOwner
+      ? supabase
+          .from("players")
+          .select("avatar_path,version")
+          .eq("id", viewerId!)
+          .single()
+      : Promise.resolve({ data: null }),
+  ]);
+  const filter =
       q.class === "ranked" || q.class === "unranked" ? q.class : undefined,
     page = /^\d+$/.test(q.page ?? "")
       ? Math.min(10000, Math.max(1, Number(q.page)))
@@ -67,6 +91,16 @@ export default async function Page({ params, searchParams }: Props) {
         name={player.display_name!}
         slug={player.public_slug!}
         avatarUrl={avatarUrl}
+        rank={ranking?.rank}
+        owner={
+          owner.data
+            ? {
+                avatarPath: owner.data.avatar_path,
+                version: owner.data.version,
+                startEditing: q.edit === "1",
+              }
+            : undefined
+        }
       />
       {stats ? (
         <StatGrid
