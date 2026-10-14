@@ -614,9 +614,6 @@ export function PinnedCourtHero() {
               Create your player account
               <ArrowRight aria-hidden="true" size={18} />
             </Link>
-            <Link href="/leaderboards" className="button button-secondary">
-              Explore the rankings
-            </Link>
           </div>
         </div>
       </div>
