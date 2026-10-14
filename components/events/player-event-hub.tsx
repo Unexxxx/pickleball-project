@@ -15,23 +15,15 @@ export type JoinedEvent = {
 export function PlayerEventHub({
   events,
   failed = false,
-  liveOnly = false,
 }: {
   events: JoinedEvent[];
   failed?: boolean;
-  liveOnly?: boolean;
 }) {
   return (
     <section className="player-hub" aria-labelledby="joined-heading">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Your schedule</p>
-          <h2 id="joined-heading">
-            {liveOnly ? "Your live events" : "My joined events"}
-          </h2>
-          <p>Open your event or follow the live queue when play starts.</p>
-        </div>
-      </div>
+      <h2 id="joined-heading" className="sr-only">
+        Your joined events
+      </h2>
       {failed ? (
         <p role="alert">
           Your events could not be loaded. Please refresh and try again.
@@ -82,20 +74,10 @@ export function PlayerEventHub({
           ))}
         </div>
       ) : (
-        <div className="empty-state">
-          <h3>
-            {liveOnly
-              ? "No joined events live right now"
-              : "No current joined events"}
-          </h3>
-          <p>
-            Discover an event to join. Your confirmed registrations and waitlist
-            places will appear here.
-          </p>
-          <Link className="button" href="/dashboard?view=discover">
-            Discover events
-          </Link>
-        </div>
+        <p className="ph-empty">
+          No joined events yet. Confirmed and waitlisted events appear here.{" "}
+          <Link href="/dashboard/events?tab=discover">Discover events</Link>
+        </p>
       )}
     </section>
   );
