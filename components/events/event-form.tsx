@@ -54,6 +54,7 @@ export function EventForm({
   const [endsAt, setEndsAt] = useState("");
   const [capacity, setCapacity] = useState("16");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [format, setFormat] = useState<"doubles" | "singles">("doubles");
   const [initialStatus, setInitialStatus] = useState<"published" | "draft">(
     "published",
   );
@@ -125,7 +126,7 @@ export function EventForm({
           endsAt: new Date(endsAt).toISOString(),
           capacity,
           courtCount: form.get("courtCount"),
-          formats: ["doubles"],
+          formats: [format],
           recordClass: form.get("recordClass"),
           initialStatus,
           isPrivate,
@@ -299,6 +300,44 @@ export function EventForm({
             <option value="ranked">Ranked</option>
           </select>
         </label>
+        <fieldset className="form-span-2 event-visibility-fieldset">
+          <legend>Match format</legend>
+          <label
+            className={`event-visibility-option ${format === "doubles" ? "is-selected" : ""}`}
+          >
+            <input
+              type="radio"
+              name="format"
+              value="doubles"
+              checked={format === "doubles"}
+              onChange={() => setFormat("doubles")}
+            />
+            <span>
+              <strong>Doubles</strong>
+              <small>
+                Two players per side. Matchmaking builds teams of two.
+              </small>
+            </span>
+          </label>
+          <label
+            className={`event-visibility-option ${format === "singles" ? "is-selected" : ""}`}
+          >
+            <input
+              type="radio"
+              name="format"
+              value="singles"
+              checked={format === "singles"}
+              onChange={() => setFormat("singles")}
+            />
+            <span>
+              <strong>Singles</strong>
+              <small>One player per side.</small>
+            </span>
+          </label>
+          <small>
+            The whole event uses this format and it cannot be changed later.
+          </small>
+        </fieldset>
         <label className="form-span-2">
           <span className="field-label-with-icon">
             <MessageSquareText aria-hidden="true" size={17} /> Event notes

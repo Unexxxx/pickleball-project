@@ -19,6 +19,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run check:client-secrets
       - run: npm test
+      - run: npm run test:rotation
       - name: Load hosted E2E settings
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}

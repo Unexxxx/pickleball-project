@@ -8,7 +8,7 @@ create type public.match_format as enum ('singles','doubles');
 create type public.match_status as enum ('assigned','playing','score_pending','finalized','disputed','voided','canceled');
 create type public.event_status as enum ('draft','published','registration_closed','in_progress','completed','canceled');
 create table public.clubs(id uuid primary key);
-create table public.players(id uuid primary key);
+create table public.players(id uuid primary key,visibility text default 'public',merged_into_player_id uuid);
 create table public.accounts(player_id uuid, contact_verified_at timestamptz);
 create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.actor',true),'')::uuid$$;
 create function public.current_player_id() returns uuid language sql as $$select auth.uid()$$;
@@ -27,6 +27,8 @@ create table public.match_results(id uuid primary key default gen_random_uuid(),
 create table public.result_revisions(id uuid primary key default gen_random_uuid(),winner_side integer);
 create table public.player_statistics(player_id uuid primary key,rating numeric default 1500,wins integer default 0,losses integer default 0);
 create table public.public_leaderboards(player_id uuid,scope text,rank bigint);
+create table public.leaderboard_entries(scope text,club_id uuid,player_id uuid,rating numeric default 1500,wins integer default 0,losses integer default 0,win_rate numeric default 0,last_match_at timestamptz);
+create function private.can_view_event_operations(uuid) returns boolean language sql as $$select auth.uid() is not null$$;
 create table private.audit_log(actor_auth_user_id uuid,action text,aggregate_type text,aggregate_id uuid,club_id uuid,request_id uuid,after_state jsonb);
 create table private.event_queue_history(queue_entry_id uuid,from_state text,to_state text,old_position_key bigint,new_position_key bigint,actor_player_id uuid,reason text,request_id uuid);
 create table private.rule_versions(domain text,version text,parameters jsonb,active_from timestamptz,unique(domain,version));

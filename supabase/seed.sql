@@ -31,7 +31,7 @@ on conflict(club_id,player_id,attestation_type) do nothing;
 
 -- The upcoming demo event is scheduled relative to now; events_future_schedule rejects past starts.
 insert into public.events(id,club_id,type,name,venue,starts_at,ends_at,capacity,formats,record_class,status,join_code) values
-('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','open_play','Northside Demo Open Play','Courts 1–4',date_trunc('day',now() at time zone 'Asia/Manila') at time zone 'Asia/Manila'+interval'7 days 10 hours',date_trunc('day',now() at time zone 'Asia/Manila') at time zone 'Asia/Manila'+interval'7 days 13 hours',24,array['singles','doubles'],'ranked','published','NORTH-DEMO')
+('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','open_play','Northside Demo Open Play','Courts 1–4',date_trunc('day',now() at time zone 'Asia/Manila') at time zone 'Asia/Manila'+interval'7 days 10 hours',date_trunc('day',now() at time zone 'Asia/Manila') at time zone 'Asia/Manila'+interval'7 days 13 hours',24,array['doubles'],'ranked','published','NORTH-DEMO')
 on conflict(id) do nothing;
 -- The completed demo tournament is historical, so bypass the future-start check for it.
 alter table public.events disable trigger events_future_schedule;
