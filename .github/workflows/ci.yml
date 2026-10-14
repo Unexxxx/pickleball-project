@@ -19,8 +19,6 @@ jobs:
       - run: npm run typecheck
       - run: npm run check:client-secrets
       - run: npm test
-      - run: npm run build
-      - run: npx playwright install --with-deps chromium
       - name: Load hosted E2E settings
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -59,6 +57,8 @@ jobs:
             echo "::error::Secret NEXT_PUBLIC_SUPABASE_URL must be only the URL, like https://<project>.supabase.co (no name=, quotes, spaces or brackets)"
             exit 1
           fi
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 
   database:
