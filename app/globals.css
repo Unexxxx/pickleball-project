@@ -5490,3 +5490,15 @@ main.ph {
   display: flex;
   gap: 1.25rem;
 }
+.ls-footer-about {
+  max-width: 44ch;
+  margin: 0 0 14px;
+  color: var(--ax-ink-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.ls-footer-about a {
+  color: var(--ax-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

@@ -286,6 +286,13 @@ export default function HomePage() {
               </svg>
               <span>UNEX</span>
             </div>
+            <p className="ls-footer-about">
+              UNEX is a pickleball club app for running open play events,
+              matchmaking players onto courts, and keeping fair rankings. If you
+              sign in with Google, we only use your name, email address, and
+              profile photo to create your player account. See our{" "}
+              <Link href="/privacy">Privacy Policy</Link>.
+            </p>
             <p className="ls-footer-copy">
               © {new Date().getFullYear()} UNEX. Built for the court.
             </p>
