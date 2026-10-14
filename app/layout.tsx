@@ -1,20 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Archivo, Bricolage_Grotesque } from "next/font/google";
+import localFont from "next/font/local";
 import { SiteHeader } from "@/components/layout/site-header";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
 // One type system for the whole app (design-system/dink-palette.md).
-const headingFont = Bricolage_Grotesque({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
+// Variable-weight latin files are bundled in app/fonts (SIL OFL 1.1) so
+// builds never depend on downloading from Google Fonts.
+const headingFont = localFont({
+  src: "./fonts/bricolage-grotesque-latin-wght.woff2",
+  weight: "200 800",
   variable: "--font-heading",
+  display: "swap",
 });
-const bodyFont = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const bodyFont = localFont({
+  src: "./fonts/archivo-latin-wght.woff2",
+  weight: "100 900",
   variable: "--font-body",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

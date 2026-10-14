@@ -91,8 +91,10 @@ success/lime `oklch(80% 0.19 125 / 0.16)` + volt text; danger
 
 - **Headings:** Bricolage Grotesque (600–800), `--font-heading`.
 - **Body and controls:** Archivo (400–700), `--font-body`.
-- Both are loaded once in `app/layout.tsx` via `next/font/google` and apply to
-  every page. Don't reintroduce Arial Narrow / Barlow.
+- Both are loaded once in `app/layout.tsx` via `next/font/local` from the
+  variable-weight files bundled in `app/fonts` (SIL OFL 1.1, licenses
+  alongside), so builds never fetch from Google Fonts. They apply to every
+  page. Don't reintroduce Arial Narrow / Barlow.
 - Use tabular numerals for timers, scores, rankings and statistics.
 
 ## Logo and icons
