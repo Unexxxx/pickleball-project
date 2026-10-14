@@ -14,6 +14,34 @@ export type LiveEventFixture = {
   latestMatchId: () => Promise<string>;
 };
 
+// Repeats the organizer's end-match call outside the UI so a failure
+// report shows the database's reason instead of the generic UI message.
+export async function explainEndMatchFailure(matchId: string) {
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  );
+  const { error: signInError } = await client.auth.signInWithPassword({
+    email: process.env.E2E_USER_EMAIL!,
+    password: process.env.E2E_USER_PASSWORD!,
+  });
+  if (signInError) return `sign-in failed: ${signInError.message}`;
+  const { error } = await client.rpc("end_match_with_score", {
+    p_match_id: matchId,
+    p_score: { games: [{ sideA: 11, sideB: 7 }] },
+    p_idempotency_key: randomUUID(),
+  });
+  return error
+    ? JSON.stringify({
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
+    : "succeeded when called directly";
+}
+
 export const liveEventFixtureConfigured = () =>
   Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&

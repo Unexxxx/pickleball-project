@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { loginAsE2EUser } from "./helpers/auth";
 import {
   createLiveEventFixture,
+  explainEndMatchFailure,
   liveEventFixtureConfigured,
 } from "./helpers/live-event-fixture";
 
@@ -109,9 +110,12 @@ test("organizer runs a live event from check-in to final score", async ({
       .locator(".end-match-control [role=status]:not(:empty)")
       .filter({ hasNotText: "Match ended." });
     await expect(handoff.or(scoreError)).toBeVisible({ timeout: 20_000 });
-    expect((await scoreError.count()) ? await scoreError.innerText() : "").toBe(
-      "",
-    );
+    if (await scoreError.count())
+      throw new Error(
+        `${await scoreError.innerText()} Database: ${await explainEndMatchFailure(
+          await fixture.latestMatchId(),
+        )}`,
+      );
     await expect(handoff).toBeVisible();
     await expect(
       activeMatches.getByRole("button", { name: "Finish & Enter Score" }),
