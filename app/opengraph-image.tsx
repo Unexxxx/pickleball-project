@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 // Share card for links to unex.live (Facebook, Messenger, X, Slack, iMessage).
@@ -8,8 +10,19 @@ export const contentType = "image/png";
 const NAVY = "#0a2952";
 const VOLT = "#b5e02c";
 const CREAM = "#ede6c4";
+export default async function OpengraphImage() {
+  // Cream copy of the white unex-logo.png wordmark (the header tints it with a
+  // CSS mask, which next/og can't render).
+  const logo = await readFile(
+    join(process.cwd(), "public/unex-logo-cream.png"),
+  );
+  const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+  // Lime pickleball with navy line art (480x470).
+  const ball = await readFile(
+    join(process.cwd(), "public/pickleball-ball.png"),
+  );
+  const ballSrc = `data:image/png;base64,${ball.toString("base64")}`;
 
-export default function OpengraphImage() {
   return new ImageResponse(
     <div
       style={{
@@ -24,18 +37,9 @@ export default function OpengraphImage() {
         fontFamily: "sans-serif",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 999,
-            background: VOLT,
-          }}
-        />
-        <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: -1 }}>
-          UNEX
-        </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <img src={ballSrc} width={80} height={78} alt="" />
+        <img src={logoSrc} width={216} height={90} alt="UNEX" />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div
