@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BadgeCheck,
@@ -11,6 +12,42 @@ import {
 } from "lucide-react";
 import { LandingMotion } from "@/components/marketing/landing-motion";
 import { PinnedCourtHero } from "@/components/marketing/pinned-court-hero";
+import { LEGAL_CONTACT_EMAIL } from "@/lib/legal";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+// Tells search engines the site's name is "UNEX" (shown above the result)
+// and who publishes it.
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      alternateName: ["UNEX Pickleball", "unex.live"],
+      url: `${SITE_URL}/`,
+      description: SITE_DESCRIPTION,
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/icons/icon-512.png`,
+      email: LEGAL_CONTACT_EMAIL,
+    },
+    {
+      "@type": "WebApplication",
+      name: SITE_NAME,
+      url: `${SITE_URL}/`,
+      applicationCategory: "SportsApplication",
+      operatingSystem: "Web",
+      description: SITE_DESCRIPTION,
+    },
+  ],
+};
 
 const steps = [
   {
@@ -69,6 +106,10 @@ const features = [
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <LandingMotion />
       <main className="ls-page">
         {/* HERO */}

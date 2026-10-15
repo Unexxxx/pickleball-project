@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import { SiteHeader } from "@/components/layout/site-header";
 import { createClient } from "@/lib/supabase/server";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // One type system for the whole app (design-system/dink-palette.md).
@@ -22,8 +23,31 @@ const bodyFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "UNEX", template: "%s · UNEX" },
-  description: "Trusted club competition records and all-time leaderboards.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: "%s · UNEX" },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "UNEX",
+    "pickleball",
+    "pickleball open play",
+    "pickleball matchmaking",
+    "pickleball rankings",
+    "pickleball club",
+    "pickleball leaderboard",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
 };
 export const viewport: Viewport = {
   width: "device-width",

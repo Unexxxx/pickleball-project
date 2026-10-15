@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { getLeaderboard } from "@/lib/queries/leaderboards";
 import { LeaderboardTable } from "@/components/leaderboards/leaderboard-table";
+export const metadata: Metadata = {
+  title: "Pickleball Rankings — All-Time Leaderboard",
+  description:
+    "The all-time UNEX pickleball leaderboard: player ratings and rankings built from confirmed club match results.",
+  alternates: { canonical: "/leaderboards" },
+};
 export default async function Page({
   searchParams,
 }: {

@@ -15,9 +15,15 @@ type Props = {
   searchParams: Promise<{ class?: string; page?: string; edit?: string }>;
 };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const p = await getPublicPlayer((await params).playerSlug);
+  const slug = (await params).playerSlug,
+    p = await getPublicPlayer(slug);
+  if (!p) return { title: "Player not found", robots: { index: false } };
+  const description = `${p.display_name}'s pickleball profile on UNEX: rating, ranking, win–loss record, and confirmed match history.`;
   return {
-    title: p ? p.display_name : "Player not found",
+    title: `${p.display_name} — Pickleball Profile`,
+    description,
+    alternates: { canonical: `/players/${slug}` },
+    openGraph: { title: `${p.display_name} on UNEX`, description },
   };
 }
 // The one player profile: public stats and history for everyone. When the

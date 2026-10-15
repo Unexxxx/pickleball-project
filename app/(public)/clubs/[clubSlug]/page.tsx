@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -8,6 +9,28 @@ import { LeaderboardTable } from "@/components/leaderboards/leaderboard-table";
 import { LeaderboardRules } from "@/components/leaderboards/leaderboard-rules";
 import { ClubEventSections } from "@/components/clubs/club-event-sections";
 import { ClubProfileHero } from "@/components/clubs/club-profile-hero";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ clubSlug: string }>;
+}): Promise<Metadata> {
+  const { clubSlug } = await params,
+    { data: club } = await (
+      await createClient()
+    )
+      .from("clubs")
+      .select("name")
+      .eq("slug", clubSlug)
+      .maybeSingle();
+  if (!club) return { title: "Club not found", robots: { index: false } };
+  const description = `${club.name} on UNEX: upcoming pickleball open play events and the club leaderboard.`;
+  return {
+    title: `${club.name} — Pickleball Club`,
+    description,
+    alternates: { canonical: `/clubs/${clubSlug}` },
+    openGraph: { title: `${club.name} on UNEX`, description },
+  };
+}
 export default async function Page({
   params,
 }: {
