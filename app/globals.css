@@ -4550,11 +4550,15 @@ html:has(.ls-page) {
   padding-right: 4.5rem;
 }
 .auth-reveal-toggle {
+  /* Centered with auto margins instead of a translate: the global button
+     hover rule sets `translate`, which would otherwise knock it off-center. */
   position: absolute;
-  top: 50%;
+  top: 0;
+  bottom: 0;
   right: 0.5rem;
-  min-height: 2.25rem;
-  translate: 0 -50%;
+  height: 2.25rem;
+  min-height: 0;
+  margin-block: auto;
   border: 0;
   border-radius: 0.6rem;
   background: transparent;
@@ -4568,8 +4572,10 @@ html:has(.ls-page) {
     background-color 150ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .auth-reveal-toggle:hover {
+  .auth-panel .auth-reveal-toggle:hover:not(:disabled) {
+    translate: none;
     background: var(--muted);
+    box-shadow: none;
     color: var(--foreground);
   }
 }
