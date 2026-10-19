@@ -601,13 +601,13 @@ export function PinnedCourtHero() {
         <div className="ls-hero-scrim" aria-hidden="true" />
         <div className="ls-hero-inner">
           <p className="eyebrow ls-hero-eyebrow">
-            <BadgeCheck aria-hidden="true" size={16} /> UNEX · Trusted
-            competition records
+            <BadgeCheck aria-hidden="true" size={16} /> Trusted competition
+            records
           </p>
           <h1 className="ls-hero-title">Play. Confirm. Climb.</h1>
           <p className="ls-hero-lede">
-            UNEX helps pickleball clubs run fair open play events, confirm every
-            result, and build one auditable record that follows you everywhere.
+            Run fair club events, confirm every result, and build one auditable
+            pickleball record that follows you everywhere.
           </p>
           <div className="ls-hero-actions">
             <Link href="/register" className="button">
