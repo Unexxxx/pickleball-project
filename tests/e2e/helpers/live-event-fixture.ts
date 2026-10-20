@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { fixturesEnabled } from "./fixtures";
 
 // Builds a fresh, in-progress singles event in the hosted E2E club so a run
 // never depends on what an earlier run left behind.
@@ -42,8 +43,11 @@ export async function explainEndMatchFailure(matchId: string) {
     : "succeeded when called directly";
 }
 
+// Creates and drives a real event with the service-role key, so it is opt-in
+// (E2E_FIXTURES=1) and must never point at the live production project.
 export const liveEventFixtureConfigured = () =>
   Boolean(
+    fixturesEnabled &&
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.SUPABASE_SERVICE_ROLE_KEY &&
     process.env.E2E_USER_EMAIL &&

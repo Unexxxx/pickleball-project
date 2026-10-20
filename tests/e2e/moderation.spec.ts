@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginAsE2EUser } from "./helpers/auth";
+import { FIXTURES_REQUIRED, fixturesEnabled } from "./helpers/fixtures";
 test("club owner cannot inherit platform moderation", async ({ page }) => {
   await loginAsE2EUser(page);
   await page.goto("/admin/reports");
@@ -8,6 +9,7 @@ test("club owner cannot inherit platform moderation", async ({ page }) => {
   ).toBeVisible();
 });
 test("verified player sees report entry point", async ({ page }) => {
+  test.skip(!fixturesEnabled, FIXTURES_REQUIRED);
   await loginAsE2EUser(page);
   await page.goto(
     `/dashboard/clubs/${process.env.E2E_CLUB_SLUG ?? "northside-pickleball"}/reports`,

@@ -1,4 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { FIXTURES_REQUIRED, fixturesEnabled } from "./helpers/fixtures";
+
+// Every test in this file needs seeded fixtures.
+test.skip(!fixturesEnabled, FIXTURES_REQUIRED);
 const slug = process.env.E2E_PLAYER_SLUG ?? "e2e-player-1";
 test("anonymous visitor discovers a privacy-safe player record", async ({
   page,

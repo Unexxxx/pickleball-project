@@ -13,8 +13,9 @@ const benchNames = (page: Page) =>
     .locator("strong")
     .allTextContents();
 
-// One organizer journey through a live event. It writes to the hosted
-// project, so it runs once (desktop) on its own freshly created event.
+// One organizer journey through a live event. It writes to the target
+// database, so it runs once (desktop) on its own freshly created event, and
+// only with E2E_FIXTURES=1 against a non-production project.
 test("organizer runs a live event from check-in to final score", async ({
   page,
 }, testInfo) => {
@@ -24,7 +25,7 @@ test("organizer runs a live event from check-in to final score", async ({
   );
   test.skip(
     !liveEventFixtureConfigured(),
-    "Hosted E2E credentials and service-role key are not configured",
+    "Needs E2E_FIXTURES=1, E2E credentials and a service-role key (non-production only)",
   );
   test.setTimeout(180_000);
 

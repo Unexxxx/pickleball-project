@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginAsE2EUser } from "./helpers/auth";
+import { FIXTURES_REQUIRED, fixturesEnabled } from "./helpers/fixtures";
 
 const clubSlug = process.env.E2E_CLUB_SLUG ?? "northside-pickleball";
 const otherClubSlug = process.env.E2E_OTHER_CLUB_SLUG ?? "southside-pickleball";
@@ -10,6 +11,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 test.beforeEach(async ({ page }) => loginAsE2EUser(page));
 
 test.describe("mobile player queue journey", () => {
+  test.skip(!fixturesEnabled, FIXTURES_REQUIRED);
   test("reconciles to the authoritative snapshot after disconnect", async ({
     context,
     page,

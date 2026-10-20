@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { loginAsE2EUser } from "./helpers/auth";
+import { FIXTURES_REQUIRED, fixturesEnabled } from "./helpers/fixtures";
+
+// Every test in this file needs seeded fixtures.
+test.skip(!fixturesEnabled, FIXTURES_REQUIRED);
 
 const club = process.env.E2E_CLUB_SLUG ?? "northside-pickleball";
 const event =
