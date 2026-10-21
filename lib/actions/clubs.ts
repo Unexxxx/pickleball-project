@@ -1,7 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { clubSchema, membershipRoleSchema } from "@/lib/validation/clubs";
+import {
+  clubContactSchema,
+  clubSchema,
+  membershipRoleSchema,
+} from "@/lib/validation/clubs";
 import { failure, success } from "@/lib/actions/result";
 export async function createClub(input: unknown) {
   const requestId = crypto.randomUUID();
@@ -44,4 +48,27 @@ export async function setMembershipRole(input: unknown) {
     return failure("FORBIDDEN", "Role change was not allowed.", requestId);
   revalidatePath("/dashboard/clubs");
   return success({ version: Number(data) }, requestId);
+}
+export async function setClubContact(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubContactSchema.safeParse(input);
+  if (!parsed.success)
+    return failure(
+      "VALIDATION_FAILED",
+      "Keep the contact under 200 characters.",
+      requestId,
+    );
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_club_contact", {
+    p_club_id: parsed.data.clubId,
+    p_contact: parsed.data.contact,
+  });
+  if (error)
+    return failure(
+      "FORBIDDEN",
+      "Only club owners and organizers can change the contact.",
+      requestId,
+    );
+  revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
+  return success({ contact: parsed.data.contact.trim() || null }, requestId);
 }

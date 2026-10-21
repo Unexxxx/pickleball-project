@@ -5,6 +5,7 @@ import {
   AssignmentBoard,
   type AssignmentView,
 } from "@/components/matches/assignment-board";
+import { WORKSPACE_ROLES, requireClubAccess } from "@/lib/queries/club-home";
 
 export default async function MatchesPage({
   params,
@@ -14,6 +15,8 @@ export default async function MatchesPage({
   const { clubSlug, eventId } = await params;
   const club = await getClub(clubSlug);
   if (!club) notFound();
+  // Server-side role gate (hidden buttons are not a permission check).
+  await requireClubAccess(club.slug, WORKSPACE_ROLES);
   const supabase = await createClient();
   const [
     { data: event },

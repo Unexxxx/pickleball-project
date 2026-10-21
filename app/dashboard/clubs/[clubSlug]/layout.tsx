@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import { ClubSidebar } from "@/components/layout/club-sidebar";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { getClubHome } from "@/lib/queries/club-home";
+
+// Club tools (event workspace, new event, reports). The header is the only
+// main navigation; this just links back to the club home.
 export default async function Layout({
   children,
   params,
@@ -8,10 +13,15 @@ export default async function Layout({
   params: Promise<{ clubSlug: string }>;
 }) {
   const { clubSlug } = await params;
+  const club = await getClubHome(clubSlug);
   return (
-    <div className="club-layout">
-      <ClubSidebar clubSlug={clubSlug} />
-      <div className="club-content">{children}</div>
+    <div className="club-tools">
+      {club ? (
+        <Link className="club-backlink" href={`/clubs/${club.slug}`}>
+          <ArrowLeft aria-hidden="true" size={16} /> {club.name}
+        </Link>
+      ) : null}
+      {children}
     </div>
   );
 }

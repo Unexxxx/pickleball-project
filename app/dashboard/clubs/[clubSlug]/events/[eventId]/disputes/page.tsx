@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getClub } from "@/lib/queries/clubs";
 import { DisputeResolution } from "@/components/matches/dispute-resolution";
+import { WORKSPACE_ROLES, requireClubAccess } from "@/lib/queries/club-home";
 export default async function Page({
   params,
 }: {
@@ -10,6 +11,8 @@ export default async function Page({
   const { clubSlug, eventId } = await params,
     club = await getClub(clubSlug);
   if (!club) notFound();
+  // Server-side role gate (hidden buttons are not a permission check).
+  await requireClubAccess(club.slug, WORKSPACE_ROLES);
   const s = await createClient(),
     { data } = await s
       .from("result_disputes")
