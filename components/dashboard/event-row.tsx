@@ -15,7 +15,8 @@ export function EventRow({
 }: {
   href: string;
   name: string;
-  clubName: string;
+  /** Omitted on a club's own page, where the club is already known. */
+  clubName?: string;
   venue: string;
   startsAt: string;
   timezone: string;
@@ -38,9 +39,7 @@ export function EventRow({
         </span>
         <span className="ph-row__body">
           <strong>{name}</strong>
-          <span>
-            {clubName} · {venue}
-          </span>
+          <span>{clubName ? `${clubName} · ${venue}` : venue}</span>
           <time dateTime={startsAt}>
             {live ? "Playing now" : formatEventTime(startsAt, timezone)}
           </time>

@@ -240,9 +240,7 @@ export default async function Dashboard({
               <ul className="ph-chips" aria-label="Your clubs">
                 {myClubs.slice(0, 4).map((club) => (
                   <li key={club.id}>
-                    <Link href={`/dashboard/clubs/${club.slug}`}>
-                      {club.name}
-                    </Link>
+                    <Link href={`/clubs/${club.slug}`}>{club.name}</Link>
                   </li>
                 ))}
               </ul>

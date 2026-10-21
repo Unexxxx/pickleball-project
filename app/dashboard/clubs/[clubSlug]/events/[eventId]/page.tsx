@@ -15,6 +15,7 @@ import { ParticipantList } from "@/components/events/participant-list";
 import { ShareEventLink } from "@/components/events/share-event-link";
 import { getClub } from "@/lib/queries/clubs";
 import { createClient } from "@/lib/supabase/server";
+import { CLUB_ADMIN_ROLES, requireClubAccess } from "@/lib/queries/club-home";
 
 function titleCase(value: string) {
   return value
@@ -28,6 +29,8 @@ export default async function EventPage({
   const { clubSlug, eventId } = await params;
   const club = await getClub(clubSlug);
   if (!club) notFound();
+  // Server-side role gate (hidden buttons are not a permission check).
+  await requireClubAccess(club.slug, CLUB_ADMIN_ROLES);
   const s = await createClient();
   const { data } = await s
     .from("events")

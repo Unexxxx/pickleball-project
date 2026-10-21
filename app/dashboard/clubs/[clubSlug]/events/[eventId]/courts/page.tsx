@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getClub } from "@/lib/queries/clubs";
 import { currentPlayerId } from "@/lib/auth/authorization";
 import { CourtEditor } from "@/components/events/court-editor";
+import { CLUB_ADMIN_ROLES, requireClubAccess } from "@/lib/queries/club-home";
 
 export default async function CourtsPage({
   params,
@@ -12,6 +13,8 @@ export default async function CourtsPage({
   const { clubSlug, eventId } = await params;
   const club = await getClub(clubSlug);
   if (!club) notFound();
+  // Server-side role gate (hidden buttons are not a permission check).
+  await requireClubAccess(club.slug, CLUB_ADMIN_ROLES);
   const supabase = await createClient();
   const playerId = await currentPlayerId();
   const { data: event } = await supabase

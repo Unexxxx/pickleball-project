@@ -9,7 +9,7 @@ test("browses the overall leaderboard", async ({ page }) => {
 test("browses a source-club leaderboard", async ({ page }) => {
   test.skip(!fixturesEnabled, FIXTURES_REQUIRED);
   await page.goto(
-    `/clubs/${process.env.E2E_CLUB_SLUG ?? "northside-pickleball"}`,
+    `/clubs/${process.env.E2E_CLUB_SLUG ?? "northside-pickleball"}/rankings`,
   );
   await expect(
     page.getByRole("heading", { name: "Club leaderboard" }),
