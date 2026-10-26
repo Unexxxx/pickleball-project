@@ -12,6 +12,7 @@ Updated September 9, 2026.
 
 ## October 22 update notes
 
+- **Header navigation is now Home · Clubs** (plus Search and Profile). The separate Events item was removed: a club's events live on its Schedule tab, and your own Joined · Hosting · Discover list (`/dashboard/events`) is reached from Home's Coming up, Hosting and Upcoming events links, with Home highlighted there.
 - **One club home at `/clubs/[slug]`**, public for everyone (signed in or not), with tabs **Overview · Schedule · Members · Rankings**. Old `/dashboard/clubs/[slug]` links (and `/members`, `/events`) forward there; the club sidebar is gone, so the header is the only main navigation. "Schedule" replaces the club's "Events" so it can't be confused with the header's Events (your events across clubs).
 - **Role checks on the server.** Owners, organizers and staff see management tools (Create event, Manage/Run live event, drafts/private/canceled events, the event workspace). Check-in, courts, event details and new event are owner/organizer/staff only; matches and disputes also allow score officials; the live queue stays open to confirmed players. Everyone else gets a 404.
 - **Overview:** one focus (live now → run/view, next event, or "No events scheduled"), the club contact plus staff, coming up, and real counts (members, events held, ranked players). Billing status is no longer shown publicly.
