@@ -19,6 +19,7 @@ Updated September 9, 2026.
 - **Members:** "Club staff" (owners/organizers/staff) with the contact line, then a searchable member list with join dates; private players are counted but not named. Backed by the new public `club_member_directory()` function.
 - **Rankings:** the club leaderboard (all players in the club's ranked matches) with an All players / Members only filter and a Member badge.
 - **Club contact:** owners and organizers publish a contact line (new `clubs.contact_info`, set via `set_club_contact()`, audit-logged).
+- **Club photos:** owners and organizers change or remove the club picture and cover photo in place on the club header (JPG/PNG/WebP up to 10 MB). Files upload to `club-media/<club id>/…`; `set_club_media()` records the path (only inside that club's folder), audit-logs it and returns the replaced file, which is then deleted.
 
 ## September 9 update notes
 

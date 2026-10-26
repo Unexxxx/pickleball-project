@@ -2249,6 +2249,10 @@ export type Database = {
         Args: { p_club_id: string; p_contact: string };
         Returns: undefined;
       };
+      set_club_media: {
+        Args: { p_club_id: string; p_kind: string; p_path: string | null };
+        Returns: string | null;
+      };
       add_event_court: {
         Args: { p_event_id: string; p_idempotency_key: string };
         Returns: { court_id: string; court_label: string }[];

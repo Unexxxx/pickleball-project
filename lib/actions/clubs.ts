@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   clubContactSchema,
+  clubMediaSchema,
   clubSchema,
   membershipRoleSchema,
 } from "@/lib/validation/clubs";
@@ -71,4 +72,31 @@ export async function setClubContact(input: unknown) {
     );
   revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
   return success({ contact: parsed.data.contact.trim() || null }, requestId);
+}
+/**
+ * Records a club picture the client already uploaded to club-media/<club>/…
+ * (or clears it). The database re-checks the role and the folder, then hands
+ * back the replaced file so it can be removed from storage.
+ */
+export async function setClubMedia(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubMediaSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the image.", requestId);
+  const supabase = await createClient();
+  const { data: previous, error } = await supabase.rpc("set_club_media", {
+    p_club_id: parsed.data.clubId,
+    p_kind: parsed.data.kind,
+    p_path: parsed.data.path,
+  });
+  if (error)
+    return failure(
+      "FORBIDDEN",
+      "Only club owners and organizers can change club photos.",
+      requestId,
+    );
+  if (previous && previous !== parsed.data.path)
+    await supabase.storage.from("club-media").remove([previous]);
+  revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
+  return success({ path: parsed.data.path }, requestId);
 }

@@ -51,6 +51,11 @@ export default async function ClubLayout({
         profileImageUrl={club.profileImageUrl}
         backgroundImageUrl={club.backgroundImageUrl}
         roleLabel={role ? ROLE_LABEL[role] : null}
+        media={
+          role === "owner" || role === "organizer"
+            ? { clubId: club.id, clubSlug: club.slug }
+            : undefined
+        }
       />
       <ClubTabs slug={club.slug} />
       <div className="club-home__body">{children}</div>

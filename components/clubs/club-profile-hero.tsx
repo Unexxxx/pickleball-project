@@ -1,4 +1,5 @@
 import { Clock3, ShieldCheck, Users } from "lucide-react";
+import { ClubMediaButton } from "@/components/clubs/club-media-button";
 
 /**
  * Compact club identity. The cover image is a thin band so the page's real
@@ -12,6 +13,7 @@ export function ClubProfileHero({
   profileImageUrl,
   backgroundImageUrl,
   roleLabel,
+  media,
 }: {
   name: string;
   timezone: string;
@@ -21,12 +23,13 @@ export function ClubProfileHero({
   backgroundImageUrl: string | null;
   /** The viewer's role in this club, when they are a member. */
   roleLabel?: string | null;
+  /** Present for owners/organizers: lets them change the photos in place. */
+  media?: { clubId: string; clubSlug: string };
 }) {
   return (
     <header className="club-profile-hero">
       <div
         className="club-cover"
-        aria-hidden="true"
         style={
           backgroundImageUrl
             ? {
@@ -34,19 +37,36 @@ export function ClubProfileHero({
               }
             : undefined
         }
-      />
+      >
+        {media ? (
+          <ClubMediaButton
+            {...media}
+            kind="background"
+            hasImage={Boolean(backgroundImageUrl)}
+          />
+        ) : null}
+      </div>
       <div className="club-profile-body">
-        <div
-          className="club-profile-mark"
-          role="img"
-          aria-label={`${name} club profile picture`}
-          style={
-            profileImageUrl
-              ? { backgroundImage: `url(${profileImageUrl})` }
-              : undefined
-          }
-        >
-          {!profileImageUrl ? name.charAt(0).toUpperCase() : null}
+        <div className="club-profile-mark-wrap">
+          <div
+            className="club-profile-mark"
+            role="img"
+            aria-label={`${name} club profile picture`}
+            style={
+              profileImageUrl
+                ? { backgroundImage: `url(${profileImageUrl})` }
+                : undefined
+            }
+          >
+            {!profileImageUrl ? name.charAt(0).toUpperCase() : null}
+          </div>
+          {media ? (
+            <ClubMediaButton
+              {...media}
+              kind="profile"
+              hasImage={Boolean(profileImageUrl)}
+            />
+          ) : null}
         </div>
         <div className="club-profile-text">
           <h1>{name}</h1>

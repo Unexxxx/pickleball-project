@@ -5693,3 +5693,111 @@ main.club-home {
     text-align: center;
   }
 }
+
+/* Club photo controls (owners/organizers). */
+.club-home .club-cover {
+  position: relative;
+}
+.club-profile-mark-wrap {
+  position: relative;
+  flex: none;
+  margin-top: clamp(-3rem, -6vw, -2.25rem);
+}
+.club-home .club-profile-mark {
+  margin-top: 0;
+}
+.club-media {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.club-media--background {
+  top: 0.6rem;
+  right: 0.6rem;
+}
+.club-media--profile {
+  right: -0.4rem;
+  bottom: -0.4rem;
+}
+.club-media__button,
+.club-media__remove {
+  display: inline-flex;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid oklch(97.5% 0.008 90 / 0.25);
+  border-radius: 999px;
+  background: oklch(15% 0.025 255 / 0.78);
+  padding: 0 0.7rem;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: none;
+  backdrop-filter: blur(6px);
+  transition:
+    background-color 150ms ease,
+    transform 120ms var(--ease-out);
+}
+.club-media--profile .club-media__button {
+  width: 2.25rem;
+  padding: 0;
+  border: 2px solid var(--surface);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  backdrop-filter: none;
+}
+.club-media--profile .club-media__remove {
+  width: 2.25rem;
+  border: 2px solid var(--surface);
+  background: var(--surface);
+}
+.club-media__remove {
+  padding: 0;
+  color: var(--danger);
+}
+.club-media__button:active,
+.club-media__remove:active {
+  transform: scale(0.96);
+}
+.club-media__button:focus-within,
+.club-media__remove:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .club-media--background .club-media__button:hover,
+  .club-media__remove:hover:not(:disabled) {
+    background: oklch(15% 0.025 255 / 0.92);
+    translate: none;
+  }
+}
+.club-media__button[aria-disabled] {
+  cursor: progress;
+}
+/* State indication while uploading: a fast spinner reads as a fast upload. */
+.club-media__spin {
+  animation: club-media-spin 700ms linear infinite;
+}
+@keyframes club-media-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.club-media__message {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: max-content;
+  max-width: 16rem;
+  margin: 0 !important;
+  font-size: 0.8rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .club-media__spin {
+    animation-duration: 1.6s;
+  }
+}
