@@ -5787,14 +5787,62 @@ main.club-home {
     transform: rotate(360deg);
   }
 }
-.club-media__message {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  right: 0;
-  width: max-content;
-  max-width: 16rem;
+/* Club photo errors: a toast, since the controls sit in clipped corners. */
+.club-toast {
+  position: fixed;
+  z-index: 60;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  width: min(26rem, calc(100vw - 2rem));
+  align-items: center;
+  gap: 0.75rem;
   margin: 0 !important;
-  font-size: 0.8rem;
+  border: 1px solid rgb(255 120 110 / 0.35);
+  border-left-width: 1px;
+  border-radius: var(--radius-md);
+  background: oklch(21% 0.03 255);
+  padding: 0.7rem 0.6rem 0.7rem 0.9rem;
+  color: rgb(255 180 175);
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-md);
+  transform: translateX(-50%);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: translate(-50%, 0.75rem);
+  }
+}
+.club-toast span {
+  flex: 1;
+}
+.club-toast__close {
+  min-height: 2rem;
+  min-width: 2rem;
+  flex: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  box-shadow: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .club-toast__close:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.08);
+    box-shadow: none;
+    translate: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .club-toast {
+    transition: opacity 200ms ease;
+    @starting-style {
+      opacity: 0;
+      transform: translateX(-50%);
+    }
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .club-media__spin {

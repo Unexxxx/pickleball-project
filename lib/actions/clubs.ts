@@ -50,6 +50,40 @@ export async function setMembershipRole(input: unknown) {
   revalidatePath("/dashboard/clubs");
   return success({ version: Number(data) }, requestId);
 }
+/**
+ * Explains why a club command failed instead of always blaming permissions.
+ * PGRST202 means the database function isn't deployed on this project yet.
+ */
+function clubCommandFailure(
+  error: { code?: string; details?: string | null; message?: string },
+  what: string,
+  requestId: string,
+) {
+  const detail = `${error.details ?? ""} ${error.message ?? ""}`;
+  if (error.code === "PGRST202")
+    return failure(
+      "INTERNAL_ERROR",
+      `Saving the ${what} isn't available yet. Please try again later.`,
+      requestId,
+    );
+  if (detail.includes("PERMISSION_DENIED"))
+    return failure(
+      "FORBIDDEN",
+      `Only club owners and organizers can change the ${what}.`,
+      requestId,
+    );
+  if (detail.includes("VALIDATION_FAILED"))
+    return failure(
+      "VALIDATION_FAILED",
+      `That ${what} couldn't be saved. Check it and try again.`,
+      requestId,
+    );
+  return failure(
+    "INTERNAL_ERROR",
+    `The ${what} couldn't be saved. Please try again.`,
+    requestId,
+  );
+}
 export async function setClubContact(input: unknown) {
   const requestId = crypto.randomUUID();
   const parsed = clubContactSchema.safeParse(input);
@@ -64,12 +98,7 @@ export async function setClubContact(input: unknown) {
     p_club_id: parsed.data.clubId,
     p_contact: parsed.data.contact,
   });
-  if (error)
-    return failure(
-      "FORBIDDEN",
-      "Only club owners and organizers can change the contact.",
-      requestId,
-    );
+  if (error) return clubCommandFailure(error, "contact", requestId);
   revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
   return success({ contact: parsed.data.contact.trim() || null }, requestId);
 }
@@ -90,9 +119,9 @@ export async function setClubMedia(input: unknown) {
     p_path: parsed.data.path,
   });
   if (error)
-    return failure(
-      "FORBIDDEN",
-      "Only club owners and organizers can change club photos.",
+    return clubCommandFailure(
+      error,
+      parsed.data.kind === "profile" ? "club picture" : "cover photo",
       requestId,
     );
   if (previous && previous !== parsed.data.path)

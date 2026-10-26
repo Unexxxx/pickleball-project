@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, LoaderCircle, Trash2 } from "lucide-react";
+import { Camera, LoaderCircle, Trash2, X } from "lucide-react";
 import { setClubMedia } from "@/lib/actions/clubs";
 import { createClient } from "@/lib/supabase/client";
 
@@ -33,6 +33,13 @@ export function ClubMediaButton({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const noun = kind === "profile" ? "club picture" : "cover photo";
+
+  // Errors show as a toast: the controls sit in corners of a clipped card.
+  useEffect(() => {
+    if (!message) return;
+    const timer = window.setTimeout(() => setMessage(""), 6000);
+    return () => window.clearTimeout(timer);
+  }, [message]);
 
   async function save(path: string | null, uploaded: string | null) {
     const result = await setClubMedia({ clubId, clubSlug, kind, path });
@@ -113,9 +120,17 @@ export function ClubMediaButton({
         </button>
       ) : null}
       {message ? (
-        <p className="club-media__message" role="alert">
-          {message}
-        </p>
+        <div className="club-toast" role="alert">
+          <span>{message}</span>
+          <button
+            type="button"
+            className="club-toast__close"
+            aria-label="Dismiss"
+            onClick={() => setMessage("")}
+          >
+            <X aria-hidden="true" size={16} />
+          </button>
+        </div>
       ) : null}
     </div>
   );
