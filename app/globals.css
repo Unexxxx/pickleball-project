@@ -833,50 +833,6 @@ pre {
   margin-bottom: 1rem;
 }
 
-.club-layout {
-  display: grid;
-  min-width: 0;
-}
-.club-content {
-  min-width: 0;
-}
-.club-sidebar {
-  display: none;
-  margin: 1.5rem 0 1.5rem 1.5rem;
-  padding: 1rem;
-}
-.club-sidebar nav > p {
-  margin: 0.25rem 0.65rem 0.75rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.club-sidebar ul {
-  display: grid;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.club-sidebar a {
-  display: flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.65rem;
-  border-radius: var(--radius-sm);
-  padding: 0.55rem 0.65rem;
-  color: var(--muted-foreground);
-  font-weight: 700;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
-}
-.club-sidebar a:hover {
-  background: var(--muted);
-  color: var(--primary);
-}
-
 .event-nav {
   position: sticky;
   top: 0;
@@ -1180,7 +1136,6 @@ pre {
   align-items: center;
   gap: 0.35rem;
 }
-.club-status,
 .count-badge {
   border-radius: 999px;
   background: oklch(80% 0.19 125 / 0.16);
@@ -1190,18 +1145,6 @@ pre {
   font-weight: 850;
   text-transform: capitalize;
 }
-.club-events-stack {
-  display: grid;
-  gap: clamp(2rem, 5vw, 3.5rem);
-  margin-top: clamp(2rem, 5vw, 3.5rem);
-}
-.club-events-stack > section {
-  margin-top: 0;
-}
-.club-events-stack .eyebrow {
-  background: var(--muted);
-  color: var(--primary);
-}
 .count-badge {
   min-width: 2rem;
   text-align: center;
@@ -1209,42 +1152,6 @@ pre {
 .count-badge--muted {
   background: var(--muted);
   color: var(--muted-foreground);
-}
-.club-event-list {
-  display: grid;
-  gap: 0.75rem;
-}
-.club-event-row {
-  display: grid;
-  grid-template-columns: 4.25rem minmax(0, 1fr);
-  gap: 1rem;
-  padding: 1rem;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    translate 180ms ease;
-}
-.club-event-row:hover {
-  border-color: var(--border);
-  box-shadow: var(--shadow-md);
-  translate: 0 -1px;
-}
-.club-event-row h3 {
-  margin-top: 0.55rem;
-}
-.club-event-row h3 a {
-  color: var(--foreground);
-  text-decoration: none;
-}
-.club-event-row h3 a:hover {
-  color: var(--primary);
-}
-.club-event-row p {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 0.4rem 0 0;
-  font-size: 0.85rem;
 }
 .compact-empty {
   display: flex;
@@ -3595,24 +3502,12 @@ form.grid button {
   .desktop-nav {
     display: flex;
   }
-  .club-layout {
-    grid-template-columns: 15rem minmax(0, 1fr);
-  }
-  .club-sidebar {
-    display: block;
-    align-self: start;
-    position: sticky;
-    top: 1.5rem;
-  }
   .event-nav {
     top: 0.75rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
   }
   .event-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .club-event-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -5507,4 +5402,450 @@ main.ph {
   color: var(--ax-ink);
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Club home (/clubs/[slug]) — public page, staff tools inline. Reuses the
+   player-home `ph-*` panels/rows. Motion: tabs switch instantly, rows press
+   to 0.98, hovers are color-only and pointer-gated, only "live" pulses.
+   ─────────────────────────────────────────────────────────────────────── */
+main.club-home {
+  padding-block: 1rem 3rem;
+}
+.club-home .club-profile-hero {
+  box-shadow: none;
+}
+/* A thin cover band instead of a tall banner: content starts above the fold. */
+.club-home .club-cover {
+  min-height: clamp(4.5rem, 12vw, 7.5rem);
+}
+.club-home .club-profile-body {
+  align-items: center;
+  gap: 1rem 1.25rem;
+  padding-block-end: 1.25rem;
+}
+.club-home .club-profile-mark {
+  width: clamp(4.5rem, 12vw, 6rem);
+  height: clamp(4.5rem, 12vw, 6rem);
+  margin-top: clamp(-3rem, -6vw, -2.25rem);
+  border-width: 4px;
+  border-radius: 1.15rem;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+.club-profile-text {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding-top: 0.75rem;
+}
+.club-profile-text h1 {
+  max-width: none;
+  font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.club-role-chip {
+  border-radius: 999px;
+  background: oklch(80% 0.19 125 / 0.16);
+  color: var(--primary);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.club-role-chip svg {
+  flex: none;
+}
+.club-hero-action {
+  min-height: 2.75rem;
+  padding-inline: 1.1rem;
+}
+.club-tabs {
+  width: fit-content;
+  max-width: 100%;
+  margin: 1rem 0 !important;
+}
+.club-home__body {
+  display: grid;
+  gap: 1rem;
+}
+.club-home__body > .ph-top,
+.club-home__body > .ph-grid {
+  margin: 0;
+}
+.club-overview-grid {
+  margin-top: 0 !important;
+}
+@media (min-width: 1100px) {
+  .club-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Contact line (+ owner/organizer in-place editor). */
+.club-contact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.club-contact > svg {
+  flex: none;
+  color: var(--primary);
+}
+.club-contact a {
+  color: var(--primary);
+  font-weight: 700;
+}
+.club-contact__empty {
+  color: var(--muted-foreground);
+}
+.club-contact__edit {
+  color: var(--primary);
+}
+.club-contact-form {
+  display: grid;
+  max-width: none;
+  gap: 0.4rem;
+  margin: 0;
+}
+.club-contact-form label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.club-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.club-contact-actions button[type="submit"] {
+  min-height: 2.5rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* At a glance — real counts only. */
+.club-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+.club-stats > div {
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  padding: 0.75rem;
+}
+.club-stats dt {
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.club-stats dd {
+  margin: 0.2rem 0 0;
+  color: var(--primary);
+  font-family: var(--font-heading), "Bricolage Grotesque", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Schedule / Members / Rankings tabs. */
+.club-schedule,
+.club-rankings {
+  display: grid;
+  gap: 1.25rem;
+}
+.club-schedule section,
+.club-rankings section {
+  margin: 0 !important;
+}
+.club-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.club-schedule .ph-list--page {
+  margin-top: 0;
+}
+.club-members {
+  display: grid;
+  gap: 1rem;
+}
+.club-members h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.member-grid {
+  margin: 0 -0.4rem;
+}
+@media (min-width: 760px) {
+  .member-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .member-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.ph-row__avatar {
+  overflow: hidden;
+  background-position: center;
+  background-size: cover;
+}
+.member-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  padding: 0 0.75rem;
+}
+.member-search svg {
+  flex: none;
+  color: var(--muted-foreground);
+}
+.member-search input {
+  min-height: 2.75rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+.member-search:focus-within {
+  border-color: var(--ring);
+}
+.club-rankings .ph-section-head {
+  margin: 0;
+}
+.club-rankings .ph-section-head h2 {
+  margin: 0;
+}
+.leaderboard-member {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.club-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.club-footer a {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Club tools (event workspace, new event, reports): back link to the club. */
+.club-backlink {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 1rem 0 0 max(1rem, calc((100% - 72rem) / 2));
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .club-backlink:hover {
+    color: var(--primary);
+  }
+}
+.club-schedule__staff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+.club-schedule__staff .button {
+  min-height: 2.75rem;
+}
+/* Phones: the four club tabs share the width instead of scrolling. */
+@media (max-width: 30rem) {
+  .club-tabs {
+    width: 100%;
+  }
+  .club-tabs a {
+    flex: 1 1 0;
+    padding-inline: 0.4rem;
+    text-align: center;
+  }
+}
+
+/* Club photo controls (owners/organizers). */
+.club-home .club-cover {
+  position: relative;
+}
+.club-profile-mark-wrap {
+  position: relative;
+  flex: none;
+  margin-top: clamp(-3rem, -6vw, -2.25rem);
+}
+.club-home .club-profile-mark {
+  margin-top: 0;
+}
+.club-media {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.club-media--background {
+  top: 0.6rem;
+  right: 0.6rem;
+}
+.club-media--profile {
+  right: -0.4rem;
+  bottom: -0.4rem;
+}
+.club-media__button,
+.club-media__remove {
+  display: inline-flex;
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid oklch(97.5% 0.008 90 / 0.25);
+  border-radius: 999px;
+  background: oklch(15% 0.025 255 / 0.78);
+  padding: 0 0.7rem;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: none;
+  backdrop-filter: blur(6px);
+  transition:
+    background-color 150ms ease,
+    transform 120ms var(--ease-out);
+}
+.club-media--profile .club-media__button {
+  width: 2.25rem;
+  padding: 0;
+  border: 2px solid var(--surface);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  backdrop-filter: none;
+}
+.club-media--profile .club-media__remove {
+  width: 2.25rem;
+  border: 2px solid var(--surface);
+  background: var(--surface);
+}
+.club-media__remove {
+  padding: 0;
+  color: var(--danger);
+}
+.club-media__button:active,
+.club-media__remove:active {
+  transform: scale(0.96);
+}
+.club-media__button:focus-within,
+.club-media__remove:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .club-media--background .club-media__button:hover,
+  .club-media__remove:hover:not(:disabled) {
+    background: oklch(15% 0.025 255 / 0.92);
+    translate: none;
+  }
+}
+.club-media__button[aria-disabled] {
+  cursor: progress;
+}
+/* State indication while uploading: a fast spinner reads as a fast upload. */
+.club-media__spin {
+  animation: club-media-spin 700ms linear infinite;
+}
+@keyframes club-media-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Club photo errors: a toast, since the controls sit in clipped corners. */
+.club-toast {
+  position: fixed;
+  z-index: 60;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  width: min(26rem, calc(100vw - 2rem));
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 !important;
+  border: 1px solid rgb(255 120 110 / 0.35);
+  border-left-width: 1px;
+  border-radius: var(--radius-md);
+  background: oklch(21% 0.03 255);
+  padding: 0.7rem 0.6rem 0.7rem 0.9rem;
+  color: rgb(255 180 175);
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-md);
+  transform: translateX(-50%);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: translate(-50%, 0.75rem);
+  }
+}
+.club-toast span {
+  flex: 1;
+}
+.club-toast__close {
+  min-height: 2rem;
+  min-width: 2rem;
+  flex: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  box-shadow: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .club-toast__close:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.08);
+    box-shadow: none;
+    translate: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .club-toast {
+    transition: opacity 200ms ease;
+    @starting-style {
+      opacity: 0;
+      transform: translateX(-50%);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .club-media__spin {
+    animation-duration: 1.6s;
+  }
 }

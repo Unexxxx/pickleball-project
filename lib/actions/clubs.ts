@@ -1,7 +1,12 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { clubSchema, membershipRoleSchema } from "@/lib/validation/clubs";
+import {
+  clubContactSchema,
+  clubMediaSchema,
+  clubSchema,
+  membershipRoleSchema,
+} from "@/lib/validation/clubs";
 import { failure, success } from "@/lib/actions/result";
 export async function createClub(input: unknown) {
   const requestId = crypto.randomUUID();
@@ -44,4 +49,83 @@ export async function setMembershipRole(input: unknown) {
     return failure("FORBIDDEN", "Role change was not allowed.", requestId);
   revalidatePath("/dashboard/clubs");
   return success({ version: Number(data) }, requestId);
+}
+/**
+ * Explains why a club command failed instead of always blaming permissions.
+ * PGRST202 means the database function isn't deployed on this project yet.
+ */
+function clubCommandFailure(
+  error: { code?: string; details?: string | null; message?: string },
+  what: string,
+  requestId: string,
+) {
+  const detail = `${error.details ?? ""} ${error.message ?? ""}`;
+  if (error.code === "PGRST202")
+    return failure(
+      "INTERNAL_ERROR",
+      `Saving the ${what} isn't available yet. Please try again later.`,
+      requestId,
+    );
+  if (detail.includes("PERMISSION_DENIED"))
+    return failure(
+      "FORBIDDEN",
+      `Only club owners and organizers can change the ${what}.`,
+      requestId,
+    );
+  if (detail.includes("VALIDATION_FAILED"))
+    return failure(
+      "VALIDATION_FAILED",
+      `That ${what} couldn't be saved. Check it and try again.`,
+      requestId,
+    );
+  return failure(
+    "INTERNAL_ERROR",
+    `The ${what} couldn't be saved. Please try again.`,
+    requestId,
+  );
+}
+export async function setClubContact(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubContactSchema.safeParse(input);
+  if (!parsed.success)
+    return failure(
+      "VALIDATION_FAILED",
+      "Keep the contact under 200 characters.",
+      requestId,
+    );
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_club_contact", {
+    p_club_id: parsed.data.clubId,
+    p_contact: parsed.data.contact,
+  });
+  if (error) return clubCommandFailure(error, "contact", requestId);
+  revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
+  return success({ contact: parsed.data.contact.trim() || null }, requestId);
+}
+/**
+ * Records a club picture the client already uploaded to club-media/<club>/…
+ * (or clears it). The database re-checks the role and the folder, then hands
+ * back the replaced file so it can be removed from storage.
+ */
+export async function setClubMedia(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubMediaSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the image.", requestId);
+  const supabase = await createClient();
+  const { data: previous, error } = await supabase.rpc("set_club_media", {
+    p_club_id: parsed.data.clubId,
+    p_kind: parsed.data.kind,
+    p_path: parsed.data.path,
+  });
+  if (error)
+    return clubCommandFailure(
+      error,
+      parsed.data.kind === "profile" ? "club picture" : "cover photo",
+      requestId,
+    );
+  if (previous && previous !== parsed.data.path)
+    await supabase.storage.from("club-media").remove([previous]);
+  revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
+  return success({ path: parsed.data.path }, requestId);
 }

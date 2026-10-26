@@ -31,3 +31,18 @@ export const subscriptionWebhookSchema = z
     occurredAt: z.iso.datetime(),
   })
   .strict();
+export const clubContactSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    contact: z.string().max(200),
+  })
+  .strict();
+export const clubMediaSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    kind: z.enum(["profile", "background"]),
+    path: z.string().min(1).max(200).nullable(),
+  })
+  .strict();

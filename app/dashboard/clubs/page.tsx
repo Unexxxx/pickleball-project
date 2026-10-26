@@ -45,7 +45,7 @@ export default async function ClubsPage() {
                 <li key={club.id}>
                   <Link
                     className="ph-row ph-row--club"
-                    href={`/dashboard/clubs/${club.slug}`}
+                    href={`/clubs/${club.slug}`}
                   >
                     <span className="ph-row__avatar" aria-hidden="true">
                       {club.name.slice(0, 1).toUpperCase()}

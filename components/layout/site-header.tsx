@@ -2,23 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  CalendarDays,
-  House,
-  LogIn,
-  Search,
-  Trophy,
-  UserRound,
-  Users,
-} from "lucide-react";
+import { House, LogIn, Search, Trophy, UserRound, Users } from "lucide-react";
 
 // The one primary navigation for signed-in players. Rankings and match
-// history live under Profile; browsing lives in Events › Discover and the
-// explicit name lookup is Search.
+// history live under Profile, the explicit name lookup is Search, and a club's
+// events live on its Schedule tab. The full events list (Joined · Hosting ·
+// Discover) is reached from Home, so Home stays active there.
 const APP_NAV = [
-  { href: "/dashboard", label: "Home", icon: House, exact: true },
-  { href: "/dashboard/events", label: "Events", icon: CalendarDays },
-  { href: "/dashboard/clubs", label: "Clubs", icon: Users },
+  {
+    href: "/dashboard",
+    label: "Home",
+    icon: House,
+    exact: true,
+    also: ["/dashboard/events"],
+  },
+  // Club homes live at /clubs/[slug]; the Clubs tab stays active there.
+  {
+    href: "/dashboard/clubs",
+    label: "Clubs",
+    icon: Users,
+    also: ["/clubs"],
+  },
 ];
 
 export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -44,11 +48,15 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
         </Link>
         {isAuthenticated ? (
           <nav aria-label="Primary" className="desktop-nav app-nav">
-            {APP_NAV.map(({ href, label, icon: Icon, exact }) => (
+            {APP_NAV.map(({ href, label, icon: Icon, exact, also }) => (
               <Link
                 key={href}
                 href={href}
-                aria-current={isCurrent(href, exact) ? "page" : undefined}
+                aria-current={
+                  isCurrent(href, exact) || also.some((path) => isCurrent(path))
+                    ? "page"
+                    : undefined
+                }
               >
                 <Icon aria-hidden="true" size={17} /> {label}
               </Link>

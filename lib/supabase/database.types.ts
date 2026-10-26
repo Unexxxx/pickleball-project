@@ -145,6 +145,7 @@ export type Database = {
       clubs: {
         Row: {
           background_image_path: string | null;
+          contact_info: string | null;
           created_at: string;
           id: string;
           name: string;
@@ -158,6 +159,7 @@ export type Database = {
         };
         Insert: {
           background_image_path?: string | null;
+          contact_info?: string | null;
           created_at?: string;
           id?: string;
           name: string;
@@ -171,6 +173,7 @@ export type Database = {
         };
         Update: {
           background_image_path?: string | null;
+          contact_info?: string | null;
           created_at?: string;
           id?: string;
           name?: string;
@@ -2231,6 +2234,25 @@ export type Database = {
       };
     };
     Functions: {
+      club_member_directory: {
+        Args: { p_club_id: string };
+        Returns: {
+          avatar_path: string | null;
+          display_name: string | null;
+          joined_at: string;
+          player_id: string | null;
+          public_slug: string | null;
+          role: Database["public"]["Enums"]["club_role"];
+        }[];
+      };
+      set_club_contact: {
+        Args: { p_club_id: string; p_contact: string };
+        Returns: undefined;
+      };
+      set_club_media: {
+        Args: { p_club_id: string; p_kind: string; p_path: string | null };
+        Returns: string | null;
+      };
       add_event_court: {
         Args: { p_event_id: string; p_idempotency_key: string };
         Returns: { court_id: string; court_label: string }[];

@@ -1,5 +1,6 @@
 import Link from "next/link";
 export type LeaderboardRow = {
+  player_id?: string | null;
   rank: number | null;
   public_slug: string | null;
   display_name: string | null;
@@ -9,7 +10,14 @@ export type LeaderboardRow = {
   win_rate: number | null;
   calculation_version: number | null;
 };
-export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
+export function LeaderboardTable({
+  rows,
+  memberIds,
+}: {
+  rows: LeaderboardRow[];
+  /** On a club leaderboard, marks which players are club members. */
+  memberIds?: Set<string>;
+}) {
   return (
     <div className="overflow-x-auto">
       <table>
@@ -33,6 +41,9 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 <Link href={`/players/${row.public_slug}`}>
                   {row.display_name}
                 </Link>
+                {memberIds && row.player_id && memberIds.has(row.player_id) ? (
+                  <span className="ph-badge leaderboard-member">Member</span>
+                ) : null}
               </td>
               <td>{row.rating == null ? "—" : Math.round(row.rating)}</td>
               <td>
