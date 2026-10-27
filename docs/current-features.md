@@ -76,7 +76,7 @@ Validation: lint, TypeScript checks, all 82 unit/integration tests, and all 185 
 - Club profile photos, background images, member management, and role-based permissions.
 - Public or private events with passcodes/invitations, draft and published states, cancellation, and rescheduling.
 - Event details including schedule, venue, map link, notes, capacity, format, and ranked/unranked classification.
-- Reclub event-detail and roster import with organizer review before creation.
+- ~~Reclub event-detail and roster import~~ — removed October 28 (the Create event page no longer imports from Reclub; rosters already imported can still be reviewed on the event page).
 - Organizer check-in, checkout, queue placement, and an adjustable bench order.
 - Live court creation and reduction during an event.
 - Balanced singles and doubles matchmaking, standby and upcoming lineups, player replacement, and court assignment.

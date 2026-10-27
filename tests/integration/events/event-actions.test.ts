@@ -34,7 +34,7 @@ describe("event contracts", () => {
         idempotencyKey: crypto.randomUUID(),
       }).success,
     ).toBe(true));
-  it("rejects imported Reclub details when the source date is already past", () =>
+  it("rejects an event whose start date is already past", () =>
     expect(
       eventSchema.safeParse({
         clubId: id,
