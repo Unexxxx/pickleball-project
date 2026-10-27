@@ -40,11 +40,16 @@ export const getClubHome = cache(async (slug: string) => {
     .eq("slug", slug)
     .maybeSingle();
   if (!club) return null;
-  // Read separately so the page still renders where the join-policy
-  // migration hasn't been applied yet (joining is then unavailable).
   const { data: policy } = await supabase
     .from("clubs")
     .select("join_policy")
+    .eq("id", club.id)
+    .maybeSingle();
+  // Read separately so the page still renders where the structured-contacts
+  // migration hasn't been applied yet (the legacy contact line shows then).
+  const { data: contacts, error: contactsError } = await supabase
+    .from("clubs")
+    .select("contact_email,contact_facebook,contact_phone")
     .eq("id", club.id)
     .maybeSingle();
   const media = (path: string | null) =>
@@ -54,6 +59,14 @@ export const getClubHome = cache(async (slug: string) => {
   return {
     ...club,
     joinPolicy: (policy?.join_policy ?? null) as "open" | "approval" | null,
+    contacts:
+      contactsError || !contacts
+        ? null
+        : {
+            email: contacts.contact_email,
+            facebook: contacts.contact_facebook,
+            phone: contacts.contact_phone,
+          },
     profileImageUrl: media(club.profile_image_path),
     backgroundImageUrl: media(club.background_image_path),
   };

@@ -2,48 +2,84 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, Pencil } from "lucide-react";
-import { setClubContact } from "@/lib/actions/clubs";
+import { Facebook, Mail, MessageCircle, Pencil, Phone } from "lucide-react";
+import { setClubContacts } from "@/lib/actions/clubs";
 
-const looksLikeUrl = (value: string) =>
-  /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(value);
+export type ClubContactFields = {
+  email: string | null;
+  facebook: string | null;
+  phone: string | null;
+};
+
+const facebookLabel = (url: string) =>
+  url.replace(/^https?:\/\/(www\.|m\.|web\.)?/i, "").replace(/\/$/, "");
 
 /**
- * The club's published contact. Owners and organizers edit it in place; the
- * server action re-checks their role, so `canEdit` only controls the button.
+ * How to reach the club: email, Facebook page and phone, each optional and
+ * tappable (mailto:, the page, tel:). Club admins edit them in place; the
+ * server action and database re-check the role and every format.
  */
 export function ClubContact({
   clubId,
   clubSlug,
-  contact,
+  contacts,
+  legacyContact,
   canEdit,
 }: {
   clubId: string;
   clubSlug: string;
-  contact: string | null;
+  /** Null until the structured-contacts migration is applied. */
+  contacts: ClubContactFields | null;
+  /** The old free-text line, shown read-only before that migration. */
+  legacyContact: string | null;
   canEdit: boolean;
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(contact ?? "");
+  const [draft, setDraft] = useState({ email: "", facebook: "", phone: "" });
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
+    {},
+  );
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+
+  if (!contacts)
+    return legacyContact ? (
+      <div className="club-contact">
+        <MessageCircle aria-hidden="true" size={18} />
+        <span>{legacyContact}</span>
+      </div>
+    ) : (
+      <p className="club-contact__empty">
+        This club hasn&apos;t published contacts yet.
+      </p>
+    );
+
+  const startEditing = () => {
+    setDraft({
+      email: contacts.email ?? "",
+      facebook: contacts.facebook ?? "",
+      phone: contacts.phone ?? "",
+    });
+    setErrors({});
+    setMessage("");
+    setEditing(true);
+  };
 
   if (editing)
     return (
       <form
         className="club-contact-form"
+        noValidate
         onSubmit={async (event) => {
           event.preventDefault();
           setSaving(true);
+          setErrors({});
           setMessage("");
-          const result = await setClubContact({
-            clubId,
-            clubSlug,
-            contact: draft,
-          });
+          const result = await setClubContacts({ clubId, clubSlug, ...draft });
           setSaving(false);
           if (!result.ok) {
+            setErrors(result.error.fields ?? {});
             setMessage(result.error.message);
             return;
           }
@@ -51,73 +87,131 @@ export function ClubContact({
           router.refresh();
         }}
       >
-        <label htmlFor="club-contact-input">How players can reach you</label>
-        <input
-          id="club-contact-input"
-          value={draft}
-          maxLength={200}
-          placeholder="e.g. facebook.com/thedinklab or 0917 123 4567"
-          autoFocus
-          onChange={(event) => setDraft(event.target.value)}
-        />
+        {(
+          [
+            ["email", "Email", "email", "club@example.com", Mail],
+            [
+              "facebook",
+              "Facebook page",
+              "url",
+              "facebook.com/yourclub",
+              Facebook,
+            ],
+            ["phone", "Contact number", "tel", "0917 123 4567", Phone],
+          ] as const
+        ).map(([field, label, type, placeholder, Icon]) => (
+          <label key={field} className="club-contact-field">
+            <span>
+              <Icon aria-hidden="true" size={15} /> {label}
+            </span>
+            <input
+              type={type}
+              inputMode={type === "tel" ? "tel" : undefined}
+              value={draft[field]}
+              placeholder={placeholder}
+              maxLength={field === "email" ? 254 : 200}
+              aria-invalid={errors[field] ? true : undefined}
+              aria-describedby={errors[field] ? `${field}-error` : undefined}
+              onChange={(event) =>
+                setDraft((d) => ({ ...d, [field]: event.target.value }))
+              }
+            />
+            {errors[field] ? (
+              <small
+                id={`${field}-error`}
+                className="club-contact-field__error"
+              >
+                {errors[field]![0]}
+              </small>
+            ) : null}
+          </label>
+        ))}
         <p className="field-help">
-          Shown publicly on the club page. Leave blank to remove it.
+          Shown publicly on the club page. Leave a field blank to hide it.
         </p>
         <div className="club-contact-actions">
           <button type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Save contact"}
+            {saving ? "Saving…" : "Save contacts"}
           </button>
           <button
             type="button"
             className="button-quiet profile-cancel"
             disabled={saving}
-            onClick={() => {
-              setDraft(contact ?? "");
-              setMessage("");
-              setEditing(false);
-            }}
+            onClick={() => setEditing(false)}
           >
             Cancel
           </button>
         </div>
-        {message ? <p role="alert">{message}</p> : null}
+        {message && !Object.keys(errors).length ? (
+          <p role="alert">{message}</p>
+        ) : null}
       </form>
     );
 
+  const items = [
+    contacts.email && {
+      key: "email",
+      Icon: Mail,
+      href: `mailto:${contacts.email}`,
+      label: contacts.email,
+      external: false,
+    },
+    contacts.facebook && {
+      key: "facebook",
+      Icon: Facebook,
+      href: contacts.facebook,
+      label: facebookLabel(contacts.facebook),
+      external: true,
+    },
+    contacts.phone && {
+      key: "phone",
+      Icon: Phone,
+      href: `tel:${contacts.phone.replace(/[^\d+]/g, "")}`,
+      label: contacts.phone,
+      external: false,
+    },
+  ].filter(Boolean) as {
+    key: string;
+    Icon: typeof Mail;
+    href: string;
+    label: string;
+    external: boolean;
+  }[];
+
   return (
-    <div className="club-contact">
-      <MessageCircle aria-hidden="true" size={18} />
-      {contact ? (
-        looksLikeUrl(contact) ? (
-          <a
-            href={
-              /^https?:\/\//i.test(contact) ? contact : `https://${contact}`
-            }
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-          >
-            {contact}
-          </a>
-        ) : (
-          <span>{contact}</span>
-        )
+    <div className="club-contacts">
+      {items.length ? (
+        <ul className="club-contacts__list">
+          {items.map(({ key, Icon, href, label, external }) => (
+            <li key={key}>
+              <a
+                className="club-contact"
+                href={href}
+                {...(external
+                  ? { target: "_blank", rel: "noopener noreferrer nofollow" }
+                  : {})}
+              >
+                <Icon aria-hidden="true" size={18} />
+                <span>{label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       ) : (
-        <span className="club-contact__empty">
+        <p className="club-contact__empty">
           {canEdit
-            ? "Add a contact so players know how to reach the club."
-            : "This club hasn't published a contact yet."}
-        </span>
+            ? "Add an email, Facebook page or number so players can reach the club."
+            : "This club hasn't published contacts yet."}
+        </p>
       )}
       {canEdit ? (
         <button
           type="button"
           className="profile-link-button club-contact__edit"
-          onClick={() => {
-            setDraft(contact ?? "");
-            setEditing(true);
-          }}
+          onClick={startEditing}
         >
-          <Pencil aria-hidden="true" size={14} /> {contact ? "Edit" : "Add"}
+          <Pencil aria-hidden="true" size={14} />{" "}
+          {items.length ? "Edit contacts" : "Add contacts"}
         </button>
       ) : null}
     </div>
