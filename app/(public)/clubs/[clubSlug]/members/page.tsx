@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ClubContact } from "@/components/clubs/club-contact";
+import { ClubMembershipAdmin } from "@/components/clubs/club-membership-admin";
+import { currentPlayerId } from "@/lib/auth/authorization";
 import { MemberList } from "@/components/clubs/member-list";
 import { MemberRow } from "@/components/clubs/member-row";
 import {
@@ -8,7 +10,9 @@ import {
   ROLE_LABEL,
   getClubDirectory,
   getClubHome,
+  getStaffRoster,
   getViewerRole,
+  isClubAdmin,
 } from "@/lib/queries/club-home";
 
 export const metadata: Metadata = { title: "Members" };
@@ -35,8 +39,24 @@ export default async function ClubMembers({
   const others = directory.filter((m) => !CLUB_ADMIN_ROLES.includes(m.role));
   const publicMembers = others.filter((m) => m.playerId);
 
+  const admin = isClubAdmin(role);
+  const [roster, viewerPlayerId] = admin
+    ? await Promise.all([getStaffRoster(club.id), currentPlayerId()])
+    : [null, null];
+
   return (
     <div className="club-members">
+      {admin && roster && club.joinPolicy ? (
+        <ClubMembershipAdmin
+          clubId={club.id}
+          clubSlug={club.slug}
+          roster={roster}
+          joinPolicy={club.joinPolicy}
+          canSetPolicy={role === "owner" || role === "organizer"}
+          viewerIsOwner={role === "owner"}
+          viewerPlayerId={viewerPlayerId}
+        />
+      ) : null}
       <section className="ph-panel" aria-labelledby="club-staff-heading">
         <header className="ph-panel__head">
           <h2 id="club-staff-heading">Club staff</h2>

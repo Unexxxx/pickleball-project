@@ -148,6 +148,7 @@ export type Database = {
           contact_info: string | null;
           created_at: string;
           id: string;
+          join_policy: string;
           name: string;
           profile_image_path: string | null;
           slug: string;
@@ -162,6 +163,7 @@ export type Database = {
           contact_info?: string | null;
           created_at?: string;
           id?: string;
+          join_policy?: string;
           name: string;
           profile_image_path?: string | null;
           slug: string;
@@ -176,6 +178,7 @@ export type Database = {
           contact_info?: string | null;
           created_at?: string;
           id?: string;
+          join_policy?: string;
           name?: string;
           profile_image_path?: string | null;
           slug?: string;
@@ -2249,6 +2252,37 @@ export type Database = {
         Args: { p_club_id: string; p_contact: string };
         Returns: undefined;
       };
+      club_staff_roster: {
+        Args: { p_club_id: string };
+        Returns: {
+          avatar_path: string | null;
+          display_name: string;
+          membership_id: string;
+          player_id: string;
+          public_slug: string;
+          role: Database["public"]["Enums"]["club_role"];
+          since: string;
+          status: Database["public"]["Enums"]["membership_status"];
+        }[];
+      };
+      leave_club: { Args: { p_club_id: string }; Returns: undefined };
+      remove_club_member: {
+        Args: { p_club_id: string; p_membership_id: string };
+        Returns: undefined;
+      };
+      request_club_membership: { Args: { p_club_id: string }; Returns: string };
+      review_club_membership: {
+        Args: {
+          p_approve: boolean;
+          p_club_id: string;
+          p_membership_id: string;
+        };
+        Returns: undefined;
+      };
+      set_club_join_policy: {
+        Args: { p_club_id: string; p_policy: string };
+        Returns: undefined;
+      };
       set_club_media: {
         Args: { p_club_id: string; p_kind: string; p_path: string | null };
         Returns: string | null;
@@ -2785,7 +2819,8 @@ export type Database = {
         | "disputed"
         | "voided"
         | "canceled";
-      membership_status: "invited" | "active" | "suspended" | "left";
+      membership_status:
+        "invited" | "active" | "suspended" | "left" | "requested";
       moderation_action_status: "active" | "expired" | "reversed";
       queue_entry_state: "ready" | "assigned" | "left" | "unavailable";
       ranked_effect_state: "active" | "suspended" | "none";
@@ -2962,7 +2997,13 @@ export const Constants = {
         "voided",
         "canceled",
       ],
-      membership_status: ["invited", "active", "suspended", "left"],
+      membership_status: [
+        "invited",
+        "active",
+        "suspended",
+        "left",
+        "requested",
+      ],
       moderation_action_status: ["active", "expired", "reversed"],
       queue_entry_state: ["ready", "assigned", "left", "unavailable"],
       ranked_effect_state: ["active", "suspended", "none"],

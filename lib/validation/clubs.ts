@@ -46,3 +46,28 @@ export const clubMediaSchema = z
     path: z.string().min(1).max(200).nullable(),
   })
   .strict();
+export const clubTargetSchema = z
+  .object({ clubId: uuidSchema, clubSlug: z.string().min(1).max(120) })
+  .strict();
+export const membershipReviewSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    membershipId: uuidSchema,
+    approve: z.boolean(),
+  })
+  .strict();
+export const membershipRemoveSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    membershipId: uuidSchema,
+  })
+  .strict();
+export const joinPolicySchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    policy: z.enum(["open", "approval"]),
+  })
+  .strict();

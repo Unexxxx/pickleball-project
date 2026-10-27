@@ -1,7 +1,11 @@
 import "server-only";
 import { cache } from "react";
 import { notFound } from "next/navigation";
-import { viewerClubRole, type ClubRole } from "@/lib/auth/authorization";
+import {
+  currentPlayerId,
+  viewerClubRole,
+  type ClubRole,
+} from "@/lib/auth/authorization";
 import { createClient } from "@/lib/supabase/server";
 
 /** Roles that run a club: shown as "Club staff" and see management tools. */
@@ -30,15 +34,17 @@ export const getClubHome = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data: club } = await supabase
     .from("clubs")
-    .select("id,name,slug,timezone,profile_image_path,background_image_path")
+    .select(
+      "id,name,slug,timezone,contact_info,profile_image_path,background_image_path",
+    )
     .eq("slug", slug)
     .maybeSingle();
   if (!club) return null;
-  // Read separately so the page still renders where the contact column's
-  // migration hasn't been applied yet.
-  const { data: contact } = await supabase
+  // Read separately so the page still renders where the join-policy
+  // migration hasn't been applied yet (joining is then unavailable).
+  const { data: policy } = await supabase
     .from("clubs")
-    .select("contact_info")
+    .select("join_policy")
     .eq("id", club.id)
     .maybeSingle();
   const media = (path: string | null) =>
@@ -47,13 +53,74 @@ export const getClubHome = cache(async (slug: string) => {
       : null;
   return {
     ...club,
-    contact_info: contact?.contact_info ?? null,
+    joinPolicy: (policy?.join_policy ?? null) as "open" | "approval" | null,
     profileImageUrl: media(club.profile_image_path),
     backgroundImageUrl: media(club.background_image_path),
   };
 });
 
 export const getViewerRole = cache((clubId: string) => viewerClubRole(clubId));
+
+export type ViewerMembership = {
+  signedIn: boolean;
+  status: "active" | "invited" | "requested" | "suspended" | "left" | null;
+  role: ClubRole | null;
+};
+
+/** The viewer's own membership in any status (players may read their own). */
+export const getViewerMembership = cache(
+  async (clubId: string): Promise<ViewerMembership> => {
+    const playerId = await currentPlayerId();
+    if (!playerId) return { signedIn: false, status: null, role: null };
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("club_memberships")
+      .select("role,status")
+      .eq("club_id", clubId)
+      .eq("player_id", playerId)
+      .maybeSingle();
+    return {
+      signedIn: true,
+      status: (data?.status as ViewerMembership["status"]) ?? null,
+      role: (data?.role as ClubRole | undefined) ?? null,
+    };
+  },
+);
+
+export type RosterEntry = {
+  membershipId: string;
+  playerId: string;
+  name: string;
+  slug: string;
+  avatarUrl: string | null;
+  role: ClubRole;
+  status: string;
+  since: string;
+};
+
+/** Staff-only roster (pending requests + members). Null if not allowed. */
+export const getStaffRoster = cache(
+  async (clubId: string): Promise<RosterEntry[] | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("club_staff_roster", {
+      p_club_id: clubId,
+    });
+    if (error) return null;
+    return (data ?? []).map((row) => ({
+      membershipId: row.membership_id,
+      playerId: row.player_id,
+      name: row.display_name,
+      slug: row.public_slug,
+      avatarUrl: row.avatar_path
+        ? supabase.storage.from("avatars").getPublicUrl(row.avatar_path).data
+            .publicUrl
+        : null,
+      role: row.role as ClubRole,
+      status: row.status,
+      since: row.since,
+    }));
+  },
+);
 
 /**
  * Server-side gate for club management pages. Hiding a button is never the
