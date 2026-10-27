@@ -74,7 +74,6 @@ export const joinPolicySchema = z
 // Blank clears a field. The database applies the same rules.
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const FACEBOOK = /^(https?:\/\/)?((www|m|web)\.)?(facebook|fb)\.com\/\S+$/i;
-const PHONE = /^\+?[0-9][0-9 ()-]{5,19}$/;
 export const clubContactsSchema = z
   .object({
     clubId: uuidSchema,
@@ -95,12 +94,7 @@ export const clubContactsSchema = z
         (v) => !v || FACEBOOK.test(v),
         "Use your Facebook page link, e.g. facebook.com/yourclub.",
       ),
-    phone: z
-      .string()
-      .trim()
-      .refine(
-        (v) => !v || PHONE.test(v),
-        "Use digits, spaces, + or -, e.g. 0917 123 4567.",
-      ),
+    // Free text: any format the club wants to share.
+    phone: z.string().trim().max(100, "Keep it under 100 characters."),
   })
   .strict();

@@ -12,7 +12,7 @@ Updated September 9, 2026.
 
 ## October 28 update notes
 
-- **Club contacts:** clubs publish an **email**, a **Facebook page** and a **contact number**, each optional and tappable (mailto:, the page in a new tab, tel:). Club admins (owners, organizers, staff) edit all three in place on the club page; formats are checked in the app and again in the database (Facebook links must be facebook.com/fb.com pages). Existing single-line contacts were moved into the matching field. The Contact panel on Overview no longer has an "All members" link.
+- **Club contacts:** clubs publish an **email**, a **Facebook page** and a **contact number**, each optional and tappable (mailto:, the page in a new tab, tel:). Club admins (owners, organizers, staff) edit all three in place on the club page; email and Facebook formats are checked in the app and again in the database (Facebook links must be facebook.com/fb.com pages); the contact number is free text (up to 100 characters) and is a call link only when it contains a number. Existing single-line contacts were moved into the matching field. The Contact panel on Overview no longer has an "All members" link.
 - Database: `clubs.contact_email`, `contact_facebook`, `contact_phone`; `set_club_contacts()` (audit-logged). `contact_info` is no longer written. Tests: `supabase/tests/163_club_contacts.test.sql`.
 
 ## October 27 update notes
