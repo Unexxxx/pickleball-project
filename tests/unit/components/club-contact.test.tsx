@@ -47,6 +47,18 @@ describe("club contacts", () => {
     expect(screen.queryByRole("button", { name: /contacts/i })).toBeNull();
   });
 
+  it("shows a contact number without digits as plain text, not a call link", () => {
+    render(
+      <ClubContact
+        {...base}
+        canEdit={false}
+        contacts={{ email: null, facebook: null, phone: "Message us on Viber" }}
+      />,
+    );
+    expect(screen.getByText("Message us on Viber")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
   it("invites admins to add contacts when there are none", () => {
     render(
       <ClubContact
@@ -96,6 +108,24 @@ describe("club contacts", () => {
       facebook: "",
       phone: "0927 647 9058",
     });
+  });
+
+  it("puts Edit contacts in the panel header when given a heading", () => {
+    render(
+      <ClubContact
+        {...base}
+        canEdit
+        heading={{ id: "contact-h", text: "Contact" }}
+        contacts={{ email: "hi@dinkaboo.ph", facebook: null, phone: null }}
+      />,
+    );
+    const header = screen.getByRole("heading", {
+      name: "Contact",
+    }).parentElement!;
+    expect(header.tagName).toBe("HEADER");
+    expect(header).toContainElement(
+      screen.getByRole("button", { name: "Edit contacts" }),
+    );
   });
 
   it("falls back to the old contact line before the migration", () => {

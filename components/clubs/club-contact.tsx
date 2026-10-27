@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Facebook, Mail, MessageCircle, Pencil, Phone } from "lucide-react";
 import { setClubContacts } from "@/lib/actions/clubs";
@@ -25,6 +25,7 @@ export function ClubContact({
   contacts,
   legacyContact,
   canEdit,
+  heading,
 }: {
   clubId: string;
   clubSlug: string;
@@ -33,6 +34,11 @@ export function ClubContact({
   /** The old free-text line, shown read-only before that migration. */
   legacyContact: string | null;
   canEdit: boolean;
+  /**
+   * When given, this component draws the panel header itself so the
+   * Edit/Add contacts button can sit in its top-right corner.
+   */
+  heading?: { id: string; text: string };
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -43,16 +49,35 @@ export function ClubContact({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
-  if (!contacts)
-    return legacyContact ? (
-      <div className="club-contact">
-        <MessageCircle aria-hidden="true" size={18} />
-        <span>{legacyContact}</span>
-      </div>
+  // Puts the (optional) edit button in the header, or below the body.
+  const frame = (body: ReactNode, action: ReactNode = null) =>
+    heading ? (
+      <>
+        <header className="ph-panel__head">
+          <h2 id={heading.id}>{heading.text}</h2>
+          {action}
+        </header>
+        {body}
+      </>
     ) : (
-      <p className="club-contact__empty">
-        This club hasn&apos;t published contacts yet.
-      </p>
+      <>
+        {body}
+        {action}
+      </>
+    );
+
+  if (!contacts)
+    return frame(
+      legacyContact ? (
+        <div className="club-contact">
+          <MessageCircle aria-hidden="true" size={18} />
+          <span>{legacyContact}</span>
+        </div>
+      ) : (
+        <p className="club-contact__empty">
+          This club hasn&apos;t published contacts yet.
+        </p>
+      ),
     );
 
   const startEditing = () => {
@@ -67,7 +92,7 @@ export function ClubContact({
   };
 
   if (editing)
-    return (
+    return frame(
       <form
         className="club-contact-form"
         noValidate
@@ -97,7 +122,13 @@ export function ClubContact({
               "facebook.com/yourclub",
               Facebook,
             ],
-            ["phone", "Contact number", "tel", "0917 123 4567", Phone],
+            [
+              "phone",
+              "Contact number",
+              "text",
+              "0917 123 4567 or Viber/WhatsApp",
+              Phone,
+            ],
           ] as const
         ).map(([field, label, type, placeholder, Icon]) => (
           <label key={field} className="club-contact-field">
@@ -106,10 +137,11 @@ export function ClubContact({
             </span>
             <input
               type={type}
-              inputMode={type === "tel" ? "tel" : undefined}
               value={draft[field]}
               placeholder={placeholder}
-              maxLength={field === "email" ? 254 : 200}
+              maxLength={
+                field === "email" ? 254 : field === "phone" ? 100 : 200
+              }
               aria-invalid={errors[field] ? true : undefined}
               aria-describedby={errors[field] ? `${field}-error` : undefined}
               onChange={(event) =>
@@ -145,7 +177,7 @@ export function ClubContact({
         {message && !Object.keys(errors).length ? (
           <p role="alert">{message}</p>
         ) : null}
-      </form>
+      </form>,
     );
 
   const items = [
@@ -166,34 +198,55 @@ export function ClubContact({
     contacts.phone && {
       key: "phone",
       Icon: Phone,
-      href: `tel:${contacts.phone.replace(/[^\d+]/g, "")}`,
+      // Free text: tappable to call only when it actually has a number.
+      href: /\d{3}/.test(contacts.phone)
+        ? `tel:${contacts.phone.replace(/[^\d+]/g, "")}`
+        : null,
       label: contacts.phone,
       external: false,
     },
   ].filter(Boolean) as {
     key: string;
     Icon: typeof Mail;
-    href: string;
+    href: string | null;
     label: string;
     external: boolean;
   }[];
 
-  return (
+  const editButton = canEdit ? (
+    <button
+      type="button"
+      className="profile-link-button club-contact__edit"
+      onClick={startEditing}
+    >
+      <Pencil aria-hidden="true" size={14} />{" "}
+      {items.length ? "Edit contacts" : "Add contacts"}
+    </button>
+  ) : null;
+
+  return frame(
     <div className="club-contacts">
       {items.length ? (
         <ul className="club-contacts__list">
           {items.map(({ key, Icon, href, label, external }) => (
             <li key={key}>
-              <a
-                className="club-contact"
-                href={href}
-                {...(external
-                  ? { target: "_blank", rel: "noopener noreferrer nofollow" }
-                  : {})}
-              >
-                <Icon aria-hidden="true" size={18} />
-                <span>{label}</span>
-              </a>
+              {href ? (
+                <a
+                  className="club-contact"
+                  href={href}
+                  {...(external
+                    ? { target: "_blank", rel: "noopener noreferrer nofollow" }
+                    : {})}
+                >
+                  <Icon aria-hidden="true" size={18} />
+                  <span>{label}</span>
+                </a>
+              ) : (
+                <span className="club-contact">
+                  <Icon aria-hidden="true" size={18} />
+                  <span>{label}</span>
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -204,16 +257,7 @@ export function ClubContact({
             : "This club hasn't published contacts yet."}
         </p>
       )}
-      {canEdit ? (
-        <button
-          type="button"
-          className="profile-link-button club-contact__edit"
-          onClick={startEditing}
-        >
-          <Pencil aria-hidden="true" size={14} />{" "}
-          {items.length ? "Edit contacts" : "Add contacts"}
-        </button>
-      ) : null}
-    </div>
+    </div>,
+    editButton,
   );
 }
