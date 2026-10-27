@@ -122,7 +122,13 @@ export function ClubContact({
               "facebook.com/yourclub",
               Facebook,
             ],
-            ["phone", "Contact number", "tel", "0917 123 4567", Phone],
+            [
+              "phone",
+              "Contact number",
+              "text",
+              "0917 123 4567 or Viber/WhatsApp",
+              Phone,
+            ],
           ] as const
         ).map(([field, label, type, placeholder, Icon]) => (
           <label key={field} className="club-contact-field">
@@ -131,10 +137,11 @@ export function ClubContact({
             </span>
             <input
               type={type}
-              inputMode={type === "tel" ? "tel" : undefined}
               value={draft[field]}
               placeholder={placeholder}
-              maxLength={field === "email" ? 254 : 200}
+              maxLength={
+                field === "email" ? 254 : field === "phone" ? 100 : 200
+              }
               aria-invalid={errors[field] ? true : undefined}
               aria-describedby={errors[field] ? `${field}-error` : undefined}
               onChange={(event) =>
@@ -191,14 +198,17 @@ export function ClubContact({
     contacts.phone && {
       key: "phone",
       Icon: Phone,
-      href: `tel:${contacts.phone.replace(/[^\d+]/g, "")}`,
+      // Free text: tappable to call only when it actually has a number.
+      href: /\d{3}/.test(contacts.phone)
+        ? `tel:${contacts.phone.replace(/[^\d+]/g, "")}`
+        : null,
       label: contacts.phone,
       external: false,
     },
   ].filter(Boolean) as {
     key: string;
     Icon: typeof Mail;
-    href: string;
+    href: string | null;
     label: string;
     external: boolean;
   }[];
@@ -220,16 +230,23 @@ export function ClubContact({
         <ul className="club-contacts__list">
           {items.map(({ key, Icon, href, label, external }) => (
             <li key={key}>
-              <a
-                className="club-contact"
-                href={href}
-                {...(external
-                  ? { target: "_blank", rel: "noopener noreferrer nofollow" }
-                  : {})}
-              >
-                <Icon aria-hidden="true" size={18} />
-                <span>{label}</span>
-              </a>
+              {href ? (
+                <a
+                  className="club-contact"
+                  href={href}
+                  {...(external
+                    ? { target: "_blank", rel: "noopener noreferrer nofollow" }
+                    : {})}
+                >
+                  <Icon aria-hidden="true" size={18} />
+                  <span>{label}</span>
+                </a>
+              ) : (
+                <span className="club-contact">
+                  <Icon aria-hidden="true" size={18} />
+                  <span>{label}</span>
+                </span>
+              )}
             </li>
           ))}
         </ul>

@@ -47,6 +47,18 @@ describe("club contacts", () => {
     expect(screen.queryByRole("button", { name: /contacts/i })).toBeNull();
   });
 
+  it("shows a contact number without digits as plain text, not a call link", () => {
+    render(
+      <ClubContact
+        {...base}
+        canEdit={false}
+        contacts={{ email: null, facebook: null, phone: "Message us on Viber" }}
+      />,
+    );
+    expect(screen.getByText("Message us on Viber")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
   it("invites admins to add contacts when there are none", () => {
     render(
       <ClubContact

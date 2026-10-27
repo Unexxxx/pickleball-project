@@ -33,7 +33,7 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','94000000-0000-4000-8000-000000000001',true);
 select throws_ok($$select public.set_club_contacts('94000000-0000-4000-8000-0000000000c1','not-an-email',null,null)$$,'P0001',null,'invalid email is rejected');
 select throws_ok($$select public.set_club_contacts('94000000-0000-4000-8000-0000000000c1',null,'https://evil.example/facebook.com/x',null)$$,'P0001',null,'non-Facebook links are rejected');
-select throws_ok($$select public.set_club_contacts('94000000-0000-4000-8000-0000000000c1',null,null,'call me maybe')$$,'P0001',null,'invalid phone is rejected');
+select lives_ok($$select public.set_club_contacts('94000000-0000-4000-8000-0000000000c1',null,null,'Viber: 0917 123 4567 (after 5pm)')$$,'the contact number accepts any text');
 select lives_ok($$select public.set_club_contacts('94000000-0000-4000-8000-0000000000c1','',' ',null)$$,'blank fields clear contacts');
 reset role;
 select is((select coalesce(contact_email,'')||coalesce(contact_facebook,'')||coalesce(contact_phone,'') from public.clubs where id='94000000-0000-4000-8000-0000000000c1'),'','all contacts cleared');
