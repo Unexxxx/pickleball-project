@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Facebook, Mail, MessageCircle, Pencil, Phone } from "lucide-react";
 import { setClubContacts } from "@/lib/actions/clubs";
@@ -25,6 +25,7 @@ export function ClubContact({
   contacts,
   legacyContact,
   canEdit,
+  heading,
 }: {
   clubId: string;
   clubSlug: string;
@@ -33,6 +34,11 @@ export function ClubContact({
   /** The old free-text line, shown read-only before that migration. */
   legacyContact: string | null;
   canEdit: boolean;
+  /**
+   * When given, this component draws the panel header itself so the
+   * Edit/Add contacts button can sit in its top-right corner.
+   */
+  heading?: { id: string; text: string };
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -43,16 +49,35 @@ export function ClubContact({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
-  if (!contacts)
-    return legacyContact ? (
-      <div className="club-contact">
-        <MessageCircle aria-hidden="true" size={18} />
-        <span>{legacyContact}</span>
-      </div>
+  // Puts the (optional) edit button in the header, or below the body.
+  const frame = (body: ReactNode, action: ReactNode = null) =>
+    heading ? (
+      <>
+        <header className="ph-panel__head">
+          <h2 id={heading.id}>{heading.text}</h2>
+          {action}
+        </header>
+        {body}
+      </>
     ) : (
-      <p className="club-contact__empty">
-        This club hasn&apos;t published contacts yet.
-      </p>
+      <>
+        {body}
+        {action}
+      </>
+    );
+
+  if (!contacts)
+    return frame(
+      legacyContact ? (
+        <div className="club-contact">
+          <MessageCircle aria-hidden="true" size={18} />
+          <span>{legacyContact}</span>
+        </div>
+      ) : (
+        <p className="club-contact__empty">
+          This club hasn&apos;t published contacts yet.
+        </p>
+      ),
     );
 
   const startEditing = () => {
@@ -67,7 +92,7 @@ export function ClubContact({
   };
 
   if (editing)
-    return (
+    return frame(
       <form
         className="club-contact-form"
         noValidate
@@ -145,7 +170,7 @@ export function ClubContact({
         {message && !Object.keys(errors).length ? (
           <p role="alert">{message}</p>
         ) : null}
-      </form>
+      </form>,
     );
 
   const items = [
@@ -178,7 +203,18 @@ export function ClubContact({
     external: boolean;
   }[];
 
-  return (
+  const editButton = canEdit ? (
+    <button
+      type="button"
+      className="profile-link-button club-contact__edit"
+      onClick={startEditing}
+    >
+      <Pencil aria-hidden="true" size={14} />{" "}
+      {items.length ? "Edit contacts" : "Add contacts"}
+    </button>
+  ) : null;
+
+  return frame(
     <div className="club-contacts">
       {items.length ? (
         <ul className="club-contacts__list">
@@ -204,16 +240,7 @@ export function ClubContact({
             : "This club hasn't published contacts yet."}
         </p>
       )}
-      {canEdit ? (
-        <button
-          type="button"
-          className="profile-link-button club-contact__edit"
-          onClick={startEditing}
-        >
-          <Pencil aria-hidden="true" size={14} />{" "}
-          {items.length ? "Edit contacts" : "Add contacts"}
-        </button>
-      ) : null}
-    </div>
+    </div>,
+    editButton,
   );
 }

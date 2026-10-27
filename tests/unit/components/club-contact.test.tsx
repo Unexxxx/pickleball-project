@@ -98,6 +98,24 @@ describe("club contacts", () => {
     });
   });
 
+  it("puts Edit contacts in the panel header when given a heading", () => {
+    render(
+      <ClubContact
+        {...base}
+        canEdit
+        heading={{ id: "contact-h", text: "Contact" }}
+        contacts={{ email: "hi@dinkaboo.ph", facebook: null, phone: null }}
+      />,
+    );
+    const header = screen.getByRole("heading", {
+      name: "Contact",
+    }).parentElement!;
+    expect(header.tagName).toBe("HEADER");
+    expect(header).toContainElement(
+      screen.getByRole("button", { name: "Edit contacts" }),
+    );
+  });
+
   it("falls back to the old contact line before the migration", () => {
     render(
       <ClubContact
