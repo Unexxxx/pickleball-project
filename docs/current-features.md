@@ -12,6 +12,7 @@ Updated September 9, 2026.
 
 ## October 28 update notes
 
+- **Create event redesigned** (`/dashboard/clubs/[slug]/events/new`): four short sections (What · When & where · Players & courts · Who can join) with tap-to-choose chips, a live preview of what players will see (sticky beside the form on desktop), and a submit button that says what will happen (Publish event / Save draft; pinned to the bottom on phones). Fewer decisions: the end time follows the start (3 hours by default, or a 2–5 hour length chip) until it's set by hand; players/courts steppers show how many games run at once; notes are optional and folded away. No change to what's saved.
 - **Club contacts:** clubs publish an **email**, a **Facebook page** and a **contact number**, each optional and tappable (mailto:, the page in a new tab, tel:). Club admins (owners, organizers, staff) edit all three in place on the club page; email and Facebook formats are checked in the app and again in the database (Facebook links must be facebook.com/fb.com pages); the contact number is free text (up to 100 characters) and is a call link only when it contains a number. Existing single-line contacts were moved into the matching field. The Contact panel on Overview no longer has an "All members" link.
 - Database: `clubs.contact_email`, `contact_facebook`, `contact_phone`; `set_club_contacts()` (audit-logged). `contact_info` is no longer written. Tests: `supabase/tests/163_club_contacts.test.sql`.
 
