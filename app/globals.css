@@ -5924,10 +5924,14 @@ button.club-photo__open:active {
   }
 }
 .image-viewer__image {
+  /* Fit the whole photo on screen. Limits use the viewport (minus the
+     viewer's padding), not %, which doesn't resolve inside the grid. */
+  width: auto;
+  height: auto;
+  max-width: min(calc(100vw - 2rem), 72rem);
+  max-height: calc(100dvh - 7.5rem);
   /* Small uploads (e.g. Google avatars) are enlarged to a readable size. */
-  min-width: min(20rem, 100%);
-  max-width: min(100%, 72rem);
-  max-height: 100%;
+  min-width: min(20rem, calc(100vw - 2rem));
   border-radius: var(--radius-md);
   object-fit: contain;
   box-shadow: var(--shadow-md);
