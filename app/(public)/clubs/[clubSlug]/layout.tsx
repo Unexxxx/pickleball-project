@@ -4,11 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Flag } from "lucide-react";
 import { ClubProfileHero } from "@/components/clubs/club-profile-hero";
+import { ClubJoin, ClubLeave } from "@/components/clubs/club-join";
 import { ClubTabs } from "@/components/clubs/club-tabs";
 import {
   ROLE_LABEL,
   getClubDirectory,
   getClubHome,
+  getViewerMembership,
   getViewerRole,
 } from "@/lib/queries/club-home";
 
@@ -37,10 +39,13 @@ export default async function ClubLayout({
   const { clubSlug } = await params;
   const club = await getClubHome(clubSlug);
   if (!club) notFound();
-  const [role, directory] = await Promise.all([
+  const [role, directory, membership] = await Promise.all([
     getViewerRole(club.id),
     getClubDirectory(club.id),
+    getViewerMembership(club.id),
   ]);
+  const isMember =
+    membership.status === "active" || membership.status === "invited";
 
   return (
     <main className="ph club-home">
@@ -55,6 +60,16 @@ export default async function ClubLayout({
             ? { clubId: club.id, clubSlug: club.slug }
             : undefined
         }
+        action={
+          club.joinPolicy ? (
+            <ClubJoin
+              clubId={club.id}
+              clubSlug={club.slug}
+              joinPolicy={club.joinPolicy}
+              membership={membership}
+            />
+          ) : null
+        }
       />
       <ClubTabs slug={club.slug} />
       <div className="club-home__body">{children}</div>
@@ -64,6 +79,15 @@ export default async function ClubLayout({
         <Link href={`/dashboard/clubs/${club.slug}/reports`}>
           Report a concern
         </Link>
+        {isMember && club.joinPolicy ? (
+          <span className="club-footer__leave">
+            <ClubLeave
+              clubId={club.id}
+              clubSlug={club.slug}
+              clubName={club.name}
+            />
+          </span>
+        ) : null}
       </footer>
     </main>
   );

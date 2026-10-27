@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   clubContactSchema,
   clubMediaSchema,
+  clubTargetSchema,
+  joinPolicySchema,
+  membershipRemoveSchema,
+  membershipReviewSchema,
   clubSchema,
   membershipRoleSchema,
 } from "@/lib/validation/clubs";
@@ -128,4 +132,128 @@ export async function setClubMedia(input: unknown) {
     await supabase.storage.from("club-media").remove([previous]);
   revalidatePath(`/clubs/${parsed.data.clubSlug}`, "layout");
   return success({ path: parsed.data.path }, requestId);
+}
+
+/** Clear reasons for join / leave / review / remove failures. */
+function membershipFailure(
+  error: { code?: string; details?: string | null; message?: string },
+  requestId: string,
+) {
+  const detail = `${error.details ?? ""} ${error.message ?? ""}`;
+  if (error.code === "PGRST202")
+    return failure(
+      "INTERNAL_ERROR",
+      "Club membership isn't available yet. Please try again later.",
+      requestId,
+    );
+  if (detail.includes("AUTH_REQUIRED"))
+    return failure("UNAUTHENTICATED", "Log in to join this club.", requestId);
+  if (detail.includes("LAST_OWNER"))
+    return failure(
+      "CONFLICT",
+      "A club needs at least one owner. Make someone else an owner first.",
+      requestId,
+    );
+  if (detail.includes("PERMISSION_DENIED"))
+    return failure(
+      "FORBIDDEN",
+      "You don't have permission to do that in this club.",
+      requestId,
+    );
+  if (detail.includes("NOT_FOUND") || detail.includes("INVALID_STATE"))
+    return failure(
+      "CONFLICT",
+      "This changed in the meantime. Refresh and try again.",
+      requestId,
+    );
+  return failure(
+    "INTERNAL_ERROR",
+    "Something went wrong. Please try again.",
+    requestId,
+  );
+}
+
+const refreshClub = (slug: string) => {
+  revalidatePath(`/clubs/${slug}`, "layout");
+  revalidatePath("/dashboard/clubs");
+  revalidatePath("/dashboard");
+};
+
+/** Join an open club, or request to join one that needs approval. */
+export async function joinClub(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubTargetSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the club.", requestId);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("request_club_membership", {
+    p_club_id: parsed.data.clubId,
+  });
+  if (error) return membershipFailure(error, requestId);
+  refreshClub(parsed.data.clubSlug);
+  return success({ status: data }, requestId);
+}
+
+/** Leave a club, or cancel a pending request. */
+export async function leaveClub(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubTargetSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the club.", requestId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("leave_club", {
+    p_club_id: parsed.data.clubId,
+  });
+  if (error) return membershipFailure(error, requestId);
+  refreshClub(parsed.data.clubSlug);
+  return success({}, requestId);
+}
+
+/** Staff approve or decline a join request. */
+export async function reviewMembership(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = membershipReviewSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the request.", requestId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_club_membership", {
+    p_club_id: parsed.data.clubId,
+    p_membership_id: parsed.data.membershipId,
+    p_approve: parsed.data.approve,
+  });
+  if (error) return membershipFailure(error, requestId);
+  refreshClub(parsed.data.clubSlug);
+  return success({}, requestId);
+}
+
+/** Staff remove a member (owners are needed to remove staff or owners). */
+export async function removeMember(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = membershipRemoveSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the member.", requestId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("remove_club_member", {
+    p_club_id: parsed.data.clubId,
+    p_membership_id: parsed.data.membershipId,
+  });
+  if (error) return membershipFailure(error, requestId);
+  refreshClub(parsed.data.clubSlug);
+  return success({}, requestId);
+}
+
+/** Owners and organizers choose "Anyone can join" or "Approval required". */
+export async function setJoinPolicy(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = joinPolicySchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Choose a join setting.", requestId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_club_join_policy", {
+    p_club_id: parsed.data.clubId,
+    p_policy: parsed.data.policy,
+  });
+  if (error) return clubCommandFailure(error, "join setting", requestId);
+  refreshClub(parsed.data.clubSlug);
+  return success({ policy: parsed.data.policy }, requestId);
 }

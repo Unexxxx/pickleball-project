@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ShieldCheck, Users } from "lucide-react";
 import { ClubPhoto } from "@/components/clubs/club-photo";
 
@@ -13,6 +14,7 @@ export function ClubProfileHero({
   backgroundImageUrl,
   roleLabel,
   media,
+  action,
 }: {
   name: string;
   /** Null when the member directory couldn't be loaded: show no count. */
@@ -23,6 +25,8 @@ export function ClubProfileHero({
   roleLabel?: string | null;
   /** Present for owners/organizers: lets them change the photos in place. */
   media?: { clubId: string; clubSlug: string };
+  /** Membership action for the viewer (Join / Request to join / pending). */
+  action?: ReactNode;
 }) {
   return (
     <header className="club-profile-hero">
@@ -56,6 +60,7 @@ export function ClubProfileHero({
             ) : null}
           </div>
         </div>
+        {action ? <div className="club-profile-action">{action}</div> : null}
       </div>
     </header>
   );
