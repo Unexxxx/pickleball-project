@@ -1078,20 +1078,6 @@ pre {
   background: var(--surface);
   box-shadow: var(--shadow-md);
 }
-.club-cover {
-  min-height: clamp(10rem, 30vw, 18rem);
-  background-color: var(--primary);
-  background-image:
-    linear-gradient(145deg, rgb(9 57 34 / 0.2), rgb(9 57 34 / 0.88)),
-    radial-gradient(
-      circle at 85% 30%,
-      var(--accent) 0 3rem,
-      transparent 3.1rem
-    ),
-    linear-gradient(120deg, oklch(42% 0.1 125), var(--surface));
-  background-position: center;
-  background-size: cover;
-}
 .club-profile-body {
   display: flex;
   flex-wrap: wrap;
@@ -5415,10 +5401,6 @@ main.club-home {
 .club-home .club-profile-hero {
   box-shadow: none;
 }
-/* A thin cover band instead of a tall banner: content starts above the fold. */
-.club-home .club-cover {
-  min-height: clamp(4.5rem, 12vw, 7.5rem);
-}
 .club-home .club-profile-body {
   align-items: center;
   gap: 1rem 1.25rem;
@@ -5695,14 +5677,6 @@ main.club-home {
 }
 
 /* Club photo controls (owners/organizers). */
-.club-home .club-cover {
-  position: relative;
-}
-.club-profile-mark-wrap {
-  position: relative;
-  flex: none;
-  margin-top: clamp(-3rem, -6vw, -2.25rem);
-}
 .club-home .club-profile-mark {
   margin-top: 0;
 }
@@ -5712,11 +5686,12 @@ main.club-home {
   align-items: center;
   gap: 0.35rem;
 }
-.club-media--background {
+.club-media--background.club-media--overlay {
   top: 0.6rem;
   right: 0.6rem;
 }
-.club-media--profile {
+/* Small round controls on the club picture itself (not in the viewer). */
+.club-media--profile.club-media--overlay {
   right: -0.4rem;
   bottom: -0.4rem;
 }
@@ -5742,7 +5717,7 @@ main.club-home {
     background-color 150ms ease,
     transform 120ms var(--ease-out);
 }
-.club-media--profile .club-media__button {
+.club-media--profile.club-media--overlay .club-media__button {
   width: 2.25rem;
   padding: 0;
   border: 2px solid var(--surface);
@@ -5750,7 +5725,7 @@ main.club-home {
   color: var(--primary-foreground);
   backdrop-filter: none;
 }
-.club-media--profile .club-media__remove {
+.club-media--profile.club-media--overlay .club-media__remove {
   width: 2.25rem;
   border: 2px solid var(--surface);
   background: var(--surface);
@@ -5847,5 +5822,183 @@ main.club-home {
 @media (prefers-reduced-motion: reduce) {
   .club-media__spin {
     animation-duration: 1.6s;
+  }
+}
+
+/* Club photos: cover + picture, hover-revealed controls, full-screen viewer. */
+.club-photo {
+  position: relative;
+}
+.club-photo__open {
+  display: block;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  box-shadow: none;
+}
+button.club-photo__open {
+  cursor: zoom-in;
+}
+@media (hover: hover) and (pointer: fine) {
+  button.club-photo__open:hover {
+    background: none;
+    box-shadow: none;
+    translate: none;
+  }
+}
+button.club-photo__open:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+/* Taller cover so more of the photo shows; keeps a wide banner shape. */
+.club-photo--background .club-photo__open {
+  width: 100%;
+  height: clamp(9.5rem, 26vw, 16rem);
+  background:
+    linear-gradient(145deg, rgb(9 57 34 / 0.2), rgb(9 57 34 / 0.88)),
+    radial-gradient(
+      circle at 85% 30%,
+      var(--accent) 0 3rem,
+      transparent 3.1rem
+    ),
+    linear-gradient(120deg, oklch(42% 0.1 125), var(--surface));
+}
+button.club-photo__open:active {
+  transform: none;
+}
+.club-cover__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: center / cover no-repeat;
+}
+.club-photo--profile {
+  flex: none;
+  margin-top: clamp(-3rem, -6vw, -2.25rem);
+}
+.club-photo--profile .club-photo__open {
+  border-radius: 1.15rem;
+}
+.club-photo--profile button.club-photo__open:active {
+  transform: scale(0.97);
+}
+.club-photo--profile button.club-photo__open {
+  transition: transform 120ms var(--ease-out);
+}
+
+/* Mouse/trackpad: controls appear only while pointing at (or tabbing into)
+   the photo. Opacity only, so the reveal is quick and doesn't shift layout. */
+@media (hover: hover) and (pointer: fine) {
+  .club-media--overlay {
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  .club-photo:hover .club-media--overlay,
+  .club-photo:focus-within .club-media--overlay {
+    opacity: 1;
+  }
+}
+/* Touch: no hover, so a tap opens the viewer (which has the controls). The
+   overlay stays only when there's no photo yet, so owners can add one. */
+@media (hover: none) {
+  .club-photo:not(.club-photo--empty) .club-media--overlay {
+    display: none;
+  }
+}
+
+.image-viewer {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: oklch(10% 0.02 255 / 0.92);
+  padding: 4.5rem 1rem 3rem;
+  cursor: zoom-out;
+  transition: opacity 200ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+  }
+}
+.image-viewer__image {
+  /* Small uploads (e.g. Google avatars) are enlarged to a readable size. */
+  min-width: min(20rem, 100%);
+  max-width: min(100%, 72rem);
+  max-height: 100%;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  box-shadow: var(--shadow-md);
+  transition: transform 200ms var(--ease-out);
+  @starting-style {
+    transform: scale(0.96);
+  }
+}
+.image-viewer__actions {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  cursor: default;
+}
+/* Any photo that opens in the viewer. */
+.is-viewable {
+  cursor: zoom-in;
+}
+.is-viewable:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.club-media--viewer {
+  position: static;
+}
+/* In the viewer both photos get the same labelled pill buttons. */
+.club-media--viewer .club-media__button,
+.club-media--viewer .club-media__remove {
+  width: auto;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  white-space: nowrap;
+}
+.image-viewer__hint {
+  position: fixed;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  margin: 0 !important;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .image-viewer__image {
+    transition: none;
+    @starting-style {
+      transform: none;
+    }
+  }
+}
+/* Pill buttons in the photo viewer (e.g. the owner's "Edit profile"). */
+.image-viewer__button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid oklch(97.5% 0.008 90 / 0.25);
+  border-radius: 999px;
+  background: oklch(15% 0.025 255 / 0.78);
+  padding: 0 0.9rem;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .image-viewer__button:hover:not(:disabled) {
+    background: oklch(15% 0.025 255 / 0.92);
+    box-shadow: none;
+    translate: none;
   }
 }

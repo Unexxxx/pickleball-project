@@ -5,6 +5,7 @@ import { cancelMatchAssignment } from "@/lib/actions/matchmaking";
 import { ScoreForm } from "@/components/matches/score-form";
 import { Trophy } from "lucide-react";
 import { MatchHistoryOptions } from "@/components/matches/match-history-options";
+import { ViewablePhoto } from "@/components/ui/image-viewer";
 
 export type AssignmentView = {
   id: string;
@@ -30,10 +31,10 @@ function HistoryPlayer({
 }) {
   return (
     <li>
-      <div
+      <ViewablePhoto
         className="match-history-player-photo"
-        role="img"
-        aria-label={`${player.displayName}'s profile photo`}
+        src={player.avatarUrl}
+        alt={`${player.displayName}'s profile photo`}
         style={
           player.avatarUrl
             ? { backgroundImage: `url(${player.avatarUrl})` }
@@ -44,7 +45,7 @@ function HistoryPlayer({
           <span>{player.displayName.charAt(0).toUpperCase()}</span>
         ) : null}
         <strong title={player.displayName}>{player.displayName}</strong>
-      </div>
+      </ViewablePhoto>
     </li>
   );
 }

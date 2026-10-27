@@ -13,6 +13,7 @@ import {
   MatchCountBadge,
   PlayerNameWithMatches,
 } from "@/components/queues/player-name-with-matches";
+import { ViewablePhoto } from "@/components/ui/image-viewer";
 
 export type LiveCourtMatch = {
   id: string;
@@ -40,10 +41,10 @@ function MatchPlayer({
 }) {
   return (
     <div className="match-player-tile" aria-label={player.displayName}>
-      <div
+      <ViewablePhoto
         className="match-player-portrait"
-        role="img"
-        aria-label={`${player.displayName}'s profile photo`}
+        src={player.avatarUrl}
+        alt={`${player.displayName}'s profile photo`}
         style={
           player.avatarUrl
             ? { backgroundImage: `url(${player.avatarUrl})` }
@@ -65,7 +66,7 @@ function MatchPlayer({
             <MatchCountBadge totalMatches={player.totalMatches + 1} />
           </span>
         </div>
-      </div>
+      </ViewablePhoto>
     </div>
   );
 }

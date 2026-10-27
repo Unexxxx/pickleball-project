@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Camera, LogOut, Pencil, Trash2, Trophy } from "lucide-react";
 import { signOut, updateMyPlayerProfile } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/client";
+import { ViewablePhoto } from "@/components/ui/image-viewer";
 
 const extensionByType: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -129,6 +130,43 @@ export function ProfileHeader({
     </span>
   );
 
+  const startEditing = () => {
+    setDraftName(name);
+    setPreview(avatarUrl ?? null);
+    setMessage("");
+    setEditing(true);
+  };
+
+  // View mode: anyone can open the photo full screen; only the owner gets
+  // an "Edit profile" shortcut inside the viewer.
+  const viewableAvatar = (
+    <ViewablePhoto
+      as="span"
+      src={avatarUrl}
+      alt={`${name}'s profile photo`}
+      className="profile-avatar profile-avatar--header"
+      style={avatarUrl ? { backgroundImage: `url(${avatarUrl})` } : undefined}
+      actions={
+        owner
+          ? (close) => (
+              <button
+                type="button"
+                className="image-viewer__button"
+                onClick={() => {
+                  close();
+                  startEditing();
+                }}
+              >
+                <Pencil aria-hidden="true" size={16} /> Edit profile
+              </button>
+            )
+          : undefined
+      }
+    >
+      {!avatarUrl ? name.charAt(0).toUpperCase() : null}
+    </ViewablePhoto>
+  );
+
   const rankChip = (
     <Link className="profile-rank" href="/leaderboards">
       <Trophy aria-hidden="true" size={16} />
@@ -140,7 +178,7 @@ export function ProfileHeader({
     return (
       <header className="profile-header">
         <div className="profile-header__identity">
-          {avatar}
+          {viewableAvatar}
           <div>
             <h1 className="text-3xl font-bold">{name}</h1>
             <p>@{slug}</p>
@@ -153,12 +191,7 @@ export function ProfileHeader({
               <button
                 type="button"
                 className="button button-secondary profile-edit-toggle"
-                onClick={() => {
-                  setDraftName(name);
-                  setPreview(avatarUrl ?? null);
-                  setMessage("");
-                  setEditing(true);
-                }}
+                onClick={startEditing}
               >
                 <Pencil aria-hidden="true" size={16} /> Edit profile
               </button>

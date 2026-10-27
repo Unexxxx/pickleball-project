@@ -1,5 +1,5 @@
-import { Clock3, ShieldCheck, Users } from "lucide-react";
-import { ClubMediaButton } from "@/components/clubs/club-media-button";
+import { ShieldCheck, Users } from "lucide-react";
+import { ClubPhoto } from "@/components/clubs/club-photo";
 
 /**
  * Compact club identity. The cover image is a thin band so the page's real
@@ -8,7 +8,6 @@ import { ClubMediaButton } from "@/components/clubs/club-media-button";
  */
 export function ClubProfileHero({
   name,
-  timezone,
   memberCount,
   profileImageUrl,
   backgroundImageUrl,
@@ -16,7 +15,6 @@ export function ClubProfileHero({
   media,
 }: {
   name: string;
-  timezone: string;
   /** Null when the member directory couldn't be loaded: show no count. */
   memberCount: number | null;
   profileImageUrl: string | null;
@@ -28,46 +26,19 @@ export function ClubProfileHero({
 }) {
   return (
     <header className="club-profile-hero">
-      <div
-        className="club-cover"
-        style={
-          backgroundImageUrl
-            ? {
-                backgroundImage: `linear-gradient(180deg, transparent, oklch(15% 0.025 255 / .55)), url(${backgroundImageUrl})`,
-              }
-            : undefined
-        }
-      >
-        {media ? (
-          <ClubMediaButton
-            {...media}
-            kind="background"
-            hasImage={Boolean(backgroundImageUrl)}
-          />
-        ) : null}
-      </div>
+      <ClubPhoto
+        kind="background"
+        url={backgroundImageUrl}
+        name={name}
+        media={media}
+      />
       <div className="club-profile-body">
-        <div className="club-profile-mark-wrap">
-          <div
-            className="club-profile-mark"
-            role="img"
-            aria-label={`${name} club profile picture`}
-            style={
-              profileImageUrl
-                ? { backgroundImage: `url(${profileImageUrl})` }
-                : undefined
-            }
-          >
-            {!profileImageUrl ? name.charAt(0).toUpperCase() : null}
-          </div>
-          {media ? (
-            <ClubMediaButton
-              {...media}
-              kind="profile"
-              hasImage={Boolean(profileImageUrl)}
-            />
-          ) : null}
-        </div>
+        <ClubPhoto
+          kind="profile"
+          url={profileImageUrl}
+          name={name}
+          media={media}
+        />
         <div className="club-profile-text">
           <h1>{name}</h1>
           <div className="club-meta">
@@ -77,9 +48,6 @@ export function ClubProfileHero({
                 {memberCount} {memberCount === 1 ? "member" : "members"}
               </span>
             ) : null}
-            <span>
-              <Clock3 aria-hidden="true" size={15} /> {timezone}
-            </span>
             {roleLabel ? (
               <span className="club-role-chip">
                 <ShieldCheck aria-hidden="true" size={14} /> You&apos;re{" "}
