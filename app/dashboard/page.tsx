@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Trophy } from "lucide-react";
+import { ClubAvatar } from "@/components/clubs/club-avatar";
 import { EventRow } from "@/components/dashboard/event-row";
 import { PlayHero } from "@/components/dashboard/play-hero";
 import { currentPlayerId } from "@/lib/auth/authorization";
@@ -260,9 +261,7 @@ export default async function Dashboard({
                       className="ph-row ph-row--club"
                       href={`/clubs/${club.slug}`}
                     >
-                      <span className="ph-row__avatar" aria-hidden="true">
-                        {club.name.slice(0, 1).toUpperCase()}
-                      </span>
+                      <ClubAvatar name={club.name} imageUrl={club.imageUrl} />
                       <span className="ph-row__body">
                         <strong>{club.name}</strong>
                         <span>View club</span>
