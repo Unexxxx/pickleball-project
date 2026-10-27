@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Camera, LoaderCircle, Trash2, X } from "lucide-react";
 import { setClubMedia } from "@/lib/actions/clubs";
@@ -23,11 +24,17 @@ export function ClubMediaButton({
   clubSlug,
   kind,
   hasImage,
+  placement = "overlay",
+  onChanged,
 }: {
   clubId: string;
   clubSlug: string;
   kind: "profile" | "background";
   hasImage: boolean;
+  /** "overlay" sits on the photo (hover); "viewer" is labelled, in the viewer. */
+  placement?: "overlay" | "viewer";
+  /** Called after a successful change or removal. */
+  onChanged?: () => void;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -50,10 +57,21 @@ export function ClubMediaButton({
       return;
     }
     router.refresh();
+    onChanged?.();
   }
+  const labelled = placement === "viewer" || kind === "background";
+  const changeLabel = busy
+    ? "Uploading…"
+    : hasImage
+      ? kind === "profile"
+        ? "Change picture"
+        : "Change cover"
+      : kind === "profile"
+        ? "Add picture"
+        : "Add cover";
 
   return (
-    <div className={`club-media club-media--${kind}`}>
+    <div className={`club-media club-media--${kind} club-media--${placement}`}>
       <label
         className="club-media__button"
         aria-disabled={busy || undefined}
@@ -68,12 +86,8 @@ export function ClubMediaButton({
         ) : (
           <Camera aria-hidden="true" size={16} />
         )}
-        {/* The cover button is labelled; the picture's is icon-only. */}
-        {kind === "background" ? (
-          <span>
-            {busy ? "Uploading…" : hasImage ? "Change cover" : "Add cover"}
-          </span>
-        ) : null}
+        {/* On the small club picture the button is icon-only. */}
+        {labelled ? <span>{changeLabel}</span> : null}
         <input
           className="sr-only"
           type="file"
@@ -105,7 +119,7 @@ export function ClubMediaButton({
         <button
           type="button"
           className="club-media__remove"
-          aria-label={`Remove ${noun}`}
+          aria-label={labelled ? undefined : `Remove ${noun}`}
           title={`Remove ${noun}`}
           onClick={async () => {
             // The file is deleted, so confirm first.
@@ -117,21 +131,26 @@ export function ClubMediaButton({
           }}
         >
           <Trash2 aria-hidden="true" size={15} />
+          {placement === "viewer" ? <span>Remove</span> : null}
         </button>
       ) : null}
-      {message ? (
-        <div className="club-toast" role="alert">
-          <span>{message}</span>
-          <button
-            type="button"
-            className="club-toast__close"
-            aria-label="Dismiss"
-            onClick={() => setMessage("")}
-          >
-            <X aria-hidden="true" size={16} />
-          </button>
-        </div>
-      ) : null}
+      {/* Portaled so it stays visible when the hover controls fade out. */}
+      {message
+        ? createPortal(
+            <div className="club-toast" role="alert">
+              <span>{message}</span>
+              <button
+                type="button"
+                className="club-toast__close"
+                aria-label="Dismiss"
+                onClick={() => setMessage("")}
+              >
+                <X aria-hidden="true" size={16} />
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

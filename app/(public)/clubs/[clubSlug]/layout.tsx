@@ -46,7 +46,6 @@ export default async function ClubLayout({
     <main className="ph club-home">
       <ClubProfileHero
         name={club.name}
-        timezone={club.timezone}
         memberCount={directory?.length ?? null}
         profileImageUrl={club.profileImageUrl}
         backgroundImageUrl={club.backgroundImageUrl}
