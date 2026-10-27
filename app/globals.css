@@ -6578,3 +6578,27 @@ button.eb-chip:disabled {
     transform: none;
   }
 }
+
+/* Start time: an hour (1–12) + AM/PM, or an exact time on request. */
+.eb-time {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+.eb-time select {
+  min-height: 2.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.eb-time .eb-chips {
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+.eb-time .eb-chip {
+  padding-inline: 0.85rem;
+}
+.eb-field .eb-time-toggle {
+  justify-self: start;
+  color: var(--primary);
+  font-size: 0.825rem;
+}

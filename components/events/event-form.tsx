@@ -19,8 +19,9 @@ type Format = "doubles" | "singles";
 type RecordClass = "unranked" | "ranked";
 type Status = "published" | "draft";
 
-const DURATIONS = [2, 3, 4, 5];
-const DEFAULT_HOURS = 3;
+// Length chips; the end time is the start plus one of these.
+const DURATIONS = [3, 4, 5, 6, 7, 8];
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1);
 
 function localInputValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -28,8 +29,9 @@ function localInputValue(date: Date) {
 }
 const addHours = (local: string, hours: number) =>
   localInputValue(new Date(new Date(local).getTime() + hours * 3_600_000));
-const hoursBetween = (a: string, b: string) =>
-  (new Date(b).getTime() - new Date(a).getTime()) / 3_600_000;
+/** "7" + "PM" → "19:00". */
+const hourTo24 = (hour12: number, meridiem: "AM" | "PM") =>
+  `${String((hour12 % 12) + (meridiem === "PM" ? 12 : 0)).padStart(2, "0")}:00`;
 
 const dateLabel = (local: string) =>
   new Date(local).toLocaleDateString("en-US", {
@@ -46,8 +48,9 @@ const timeLabel = (local: string) =>
 /**
  * Create an event in four short sections with a live preview of what players
  * will see. Fewer decisions: tap-to-choose chips with sensible defaults, the
- * end time follows the start (3 hours) until it's set by hand, and the submit
- * button says exactly what will happen. Motion follows emil-design-eng:
+ * start is a date plus an hour (1–12, AM/PM) — or an exact time if needed —
+ * the end is the start plus a 3–8 hour length, and the submit button says
+ * exactly what will happen. Motion follows emil-design-eng:
  * chips and steppers press to 0.97; the preview updates instantly (it changes
  * on every keystroke, so it never animates).
  */
@@ -69,9 +72,12 @@ export function EventForm({
   const [type, setType] = useState<EventType>("open_play");
   const [format, setFormat] = useState<Format>("doubles");
   const [recordClass, setRecordClass] = useState<RecordClass>("unranked");
-  const [startsAt, setStartsAt] = useState("");
-  const [endsAt, setEndsAt] = useState("");
-  const [endTouched, setEndTouched] = useState(false);
+  const [date, setDate] = useState("");
+  const [hour12, setHour12] = useState(7);
+  const [meridiem, setMeridiem] = useState<"AM" | "PM">("AM");
+  const [exact, setExact] = useState(false);
+  const [exactTime, setExactTime] = useState("07:00");
+  const [hours, setHours] = useState(DURATIONS[0]!);
   const [venue, setVenue] = useState("");
   const [mapUrl, setMapUrl] = useState("");
   const [capacity, setCapacity] = useState(16);
@@ -81,8 +87,11 @@ export function EventForm({
   const [status, setStatus] = useState<Status>("published");
   const [notes, setNotes] = useState("");
 
-  const earliestStart = localInputValue(new Date());
-  const duration = startsAt && endsAt ? hoursBetween(startsAt, endsAt) : null;
+  const today = localInputValue(new Date()).slice(0, 10);
+  const startTime = exact ? exactTime : hourTo24(hour12, meridiem);
+  const startsAt = date && startTime ? `${date}T${startTime}` : "";
+  const endsAt = startsAt ? addHours(startsAt, hours) : "";
+  const endsNextDay = Boolean(endsAt) && endsAt.slice(0, 10) !== date;
   const perGame = format === "doubles" ? 4 : 2;
   const playing = Math.min(capacity, courts * perGame);
   const resting = Math.max(0, capacity - playing);
@@ -99,8 +108,7 @@ export function EventForm({
       }}
       onSubmit={async (event) => {
         event.preventDefault();
-        if (!startsAt || !endsAt)
-          return setMsg("Choose when the event starts.");
+        if (!startsAt) return setMsg("Choose the date and start time.");
         if (new Date(startsAt) <= new Date())
           return setMsg("The start time must be in the future.");
         if (new Date(endsAt) <= new Date(startsAt))
@@ -192,63 +200,95 @@ export function EventForm({
         <Section n={2} title="When & where">
           <div className="eb-row">
             <label className="eb-field">
-              <span>Starts</span>
+              <span>Date</span>
               <input
-                name="startsAt"
-                type="datetime-local"
+                name="date"
+                type="date"
                 required
-                min={earliestStart}
-                value={startsAt}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  setStartsAt(next);
-                  // The end follows the start until it's set by hand.
-                  if (next && (!endTouched || !endsAt))
-                    setEndsAt(
-                      addHours(
-                        next,
-                        endsAt && startsAt
-                          ? hoursBetween(startsAt, endsAt)
-                          : DEFAULT_HOURS,
-                      ),
-                    );
-                }}
+                min={today}
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
               />
             </label>
-            <label className="eb-field">
-              <span>Ends</span>
-              <input
-                name="endsAt"
-                type="datetime-local"
-                required
-                min={startsAt || earliestStart}
-                value={endsAt}
-                onChange={(event) => {
-                  setEndTouched(true);
-                  setEndsAt(event.target.value);
-                }}
-              />
-            </label>
-          </div>
-          <div className="eb-chips" role="group" aria-label="Length">
-            {DURATIONS.map((hours) => (
+            <div className="eb-field">
+              <span id="eb-start-time">Start time</span>
+              {exact ? (
+                <input
+                  type="time"
+                  required
+                  aria-labelledby="eb-start-time"
+                  value={exactTime}
+                  onChange={(event) => setExactTime(event.target.value)}
+                />
+              ) : (
+                <div className="eb-time">
+                  <select
+                    aria-label="Start hour"
+                    value={hour12}
+                    onChange={(event) => setHour12(Number(event.target.value))}
+                  >
+                    {HOURS_12.map((h) => (
+                      <option key={h} value={h}>
+                        {h}:00
+                      </option>
+                    ))}
+                  </select>
+                  <div className="eb-chips" role="group" aria-label="AM or PM">
+                    {(["AM", "PM"] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        className="eb-chip"
+                        aria-pressed={meridiem === m}
+                        onClick={() => setMeridiem(m)}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button
-                key={hours}
                 type="button"
-                className="eb-chip"
-                aria-pressed={duration === hours}
-                disabled={!startsAt}
-                // A chosen length keeps following the start; only typing an
-                // end time by hand pins it.
+                className="profile-link-button eb-time-toggle"
                 onClick={() => {
-                  setEndTouched(false);
-                  setEndsAt(addHours(startsAt, hours));
+                  // Carry the picked hour into the exact field, and back.
+                  if (!exact) setExactTime(hourTo24(hour12, meridiem));
+                  else {
+                    const [h] = exactTime.split(":").map(Number);
+                    if (Number.isFinite(h)) {
+                      setHour12(((h! + 11) % 12) + 1);
+                      setMeridiem(h! >= 12 ? "PM" : "AM");
+                    }
+                  }
+                  setExact(!exact);
                 }}
               >
-                {hours} hours
+                {exact ? "Pick an hour instead" : "Type an exact time"}
               </button>
-            ))}
+            </div>
           </div>
+          <fieldset className="eb-choice">
+            <legend>Length</legend>
+            <div className="eb-chips">
+              {DURATIONS.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  className="eb-chip"
+                  aria-pressed={hours === h}
+                  onClick={() => setHours(h)}
+                >
+                  {h} hours
+                </button>
+              ))}
+            </div>
+            <p className="eb-hint" aria-live="polite">
+              {endsAt
+                ? `Ends at ${timeLabel(endsAt)}${endsNextDay ? " the next day" : ""}.`
+                : "Pick a date to see when it ends."}
+            </p>
+          </fieldset>
           <label className="eb-field">
             <span>Venue</span>
             <input
