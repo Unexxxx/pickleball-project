@@ -1,9 +1,8 @@
 -- Structured club contacts: email, Facebook page and phone, each optional.
 -- Replaces the free-text clubs.contact_info line (kept for now so the
 -- previous app version keeps working during deploy; no longer written).
--- Email and Facebook formats are checked here, not only in the app, so
--- links on the public club page are always a mailto: or a facebook.com
--- page. The contact number is free text (any format), up to 100 characters.
+-- Formats are checked here, not only in the app, so links shown on the
+-- public club page are always a mailto:, a facebook.com page or a tel:.
 
 alter table public.clubs
   add column contact_email text
@@ -15,14 +14,11 @@ alter table public.clubs
       length(contact_facebook) <= 200
       and contact_facebook ~* '^https://((www|m|web)\.)?(facebook|fb)\.com/[^\s]+$')),
   add column contact_phone text
-    check (contact_phone is null or length(contact_phone) <= 100);
+    check (contact_phone is null or contact_phone ~ '^\+?[0-9][0-9 ()-]{5,19}$');
 
 -- Move existing single-line contacts into the matching field.
--- A line that's neither an email nor a Facebook link is kept as the number.
-update public.clubs set contact_phone = left(btrim(contact_info), 100)
-where contact_info is not null and btrim(contact_info) <> ''
-  and btrim(contact_info) !~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'
-  and regexp_replace(btrim(contact_info), '^https?://', '', 'i') !~* '^((www|m|web)\.)?(facebook|fb)\.com/[^\s]+$';
+update public.clubs set contact_phone = btrim(contact_info)
+where contact_info is not null and btrim(contact_info) ~ '^\+?[0-9][0-9 ()-]{5,19}$';
 update public.clubs set contact_email = btrim(contact_info)
 where contact_info is not null and btrim(contact_info) ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'
   and length(btrim(contact_info)) <= 254;
@@ -65,7 +61,7 @@ begin
      or v_facebook !~* '^https://((www|m|web)\.)?(facebook|fb)\.com/[^\s]+$') then
     raise exception using errcode = 'P0001', detail = 'INVALID_FACEBOOK';
   end if;
-  if v_phone is not null and length(v_phone) > 100 then
+  if v_phone is not null and v_phone !~ '^\+?[0-9][0-9 ()-]{5,19}$' then
     raise exception using errcode = 'P0001', detail = 'INVALID_PHONE';
   end if;
 
