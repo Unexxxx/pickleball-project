@@ -127,15 +127,13 @@ export default async function ClubOverview({
         </section>
 
         <section className="ph-panel" aria-labelledby="club-contact-heading">
-          <header className="ph-panel__head">
-            <h2 id="club-contact-heading">Contact</h2>
-          </header>
           <ClubContact
             clubId={club.id}
             clubSlug={club.slug}
             contacts={club.contacts}
             legacyContact={club.contact_info}
             canEdit={admin}
+            heading={{ id: "club-contact-heading", text: "Contact" }}
           />
           {staff.length ? (
             <ul className="ph-list" aria-label="Club staff">
