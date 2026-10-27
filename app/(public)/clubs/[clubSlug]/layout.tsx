@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Flag } from "lucide-react";
 import { ClubProfileHero } from "@/components/clubs/club-profile-hero";
-import { ClubJoin, ClubLeave } from "@/components/clubs/club-join";
+import { ClubJoin } from "@/components/clubs/club-join";
 import { ClubTabs } from "@/components/clubs/club-tabs";
 import {
   ROLE_LABEL,
@@ -44,8 +44,6 @@ export default async function ClubLayout({
     getClubDirectory(club.id),
     getViewerMembership(club.id),
   ]);
-  const isMember =
-    membership.status === "active" || membership.status === "invited";
 
   return (
     <main className="ph club-home">
@@ -65,6 +63,7 @@ export default async function ClubLayout({
             <ClubJoin
               clubId={club.id}
               clubSlug={club.slug}
+              clubName={club.name}
               joinPolicy={club.joinPolicy}
               membership={membership}
             />
@@ -79,15 +78,6 @@ export default async function ClubLayout({
         <Link href={`/dashboard/clubs/${club.slug}/reports`}>
           Report a concern
         </Link>
-        {isMember && club.joinPolicy ? (
-          <span className="club-footer__leave">
-            <ClubLeave
-              clubId={club.id}
-              clubSlug={club.slug}
-              clubName={club.name}
-            />
-          </span>
-        ) : null}
       </footer>
     </main>
   );
