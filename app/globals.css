@@ -929,9 +929,6 @@ pre {
   font-size: 1.5rem;
   font-weight: 900;
 }
-.rules-card {
-  background: oklch(80% 0.19 125 / 0.16);
-}
 
 .page-header {
   display: flex;

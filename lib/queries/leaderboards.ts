@@ -26,15 +26,6 @@ export async function getLeaderboard({
     return data ?? [];
   });
 }
-export async function getLeaderboardRules() {
-  const s = await createClient(),
-    { data } = await s
-      .from("leaderboard_rules")
-      .select("*")
-      .eq("id", "team-bayes-v1")
-      .single();
-  return data;
-}
 export const isCalculationFresh = (visible: number, expected: number) =>
   visible >= expected;
 export async function getLeaderboardCalculationVersion() {

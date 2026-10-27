@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LeaderboardRules } from "@/components/leaderboards/leaderboard-rules";
 import { LeaderboardTable } from "@/components/leaderboards/leaderboard-table";
 import { getClubDirectory, getClubHome } from "@/lib/queries/club-home";
-import {
-  getLeaderboard,
-  getLeaderboardRules,
-} from "@/lib/queries/leaderboards";
+import { getLeaderboard } from "@/lib/queries/leaderboards";
 
 export const metadata: Metadata = { title: "Rankings" };
 
 // The club leaderboard counts every player in this club's official ranked
-// matches (spec FR-036), members or visitors; "Members only" narrows it.
+// matches (spec FR-036), members or visitors. "Members only" ranks the
+// members among themselves, so it starts at 1 (ties keep a shared rank).
 export default async function ClubRankings({
   params,
   searchParams,
@@ -24,18 +21,18 @@ export default async function ClubRankings({
   const club = await getClubHome(clubSlug);
   if (!club) notFound();
   const membersOnly = (await searchParams).show === "members";
-  const [rows, rules, directory] = await Promise.all([
+  const [rows, directory] = await Promise.all([
     getLeaderboard({ scope: "club", clubSlug: club.slug, pageSize: 200 }),
-    getLeaderboardRules(),
     getClubDirectory(club.id),
   ]);
   const memberIds = new Set(
     (directory ?? []).flatMap((m) => (m.playerId ? [m.playerId] : [])),
   );
   const shown = membersOnly
-    ? rows.filter((row) => row.player_id && memberIds.has(row.player_id))
+    ? rankAmongThemselves(
+        rows.filter((row) => row.player_id && memberIds.has(row.player_id)),
+      )
     : rows;
-  const version = Math.max(0, ...rows.map((r) => r.calculation_version ?? 0));
   const base = `/clubs/${club.slug}/rankings`;
 
   return (
@@ -44,8 +41,9 @@ export default async function ClubRankings({
         <div>
           <h2>Club leaderboard</h2>
           <p>
-            Official ranked matches played at {club.name} events, by members and
-            visiting players.
+            {membersOnly
+              ? `${club.name} members ranked among themselves, from official ranked matches at the club's events.`
+              : `Official ranked matches played at ${club.name} events, by members and visiting players.`}
           </p>
         </div>
         {directory ? (
@@ -62,14 +60,29 @@ export default async function ClubRankings({
           </nav>
         ) : null}
       </header>
-      <LeaderboardTable rows={shown} memberIds={memberIds} />
-      {rules ? (
-        <LeaderboardRules
-          description={rules.description}
-          ordering={rules.ordering}
-          version={version}
-        />
-      ) : null}
+      {/* The Member badge only distinguishes players in the full list. */}
+      <LeaderboardTable
+        rows={shown}
+        memberIds={membersOnly ? undefined : memberIds}
+      />
     </div>
   );
+}
+
+/**
+ * Renumbers rows already sorted by club rank as 1, 2, 3…; players tied on
+ * the club leaderboard share a rank (standard competition ranking).
+ */
+function rankAmongThemselves<T extends { rank: number | null }>(rows: T[]) {
+  let previousClubRank: number | null = null;
+  let previousRank = 0;
+  return rows.map((row, index) => {
+    const rank =
+      index > 0 && row.rank !== null && row.rank === previousClubRank
+        ? previousRank
+        : index + 1;
+    previousClubRank = row.rank;
+    previousRank = rank;
+    return { ...row, rank };
+  });
 }
