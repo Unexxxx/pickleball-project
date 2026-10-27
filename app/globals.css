@@ -6026,12 +6026,6 @@ button.club-photo__open:active {
 .club-join-cancel {
   color: var(--muted-foreground);
 }
-.club-footer__leave {
-  margin-left: auto;
-}
-.club-leave {
-  color: var(--muted-foreground);
-}
 .club-admin {
   gap: 1rem;
 }
@@ -6116,4 +6110,16 @@ button.club-photo__open:active {
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 2.5rem;
+}
+/* Leave club sits where Join is, but as a quiet secondary action. */
+.club-join.club-leave {
+  border-color: oklch(97.5% 0.008 90 / 0.25);
+  color: var(--muted-foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .club-join.club-leave:hover:not(:disabled) {
+    border-color: var(--danger);
+    background: rgb(255 120 110 / 0.12);
+    color: rgb(255 180 175);
+  }
 }

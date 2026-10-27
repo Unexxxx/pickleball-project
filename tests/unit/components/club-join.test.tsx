@@ -10,7 +10,7 @@ vi.mock("@/lib/actions/clubs", () => ({
 import { ClubJoin } from "@/components/clubs/club-join";
 
 afterEach(cleanup);
-const base = { clubId: "c1", clubSlug: "dink-a-boo" };
+const base = { clubId: "c1", clubSlug: "dink-a-boo", clubName: "Dink A Boo" };
 
 describe("club join control", () => {
   it("sends signed-out visitors to log in and back to the club", () => {
@@ -52,18 +52,27 @@ describe("club join control", () => {
     ).toBeInTheDocument();
   });
 
-  it("offers nothing to existing or suspended members", () => {
-    for (const status of ["active", "suspended"] as const) {
-      const { container } = render(
-        <ClubJoin
-          {...base}
-          joinPolicy="open"
-          membership={{ signedIn: true, status, role: "member" }}
-        />,
-      );
-      expect(container).toBeEmptyDOMElement();
-      cleanup();
-    }
+  it("offers Leave club to members, in the same place as Join", () => {
+    render(
+      <ClubJoin
+        {...base}
+        joinPolicy="open"
+        membership={{ signedIn: true, status: "active", role: "member" }}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Leave club" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /join/i })).toBeNull();
+  });
+
+  it("offers nothing to suspended members", () => {
+    const { container } = render(
+      <ClubJoin
+        {...base}
+        joinPolicy="open"
+        membership={{ signedIn: true, status: "suspended", role: "member" }}
+      />,
+    );
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("lets a former member join again", () => {
