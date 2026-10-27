@@ -2,36 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Download,
-  ExternalLink,
-  MapPinned,
-  MessageSquareText,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { MapPinned, MessageSquareText } from "lucide-react";
 import { createEvent } from "@/lib/actions/events";
-import { previewReclubEvent } from "@/lib/actions/reclub-import";
-import type { ReclubEventPreview } from "@/lib/imports/reclub";
 
 function localInputValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
-
-function inferredStart(dateLabel: string) {
-  const compact = dateLabel.replace(/^[A-Za-z]+,\s*/, "").replace(" @ ", " ");
-  const now = new Date();
-  const candidates = [-1, 0, 1].map(
-    (offset) => new Date(`${compact} ${now.getFullYear() + offset}`),
-  );
-  return candidates
-    .filter((date) => !Number.isNaN(date.getTime()))
-    .sort(
-      (a, b) =>
-        Math.abs(a.getTime() - now.getTime()) -
-        Math.abs(b.getTime() - now.getTime()),
-    )[0];
 }
 
 export function EventForm({
@@ -43,9 +19,6 @@ export function EventForm({
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState("");
-  const [reclubUrl, setReclubUrl] = useState("");
-  const [importing, setImporting] = useState(false);
-  const [preview, setPreview] = useState<ReclubEventPreview | null>(null);
   const [name, setName] = useState("");
   const [venue, setVenue] = useState("");
   const [mapUrl, setMapUrl] = useState("");
@@ -59,36 +32,6 @@ export function EventForm({
     "published",
   );
 
-  const importReclub = async () => {
-    setImporting(true);
-    setMsg("Reading the public Reclub event…");
-    const result = await previewReclubEvent(reclubUrl);
-    setImporting(false);
-    if (!result.ok) {
-      setMsg(result.error.message);
-      return;
-    }
-    const start = inferredStart(result.data.dateLabel);
-    setPreview(result.data);
-    setName(result.data.name);
-    setVenue(result.data.venue);
-    setCapacity(String(result.data.capacity));
-    if (start) {
-      setStartsAt(localInputValue(start));
-      setEndsAt(
-        localInputValue(
-          new Date(start.getTime() + result.data.durationMinutes * 60_000),
-        ),
-      );
-    }
-    setMsg("Import ready. Review the details before creating the event.");
-  };
-
-  const confirmed =
-    preview?.roster.filter((entry) => entry.status === "confirmed").length ?? 0;
-  const waitlisted =
-    preview?.roster.filter((entry) => entry.status === "waitlisted").length ??
-    0;
   const earliestStart = localInputValue(new Date());
 
   return (
@@ -132,12 +75,9 @@ export function EventForm({
           isPrivate,
           accessCode: isPrivate ? form.get("accessCode") : null,
           idempotencyKey: crypto.randomUUID(),
-          externalImport: preview
-            ? { sourceUrl: preview.sourceUrl, entries: preview.roster }
-            : undefined,
         });
         if (result.ok) {
-          setMsg(result.data.importWarning ?? "Event created. Opening event…");
+          setMsg("Event created. Opening event…");
           router.push(
             `/dashboard/clubs/${clubSlug}/events/${result.data.eventId}`,
           );
@@ -147,62 +87,8 @@ export function EventForm({
         setMsg(result.error.message);
       }}
     >
-      <section
-        className="event-import-card"
-        aria-labelledby="reclub-import-heading"
-      >
-        <div className="event-import-heading">
-          <span className="icon-tile" aria-hidden="true">
-            <Download size={20} />
-          </span>
-          <div>
-            <p className="eyebrow">Quick setup</p>
-            <h2 id="reclub-import-heading">Import from Reclub</h2>
-            <p>
-              Paste a public event link to prefill the details and stage its
-              roster.
-            </p>
-          </div>
-        </div>
-        <div className="event-import-row">
-          <label className="sr-only" htmlFor="reclub-url">
-            Public Reclub event link
-          </label>
-          <input
-            id="reclub-url"
-            type="url"
-            inputMode="url"
-            placeholder="https://reclub.co/m/0GISFY"
-            value={reclubUrl}
-            onChange={(event) => setReclubUrl(event.target.value)}
-          />
-          <button
-            className="button-secondary"
-            type="button"
-            disabled={importing || !reclubUrl.trim()}
-            onClick={importReclub}
-          >
-            <ExternalLink size={17} aria-hidden="true" />{" "}
-            {importing ? "Importing…" : "Import event"}
-          </button>
-        </div>
-        {preview ? (
-          <div className="import-roster-preview">
-            <span>
-              <Users size={17} aria-hidden="true" /> {confirmed} confirmed
-            </span>
-            <span>{waitlisted} waitlisted</span>
-            <p>
-              <ShieldCheck size={17} aria-hidden="true" /> Imported names are
-              not official players until matched to verified accounts.
-            </p>
-          </div>
-        ) : null}
-      </section>
-
       <div className="form-section-heading">
         <p className="eyebrow">Event details</p>
-        <h2>{preview ? "Review imported details" : "Create manually"}</h2>
       </div>
       <div className="form-grid">
         <label>

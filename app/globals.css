@@ -1158,66 +1158,14 @@ pre {
   display: grid;
   gap: 1.5rem;
 }
-
-.event-import-card {
-  display: grid;
-  gap: 1rem;
-  padding: clamp(1rem, 3vw, 1.5rem);
-  border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--primary) 8%, var(--surface)),
-    var(--surface)
-  );
-}
-
-.event-import-heading,
-.event-import-row,
-.import-roster-preview,
 .participant-section-header,
 .external-roster-note {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
-
-.event-import-heading {
-  align-items: flex-start;
-}
-.event-import-heading h2,
 .form-section-heading h2 {
   margin: 0.15rem 0;
-}
-.event-import-heading p:last-child {
-  margin: 0;
-  color: var(--muted-foreground);
-}
-.event-import-row input {
-  flex: 1;
-  min-width: 0;
-}
-.event-import-row button {
-  white-space: nowrap;
-}
-
-.import-roster-preview {
-  flex-wrap: wrap;
-  padding: 0.75rem;
-  border-radius: 0.9rem;
-  background: var(--surface);
-}
-.import-roster-preview span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 700;
-}
-.import-roster-preview p {
-  flex-basis: 100%;
-  margin: 0;
-  color: var(--muted-foreground);
-  font-size: 0.9rem;
 }
 
 .form-grid {
@@ -1247,13 +1195,6 @@ pre {
 }
 
 @media (max-width: 640px) {
-  .event-import-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .event-import-row button {
-    justify-content: center;
-  }
   .form-grid {
     grid-template-columns: 1fr;
   }
