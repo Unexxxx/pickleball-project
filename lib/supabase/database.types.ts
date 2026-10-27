@@ -145,7 +145,10 @@ export type Database = {
       clubs: {
         Row: {
           background_image_path: string | null;
+          contact_email: string | null;
+          contact_facebook: string | null;
           contact_info: string | null;
+          contact_phone: string | null;
           created_at: string;
           id: string;
           join_policy: string;
@@ -160,7 +163,10 @@ export type Database = {
         };
         Insert: {
           background_image_path?: string | null;
+          contact_email?: string | null;
+          contact_facebook?: string | null;
           contact_info?: string | null;
+          contact_phone?: string | null;
           created_at?: string;
           id?: string;
           join_policy?: string;
@@ -175,7 +181,10 @@ export type Database = {
         };
         Update: {
           background_image_path?: string | null;
+          contact_email?: string | null;
+          contact_facebook?: string | null;
           contact_info?: string | null;
+          contact_phone?: string | null;
           created_at?: string;
           id?: string;
           join_policy?: string;
@@ -2281,6 +2290,15 @@ export type Database = {
       };
       set_club_join_policy: {
         Args: { p_club_id: string; p_policy: string };
+        Returns: undefined;
+      };
+      set_club_contacts: {
+        Args: {
+          p_club_id: string;
+          p_email: string;
+          p_facebook: string;
+          p_phone: string;
+        };
         Returns: undefined;
       };
       set_club_media: {

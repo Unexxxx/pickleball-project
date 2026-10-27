@@ -153,15 +153,32 @@ export async function getPlayStatus(
   return next ? { kind: "upcoming", event: next } : { kind: "idle" };
 }
 
+/** Public URL of a club's profile picture (club-media bucket), or null. */
+function clubImageUrl(supabase: Supabase, path: string | null) {
+  return path
+    ? supabase.storage.from("club-media").getPublicUrl(path).data.publicUrl
+    : null;
+}
+
 export async function getMyClubs(supabase: Supabase, playerId: string) {
   const { data } = await supabase
     .from("club_memberships")
-    .select("role,clubs(id,name,slug)")
+    .select("role,clubs(id,name,slug,profile_image_path)")
     .eq("player_id", playerId)
     .eq("status", "active");
   return (data ?? []).flatMap((row) => {
     const club = one(row.clubs);
-    return club ? [{ ...club, role: row.role as string }] : [];
+    return club
+      ? [
+          {
+            id: club.id,
+            name: club.name,
+            slug: club.slug,
+            imageUrl: clubImageUrl(supabase, club.profile_image_path),
+            role: row.role as string,
+          },
+        ]
+      : [];
   });
 }
 
@@ -265,11 +282,16 @@ export async function getClubsToDiscover(
 ) {
   let query = supabase
     .from("clubs")
-    .select("id,name,slug")
+    .select("id,name,slug,profile_image_path")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (excludeIds.length)
     query = query.not("id", "in", `(${excludeIds.join(",")})`);
   const { data } = await query;
-  return data ?? [];
+  return (data ?? []).map((club) => ({
+    id: club.id,
+    name: club.name,
+    slug: club.slug,
+    imageUrl: clubImageUrl(supabase, club.profile_image_path),
+  }));
 }

@@ -6120,3 +6120,72 @@ button.club-photo__open:active {
     color: rgb(255 180 175);
   }
 }
+
+/* Structured club contacts (email, Facebook, phone). */
+.club-contacts {
+  display: grid;
+  gap: 0.5rem;
+}
+.club-contacts__list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+a.club-contact {
+  grid-template-columns: auto minmax(0, 1fr);
+  color: var(--foreground);
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    transform 120ms var(--ease-out);
+}
+a.club-contact span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+  a.club-contact:hover {
+    background: oklch(28% 0.03 255);
+  }
+}
+a.club-contact:active {
+  transform: scale(0.98);
+}
+a.club-contact:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.club-contacts .club-contact__empty {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.club-contacts .club-contact__edit {
+  justify-self: start;
+}
+.club-contact-field {
+  display: grid;
+  gap: 0.3rem;
+}
+.club-contact-field > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.club-contact-field > span svg {
+  color: var(--primary);
+}
+.club-contact-field input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.club-contact-field__error {
+  color: rgb(255 180 175);
+  font-size: 0.8rem;
+}
+.club-contact-form {
+  gap: 0.75rem;
+}

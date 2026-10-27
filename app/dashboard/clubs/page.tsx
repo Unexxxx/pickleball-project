@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Plus } from "lucide-react";
+import { ClubAvatar } from "@/components/clubs/club-avatar";
 import { ClubForm } from "@/components/clubs/club-form";
 import { currentPlayerId } from "@/lib/auth/authorization";
 import { requireUser } from "@/lib/auth/session";
@@ -47,9 +48,7 @@ export default async function ClubsPage() {
                     className="ph-row ph-row--club"
                     href={`/clubs/${club.slug}`}
                   >
-                    <span className="ph-row__avatar" aria-hidden="true">
-                      {club.name.slice(0, 1).toUpperCase()}
-                    </span>
+                    <ClubAvatar name={club.name} imageUrl={club.imageUrl} />
                     <span className="ph-row__body">
                       <strong>{club.name}</strong>
                       <span>{ROLE_LABEL[club.role] ?? club.role}</span>
@@ -84,9 +83,7 @@ export default async function ClubsPage() {
                     className="ph-row ph-row--club"
                     href={`/clubs/${club.slug}`}
                   >
-                    <span className="ph-row__avatar" aria-hidden="true">
-                      {club.name.slice(0, 1).toUpperCase()}
-                    </span>
+                    <ClubAvatar name={club.name} imageUrl={club.imageUrl} />
                     <span className="ph-row__body">
                       <strong>{club.name}</strong>
                       <span>Public club page</span>
