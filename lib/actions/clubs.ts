@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   clubContactSchema,
+  clubContactsSchema,
   clubMediaSchema,
   clubTargetSchema,
   joinPolicySchema,
@@ -256,4 +257,51 @@ export async function setJoinPolicy(input: unknown) {
   if (error) return clubCommandFailure(error, "join setting", requestId);
   refreshClub(parsed.data.clubSlug);
   return success({ policy: parsed.data.policy }, requestId);
+}
+
+/** Club admins set the club's email, Facebook page and phone (blank clears). */
+export async function setClubContacts(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubContactsSchema.safeParse(input);
+  if (!parsed.success)
+    return failure(
+      "VALIDATION_FAILED",
+      "Check the highlighted contact details.",
+      requestId,
+      parsed.error.flatten().fieldErrors,
+    );
+  const { clubId, clubSlug, email, facebook, phone } = parsed.data;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_club_contacts", {
+    p_club_id: clubId,
+    p_email: email,
+    p_facebook: facebook,
+    p_phone: phone,
+  });
+  if (error) {
+    const detail = `${error.details ?? ""} ${error.message ?? ""}`;
+    const field = detail.includes("INVALID_EMAIL")
+      ? "email"
+      : detail.includes("INVALID_FACEBOOK")
+        ? "facebook"
+        : detail.includes("INVALID_PHONE")
+          ? "phone"
+          : null;
+    if (field)
+      return failure(
+        "VALIDATION_FAILED",
+        "Check the highlighted contact details.",
+        requestId,
+        { [field]: ["This doesn't look right. Check it and try again."] },
+      );
+    if (detail.includes("PERMISSION_DENIED"))
+      return failure(
+        "FORBIDDEN",
+        "Only club owners, organizers and staff can change the contacts.",
+        requestId,
+      );
+    return clubCommandFailure(error, "contacts", requestId);
+  }
+  refreshClub(clubSlug);
+  return success({}, requestId);
 }

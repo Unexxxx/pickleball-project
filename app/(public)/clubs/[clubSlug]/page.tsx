@@ -129,13 +129,13 @@ export default async function ClubOverview({
         <section className="ph-panel" aria-labelledby="club-contact-heading">
           <header className="ph-panel__head">
             <h2 id="club-contact-heading">Contact</h2>
-            <Link href={`/clubs/${club.slug}/members`}>All members</Link>
           </header>
           <ClubContact
             clubId={club.id}
             clubSlug={club.slug}
-            contact={club.contact_info}
-            canEdit={role === "owner" || role === "organizer"}
+            contacts={club.contacts}
+            legacyContact={club.contact_info}
+            canEdit={admin}
           />
           {staff.length ? (
             <ul className="ph-list" aria-label="Club staff">

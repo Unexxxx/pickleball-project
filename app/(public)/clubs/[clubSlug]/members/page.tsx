@@ -67,8 +67,9 @@ export default async function ClubMembers({
         <ClubContact
           clubId={club.id}
           clubSlug={club.slug}
-          contact={club.contact_info}
-          canEdit={role === "owner" || role === "organizer"}
+          contacts={club.contacts}
+          legacyContact={club.contact_info}
+          canEdit={admin}
         />
         {staff.length ? (
           <ul className="ph-list member-grid">

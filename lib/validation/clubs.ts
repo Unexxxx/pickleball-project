@@ -71,3 +71,36 @@ export const joinPolicySchema = z
     policy: z.enum(["open", "approval"]),
   })
   .strict();
+// Blank clears a field. The database applies the same rules.
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const FACEBOOK = /^(https?:\/\/)?((www|m|web)\.)?(facebook|fb)\.com\/\S+$/i;
+const PHONE = /^\+?[0-9][0-9 ()-]{5,19}$/;
+export const clubContactsSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    email: z
+      .string()
+      .trim()
+      .max(254)
+      .refine(
+        (v) => !v || EMAIL.test(v),
+        "Enter an email like club@example.com.",
+      ),
+    facebook: z
+      .string()
+      .trim()
+      .max(200)
+      .refine(
+        (v) => !v || FACEBOOK.test(v),
+        "Use your Facebook page link, e.g. facebook.com/yourclub.",
+      ),
+    phone: z
+      .string()
+      .trim()
+      .refine(
+        (v) => !v || PHONE.test(v),
+        "Use digits, spaces, + or -, e.g. 0917 123 4567.",
+      ),
+  })
+  .strict();
