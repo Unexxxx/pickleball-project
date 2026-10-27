@@ -117,6 +117,13 @@ success/lime `oklch(80% 0.19 125 / 0.16)` + volt text; danger
   `prefers-reduced-motion`, keyboard focus, contrast and touch-target size.
   Easing: `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`; animate transform and
   opacity only.
+- **Motion and interaction details follow the project skill
+  `.claude/skills/emil-design-eng/SKILL.md`** (Emil Kowalski): decide whether
+  something should animate at all from how often it's seen, keep UI motion
+  under 300ms with ease-out, `scale(0.97)` on press, never `transition: all`,
+  gate hover effects behind `(hover: hover) and (pointer: fine)`, and use its
+  Before / After / Why table for UI reviews. This file still owns colors,
+  type and layout.
 - Don't add nonfunctional buttons for features that don't exist.
 - Give the user one primary focus per situation (before / during / after an
   event, or find a game) — never fabricate queue positions, progress or

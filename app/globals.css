@@ -188,9 +188,11 @@
   font-weight: 600;
   transition: background-color 150ms;
 }
-.profile-history-filters a:hover,
-.profile-history-pagination a:hover {
-  background: var(--muted);
+@media (hover: hover) and (pointer: fine) {
+  .profile-history-filters a:hover,
+  .profile-history-pagination a:hover {
+    background: var(--muted);
+  }
 }
 .profile-history-filters a[aria-current="page"] {
   background: var(--primary);
@@ -281,9 +283,11 @@
   font-size: 0.95rem;
   overflow-wrap: anywhere;
 }
-.profile-match-players a:hover {
-  color: var(--primary);
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .profile-match-players a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
 }
 .profile-match-scores {
   text-align: center;
@@ -558,18 +562,22 @@ button,
     background-color 180ms ease,
     color 180ms ease;
 }
-.desktop-nav a:hover {
-  background: var(--muted);
-  color: var(--foreground);
+@media (hover: hover) and (pointer: fine) {
+  .desktop-nav a:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
 }
 .desktop-nav .nav-cta {
   margin-left: 0.35rem;
   background: var(--primary);
   color: var(--dink-volt-ink);
 }
-.desktop-nav .nav-cta:hover {
-  background: var(--primary-hover);
-  color: var(--foreground);
+@media (hover: hover) and (pointer: fine) {
+  .desktop-nav .nav-cta:hover {
+    background: var(--primary-hover);
+    color: var(--foreground);
+  }
 }
 .desktop-nav .nav-form {
   width: auto;
@@ -684,17 +692,19 @@ textarea {
   min-height: 7rem;
   resize: vertical;
 }
-input:hover,
-select:hover,
-textarea:hover {
-  border-color: var(--border);
+@media (hover: hover) and (pointer: fine) {
+  input:hover,
+  select:hover,
+  textarea:hover {
+    border-color: var(--border);
+  }
 }
 input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--ring);
   outline: none;
-  box-shadow: 0 0 0 3px rgb(40 122 81 / 0.16);
+  box-shadow: 0 0 0 3px oklch(80% 0.19 125 / 0.25);
 }
 button,
 .button,
@@ -751,7 +761,7 @@ button:disabled {
 [role="status"]:not(:empty) {
   border-left: 4px solid var(--primary);
   border-radius: var(--radius-sm);
-  background: rgb(80 200 140 / 0.14);
+  background: oklch(80% 0.19 125 / 0.12);
   color: var(--dink-volt);
   padding: 0.75rem 1rem;
 }
@@ -774,7 +784,7 @@ td {
   text-align: left;
 }
 th {
-  background: rgb(80 200 140 / 0.14);
+  background: oklch(80% 0.19 125 / 0.12);
   color: var(--foreground);
   font-size: 0.75rem;
   font-weight: 800;
@@ -785,8 +795,10 @@ tbody tr {
   border-top: 1px solid var(--border);
   transition: background-color 160ms ease;
 }
-tbody tr:hover {
-  background: rgb(80 200 140 / 0.14);
+@media (hover: hover) and (pointer: fine) {
+  tbody tr:hover {
+    background: oklch(80% 0.19 125 / 0.12);
+  }
 }
 td a,
 section a,
@@ -869,10 +881,12 @@ pre {
     color 180ms ease,
     background-color 180ms ease;
 }
-.event-nav a:hover {
-  border-color: var(--primary);
-  background: rgb(80 200 140 / 0.14);
-  color: var(--primary);
+@media (hover: hover) and (pointer: fine) {
+  .event-nav a:hover {
+    border-color: var(--primary);
+    background: oklch(80% 0.19 125 / 0.12);
+    color: var(--primary);
+  }
 }
 .rank-chip {
   display: grid;
@@ -981,8 +995,10 @@ pre {
   color: var(--foreground);
   text-decoration: none;
 }
-.event-card__content h2 a:hover {
-  color: var(--primary);
+@media (hover: hover) and (pointer: fine) {
+  .event-card__content h2 a:hover {
+    color: var(--primary);
+  }
 }
 .event-card__content p {
   display: flex;
@@ -1063,10 +1079,12 @@ pre {
   color: var(--danger);
   box-shadow: none;
 }
-.button-quiet:hover:not(:disabled) {
-  background: rgb(255 120 110 / 0.16);
-  color: rgb(255 180 175);
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .button-quiet:hover:not(:disabled) {
+    background: rgb(255 120 110 / 0.16);
+    color: rgb(255 180 175);
+    box-shadow: none;
+  }
 }
 .club-profile-hero {
   overflow: hidden;
@@ -1232,8 +1250,10 @@ pre {
     border-color 180ms ease,
     background-color 180ms ease;
 }
-.event-visibility-option:hover {
-  border-color: var(--ring);
+@media (hover: hover) and (pointer: fine) {
+  .event-visibility-option:hover {
+    border-color: var(--ring);
+  }
 }
 .event-visibility-option.is-selected {
   border-color: var(--primary);
@@ -1361,9 +1381,11 @@ pre {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.event-host:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.25rem;
+@media (hover: hover) and (pointer: fine) {
+  .event-host:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25rem;
+  }
 }
 .event-badges {
   display: flex;
@@ -1568,9 +1590,11 @@ pre {
     border-color 180ms ease,
     background-color 180ms ease;
 }
-.event-directions__actions a:hover {
-  border-color: var(--primary);
-  background: var(--muted);
+@media (hover: hover) and (pointer: fine) {
+  .event-directions__actions a:hover {
+    border-color: var(--primary);
+    background: var(--muted);
+  }
 }
 .event-notes-card {
   border: 1px solid var(--border);
@@ -1601,9 +1625,11 @@ pre {
   font-size: 0.82rem;
   font-weight: 800;
 }
-.event-map-link:hover {
-  border-color: var(--primary);
-  background: var(--muted);
+@media (hover: hover) and (pointer: fine) {
+  .event-map-link:hover {
+    border-color: var(--primary);
+    background: var(--muted);
+  }
 }
 .event-status-badge--canceled {
   border-color: rgb(255 180 175 / 0.55) !important;
@@ -1681,17 +1707,22 @@ pre {
   background: transparent;
   color: var(--danger);
 }
-.button-danger-outline:hover {
-  background: rgb(255 120 110 / 0.16);
-  color: rgb(255 180 175);
+@media (hover: hover) and (pointer: fine) {
+  .button-danger-outline:hover {
+    background: rgb(255 120 110 / 0.16);
+    color: rgb(255 180 175);
+  }
 }
 .button-danger {
   border-color: var(--danger);
   background: var(--danger);
-  color: var(--foreground);
+  /* Dark ink on coral; near-white text on it was ~2:1 contrast. */
+  color: var(--dink-ink);
 }
-.button-danger:hover {
-  background: #8f1c14;
+@media (hover: hover) and (pointer: fine) {
+  .button-danger:hover {
+    background: rgb(255 160 150);
+  }
 }
 .event-cancel-confirmation {
   display: flex;
@@ -1809,7 +1840,7 @@ pre {
   border-color: var(--border);
   background: linear-gradient(
     145deg,
-    rgb(80 200 140 / 0.14),
+    oklch(80% 0.19 125 / 0.12),
     var(--surface) 65%
   );
 }
@@ -2199,8 +2230,10 @@ pre {
   color: var(--dink-volt-ink);
   font-weight: 850;
 }
-.live-court-card .end-match-control > button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 88%, black);
+@media (hover: hover) and (pointer: fine) {
+  .live-court-card .end-match-control > button:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary) 88%, black);
+  }
 }
 @keyframes overtime-card-glow {
   from {
@@ -2265,8 +2298,10 @@ pre {
   color: var(--foreground);
   cursor: pointer;
 }
-.handoff-close-button:hover {
-  background: rgb(80 200 140 / 0.14);
+@media (hover: hover) and (pointer: fine) {
+  .handoff-close-button:hover {
+    background: oklch(80% 0.19 125 / 0.12);
+  }
 }
 .handoff-close-button:focus-visible {
   outline: 3px solid oklch(80% 0.19 125 / 0.45);
@@ -2550,11 +2585,13 @@ pre {
   white-space: nowrap;
   box-shadow: none;
 }
-.match-options-menu button:hover {
-  background: rgb(80 200 140 / 0.14);
-  color: var(--foreground);
-  translate: 0;
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .match-options-menu button:hover {
+    background: oklch(80% 0.19 125 / 0.12);
+    color: var(--foreground);
+    translate: 0;
+    box-shadow: none;
+  }
 }
 .match-options-panel {
   position: absolute;
@@ -2890,9 +2927,11 @@ pre {
   font-size: 0.75rem;
   box-shadow: none;
 }
-.standby-replace-button:hover:not(:disabled) {
-  background: oklch(80% 0.19 125 / 0.16);
-  color: var(--dink-volt);
+@media (hover: hover) and (pointer: fine) {
+  .standby-replace-button:hover:not(:disabled) {
+    background: oklch(80% 0.19 125 / 0.16);
+    color: var(--dink-volt);
+  }
 }
 .standby-replace-panel {
   display: grid;
@@ -3111,12 +3150,14 @@ pre {
   color: var(--foreground);
   box-shadow: none;
 }
-.organizer-check-in .checkout-player-button:hover:not(:disabled) {
-  border-color: var(--primary);
-  background: rgb(80 200 140 / 0.14);
-  color: var(--primary);
-  translate: 0;
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .organizer-check-in .checkout-player-button:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: oklch(80% 0.19 125 / 0.12);
+    color: var(--primary);
+    translate: 0;
+    box-shadow: none;
+  }
 }
 .check-in-complete {
   display: inline-flex;
@@ -3258,7 +3299,11 @@ pre {
   margin-top: 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(145deg, var(--surface), rgb(80 200 140 / 0.14));
+  background: linear-gradient(
+    145deg,
+    var(--surface),
+    oklch(80% 0.19 125 / 0.12)
+  );
   padding: clamp(1.25rem, 4vw, 2rem);
   text-align: center;
 }
@@ -3319,9 +3364,11 @@ pre {
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
-.participant-list > li:hover {
-  border-color: var(--border);
-  box-shadow: var(--shadow-sm);
+@media (hover: hover) and (pointer: fine) {
+  .participant-list > li:hover {
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+  }
 }
 .participant-identity {
   display: flex;
@@ -4082,7 +4129,7 @@ html:has(.ls-page) {
 
 /* ───────────────────────── Auth (login / register / recover) ─────────────────
    Colors from design-system/dink-palette.md "App base". Motion follows Emil
-   Kowalski's rules: ease-out entrances under 400ms, 30–80ms stagger, transform
+   Kowalski's rules: ease-out entrances within 300ms, 30–80ms stagger, transform
    and opacity only, 0.97 press scale, hover gated to real pointers, and
    reduced-motion keeps opacity but drops movement. */
 .auth-shell {
@@ -4112,7 +4159,7 @@ html:has(.ls-page) {
 }
 .auth-reveal {
   opacity: 0;
-  animation: auth-rise 420ms var(--ease-out) both;
+  animation: auth-rise 300ms var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 @keyframes auth-rise {
@@ -4740,9 +4787,11 @@ main.ph {
   font-weight: 700;
   text-decoration: none;
 }
-.ph-panel__head a:hover,
-.ph .ph-panel__hint a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .ph-panel__head a:hover,
+  .ph .ph-panel__hint a:hover {
+    text-decoration: underline;
+  }
 }
 .ph .ph-panel__hint {
   margin: 0;
@@ -5226,11 +5275,13 @@ main.ph {
   font-weight: 700;
   box-shadow: none;
 }
-.profile-link-button:hover:not(:disabled) {
-  background: transparent;
-  box-shadow: none;
-  text-decoration: underline;
-  translate: none;
+@media (hover: hover) and (pointer: fine) {
+  .profile-link-button:hover:not(:disabled) {
+    background: transparent;
+    box-shadow: none;
+    text-decoration: underline;
+    translate: none;
+  }
 }
 .profile-cancel {
   margin: 0;
@@ -5796,7 +5847,11 @@ button.club-photo__open:focus-visible {
   width: 100%;
   height: clamp(9.5rem, 26vw, 16rem);
   background:
-    linear-gradient(145deg, rgb(9 57 34 / 0.2), rgb(9 57 34 / 0.88)),
+    linear-gradient(
+      145deg,
+      oklch(15% 0.025 255 / 0.15),
+      oklch(15% 0.025 255 / 0.8)
+    ),
     radial-gradient(
       circle at 85% 30%,
       var(--accent) 0 3rem,
@@ -6129,4 +6184,38 @@ a.club-contact:focus-visible {
 }
 .club-contact-form {
   gap: 0.75rem;
+}
+
+/* Press feedback on pill links and tabs (emil-design-eng: every pressable
+   element confirms the tap). Same color timings as before, plus a quick
+   ease-out press; reduced motion keeps the colors and drops the scale. */
+.desktop-nav a,
+.event-nav a,
+.ph-tabs a,
+.ph-tabs button,
+.ph-chips a,
+.ph-standing {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 120ms var(--ease-out);
+}
+.desktop-nav a:active,
+.event-nav a:active,
+.ph-tabs a:active,
+.ph-tabs button:active:not(:disabled),
+.ph-chips a:active,
+.ph-standing:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop-nav a:active,
+  .event-nav a:active,
+  .ph-tabs a:active,
+  .ph-tabs button:active:not(:disabled),
+  .ph-chips a:active,
+  .ph-standing:active {
+    transform: none;
+  }
 }
