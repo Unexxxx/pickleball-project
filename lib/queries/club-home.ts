@@ -194,8 +194,9 @@ export type ClubScheduleEvent = {
 };
 
 /**
- * The club's events. Visitors see published, non-private events and
- * completed ones; club staff also see drafts, private and canceled events.
+ * The club's events. Visitors see published (private included — joining
+ * those takes the passcode) and completed ones; club staff also see drafts
+ * and canceled events.
  */
 export const getClubEvents = cache(
   async (clubId: string, staff: boolean): Promise<ClubScheduleEvent[]> => {
@@ -207,10 +208,7 @@ export const getClubEvents = cache(
       )
       .eq("club_id", clubId)
       .order("starts_at", { ascending: true });
-    if (!staff)
-      query = query
-        .eq("is_private", false)
-        .not("status", "in", "(draft,canceled)");
+    if (!staff) query = query.not("status", "in", "(draft,canceled)");
     const { data } = await query;
     return data ?? [];
   },

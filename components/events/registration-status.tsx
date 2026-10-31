@@ -2,23 +2,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerForEvent, withdrawFromEvent } from "@/lib/actions/events";
+
+type Status = "confirmed" | "waitlisted" | "requested";
+
+/**
+ * Public events: players ask and an organizer approves.
+ * Private events: the passcode lets a player straight in.
+ */
 export function RegistrationStatus({
   eventId,
   isPrivate = false,
   initialRegistered = false,
+  initialStatus,
 }: {
   eventId: string;
   isPrivate?: boolean;
   initialRegistered?: boolean;
+  initialStatus?: Status | null;
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState("");
   const [accessCode, setAccessCode] = useState("");
-  const [registered, setRegistered] = useState(initialRegistered);
+  const [status, setStatus] = useState<Status | null>(
+    initialStatus ?? (initialRegistered ? "confirmed" : null),
+  );
   const [pending, setPending] = useState(false);
   return (
     <section className="registration-actions" aria-label="Event registration">
-      {isPrivate && !registered ? (
+      {isPrivate && !status ? (
         <label>
           Event passcode
           <input
@@ -29,7 +40,12 @@ export function RegistrationStatus({
           />
         </label>
       ) : null}
-      {!registered ? (
+      {status === "requested" ? (
+        <p className="registration-pending">
+          Request sent. The organizer will let you know.
+        </p>
+      ) : null}
+      {!status ? (
         <button
           disabled={pending}
           onClick={async () => {
@@ -42,17 +58,26 @@ export function RegistrationStatus({
             });
             setPending(false);
             if (r.ok) {
-              setRegistered(true);
+              const next = (r.data?.status ?? "confirmed") as Status;
+              setStatus(next);
               setMsg(
-                r.data?.status === "waitlisted"
-                  ? "Added to the waitlist."
-                  : "Registration confirmed.",
+                next === "requested"
+                  ? ""
+                  : next === "waitlisted"
+                    ? "Added to the waitlist."
+                    : "Registration confirmed.",
               );
               router.refresh();
             } else setMsg(r.error.message);
           }}
         >
-          {pending ? "Joining…" : "Join event"}
+          {pending
+            ? isPrivate
+              ? "Joining…"
+              : "Sending…"
+            : isPrivate
+              ? "Join event"
+              : "Request to join"}
         </button>
       ) : (
         <button
@@ -63,13 +88,21 @@ export function RegistrationStatus({
             const r = await withdrawFromEvent(eventId);
             setPending(false);
             if (r.ok) {
-              setRegistered(false);
-              setMsg("Registration withdrawn.");
+              setMsg(
+                status === "requested"
+                  ? "Request canceled."
+                  : "Registration withdrawn.",
+              );
+              setStatus(null);
               router.refresh();
             } else setMsg(r.error.message);
           }}
         >
-          {pending ? "Withdrawing…" : "Withdraw registration"}
+          {pending
+            ? "Withdrawing…"
+            : status === "requested"
+              ? "Cancel request"
+              : "Withdraw registration"}
         </button>
       )}
       <p role="status" aria-live="polite">

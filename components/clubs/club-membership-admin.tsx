@@ -86,7 +86,7 @@ export function ClubMembershipAdmin({
             <strong>Who can join</strong>
             <p className="ph-panel__hint">
               {joinPolicy === "open"
-                ? "Anyone signed in joins instantly. Members can see and register for your private events without the access code."
+                ? "Anyone signed in joins instantly."
                 : "Players send a request; you or your staff approve it here."}
             </p>
           </div>

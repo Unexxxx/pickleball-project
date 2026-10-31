@@ -104,3 +104,11 @@ export const registrationSchema = z
     accessCode: z.string().trim().max(32).nullable().optional(),
   })
   .strict();
+export const registrationReviewSchema = z
+  .object({
+    registrationId: uuidSchema,
+    eventId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    approve: z.boolean(),
+  })
+  .strict();

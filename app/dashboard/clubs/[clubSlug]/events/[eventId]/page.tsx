@@ -10,6 +10,7 @@ import {
 import { CourtEditor } from "@/components/events/court-editor";
 import { EventManagementControls } from "@/components/events/event-management-controls";
 import { EventPublicationControls } from "@/components/events/event-publication-controls";
+import { EventRequests } from "@/components/events/event-requests";
 import { ExternalRosterReview } from "@/components/events/external-roster-review";
 import { ParticipantList } from "@/components/events/participant-list";
 import { ShareEventLink } from "@/components/events/share-event-link";
@@ -88,6 +89,21 @@ export default async function EventPage({
   const endDate = dateFormatter.format(new Date(data.ends_at));
   const date = startDate === endDate ? startDate : `${startDate} – ${endDate}`;
   const schedule = `${timeFormatter.format(new Date(data.starts_at))}–${timeFormatter.format(new Date(data.ends_at))}`;
+  // Requests wait in their own list; declined ones aren't shown.
+  const requests = participants
+    .filter((participant) => participant.status === "requested")
+    .map((participant) => ({
+      id: participant.id,
+      playerId: participant.playerId,
+      name: participant.displayName,
+      slug: participant.publicSlug,
+      avatarUrl: participant.avatarUrl,
+      requestedAt: participant.registeredAt,
+    }));
+  const roster = participants.filter(
+    (participant) =>
+      participant.status !== "requested" && participant.status !== "canceled",
+  );
   const confirmedCount = participants.filter(
     (participant) => participant.status === "confirmed",
   ).length;
@@ -231,7 +247,14 @@ export default async function EventPage({
         }}
       />
       <CourtEditor count={data.event_courts.length} />
-      <ParticipantList participants={participants} capacity={data.capacity} />
+      {!data.is_private || requests.length ? (
+        <EventRequests
+          eventId={data.id}
+          clubSlug={club.slug}
+          requests={requests}
+        />
+      ) : null}
+      <ParticipantList participants={roster} capacity={data.capacity} />
       <ExternalRosterReview
         entries={(externalEntries ?? []).map((entry) => ({
           id: entry.id,

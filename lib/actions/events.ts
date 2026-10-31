@@ -6,6 +6,7 @@ import {
   externalEventImportSchema,
   eventTransitionSchema,
   eventUpdateSchema,
+  registrationReviewSchema,
   registrationSchema,
 } from "@/lib/validation/events";
 import { failure, success } from "@/lib/actions/result";
@@ -173,14 +174,16 @@ export async function registerForEvent(input: unknown) {
   if (error) {
     const databaseMessage = `${error.message} ${error.details ?? ""}`;
     const knownMessage = databaseMessage.includes("ACCESS_CODE_REQUIRED")
-      ? "Enter the correct event passcode, or accept the club invitation."
+      ? "Enter the correct event passcode."
       : databaseMessage.includes("PLAYER_NOT_VERIFIED")
         ? "Verify your account before joining an event."
         : databaseMessage.includes("ALREADY_REGISTERED")
           ? "You are already registered for this event."
-          : databaseMessage.includes("EVENT_NOT_OPEN")
-            ? "This event is not currently open for registration."
-            : "Unable to join this event. Please try again.";
+          : databaseMessage.includes("REQUEST_DECLINED")
+            ? "The organizer declined your request for this event."
+            : databaseMessage.includes("EVENT_NOT_OPEN")
+              ? "This event is not currently open for registration."
+              : "Unable to join this event. Please try again.";
     return failure("INELIGIBLE", knownMessage, requestId);
   }
   return success(data?.[0] ?? null, requestId);
@@ -196,4 +199,29 @@ export async function withdrawFromEvent(eventId: string) {
   if (error)
     return failure("NOT_FOUND", "No active registration found.", requestId);
   return success({ registrationId: data }, requestId);
+}
+/** Staff approve or decline a request to join a public event. */
+export async function reviewRegistration(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const p = registrationReviewSchema.safeParse(input);
+  if (!p.success)
+    return failure("VALIDATION_FAILED", "Check the request.", requestId);
+  const s = await createClient();
+  const { data, error } = await s.rpc("review_event_registration", {
+    p_registration_id: p.data.registrationId,
+    p_approve: p.data.approve,
+  });
+  if (error)
+    return failure(
+      error.details === "PERMISSION_DENIED" ? "FORBIDDEN" : "STALE_VERSION",
+      error.details === "PERMISSION_DENIED"
+        ? "Only the club's owner, organizers and staff can review requests."
+        : "This request was already handled. Refresh to see the latest.",
+      requestId,
+    );
+  revalidatePath(
+    `/dashboard/clubs/${p.data.clubSlug}/events/${p.data.eventId}`,
+  );
+  revalidatePath("/join/[eventCode]", "page");
+  return success({ status: data }, requestId);
 }

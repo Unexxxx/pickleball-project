@@ -17,7 +17,7 @@ export async function getEventJoinRoster(code: string, eventId: string) {
       .select("id,status")
       .eq("event_id", eventId)
       .eq("player_id", playerId ?? "00000000-0000-0000-0000-000000000000")
-      .in("status", ["confirmed", "waitlisted"])
+      .in("status", ["confirmed", "waitlisted", "requested"])
       .maybeSingle(),
   ]);
   return { roster: roster ?? [], ownRegistration: ownRegistration ?? null };

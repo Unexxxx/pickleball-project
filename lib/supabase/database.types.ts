@@ -2280,6 +2280,10 @@ export type Database = {
         Returns: undefined;
       };
       request_club_membership: { Args: { p_club_id: string }; Returns: string };
+      review_event_registration: {
+        Args: { p_approve: boolean; p_registration_id: string };
+        Returns: Database["public"]["Enums"]["registration_status"];
+      };
       review_club_membership: {
         Args: {
           p_approve: boolean;
@@ -2844,7 +2848,7 @@ export type Database = {
       ranked_effect_state: "active" | "suspended" | "none";
       record_class: "ranked" | "unranked";
       registration_status:
-        "confirmed" | "waitlisted" | "withdrawn" | "canceled";
+        "confirmed" | "waitlisted" | "withdrawn" | "canceled" | "requested";
       report_status:
         "open" | "reviewing" | "actioned" | "dismissed" | "reopened";
       result_revision_status:
@@ -3026,7 +3030,13 @@ export const Constants = {
       queue_entry_state: ["ready", "assigned", "left", "unavailable"],
       ranked_effect_state: ["active", "suspended", "none"],
       record_class: ["ranked", "unranked"],
-      registration_status: ["confirmed", "waitlisted", "withdrawn", "canceled"],
+      registration_status: [
+        "confirmed",
+        "waitlisted",
+        "withdrawn",
+        "canceled",
+        "requested",
+      ],
       report_status: ["open", "reviewing", "actioned", "dismissed", "reopened"],
       result_revision_status: ["pending", "accepted", "superseded", "rejected"],
       result_status: [
