@@ -604,6 +604,9 @@ function Stepper({
   onChange: (value: number) => void;
 }) {
   const clamp = (v: number) => Math.min(max, Math.max(min, v));
+  // What's in the box while typing; null shows the value. Keeps a cleared
+  // box empty instead of "0", so typing "5" doesn't become "05".
+  const [draft, setDraft] = useState<string | null>(null);
   return (
     <div className="eb-field eb-stepper">
       <span id={`eb-${label}`}>{label}</span>
@@ -617,18 +620,24 @@ function Stepper({
           <Minus aria-hidden="true" size={16} />
         </button>
         <input
-          type="number"
+          type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           aria-labelledby={`eb-${label}`}
-          min={min}
-          max={max}
-          value={value}
+          value={draft ?? String(value)}
           // Clamp when leaving the field, not while typing ("12" starts as "1").
           onChange={(event) => {
-            const next = Number(event.target.value);
-            if (Number.isFinite(next)) onChange(Math.round(next));
+            const digits = event.target.value
+              .replace(/\D/g, "")
+              .replace(/^0+(?=\d)/, "")
+              .slice(0, String(max).length);
+            setDraft(digits);
+            if (digits) onChange(Number(digits));
           }}
-          onBlur={() => onChange(clamp(value))}
+          onBlur={() => {
+            setDraft(null);
+            onChange(clamp(value));
+          }}
         />
         <button
           type="button"

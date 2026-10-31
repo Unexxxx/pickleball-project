@@ -94,6 +94,24 @@ describe("create event form", () => {
     expect(screen.getByLabelText("Passcode")).toBeRequired();
   });
 
+  it("types counts without a stray leading zero", () => {
+    renderForm();
+    const players = screen.getByLabelText("Players");
+    fireEvent.change(players, { target: { value: "" } });
+    expect(players).toHaveValue("");
+    fireEvent.change(players, { target: { value: "50" } });
+    expect(players).toHaveValue("50");
+    fireEvent.change(players, { target: { value: "050" } });
+    expect(players).toHaveValue("50");
+    fireEvent.blur(players);
+    expect(players).toHaveValue("50");
+    // A box left empty goes back to the last count.
+    const courts = screen.getByLabelText("Courts");
+    fireEvent.change(courts, { target: { value: "" } });
+    fireEvent.blur(courts);
+    expect(courts).toHaveValue("4");
+  });
+
   it("sends exactly the chosen details to createEvent", async () => {
     createEvent.mockResolvedValue({ ok: true, data: { eventId: "e1" } });
     renderForm();
