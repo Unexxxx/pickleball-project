@@ -6676,3 +6676,46 @@ button.eb-chip:disabled {
     transform: none;
   }
 }
+
+/* Players & courts: inset −/+ buttons at the same 3rem height as the
+   other fields, and a summary pill that matches "Ends …". */
+.eb-stepper__control {
+  grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+  box-sizing: border-box;
+  gap: 0.25rem;
+  min-height: 3rem;
+  padding: 0.1875rem;
+}
+.eb-stepper__control button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.5rem;
+  height: 2.5rem;
+  border-radius: calc(var(--radius-md) - 0.25rem);
+  background: var(--muted);
+}
+.eb-stepper__control button:disabled {
+  background: transparent;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+@media (hover: hover) and (pointer: fine) {
+  .eb-stepper__control button:hover:not(:disabled) {
+    background: oklch(80% 0.19 125 / 0.18);
+  }
+}
+.eb-stepper__control input {
+  min-height: 2.5rem;
+  font-size: 1.15rem;
+}
+.eb .eb-courts {
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+}
+.eb .eb-courts > span {
+  white-space: nowrap;
+}

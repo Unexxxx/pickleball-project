@@ -362,10 +362,21 @@ export function EventForm({
               onChange={setCourts}
             />
           </div>
-          <p className="eb-hint" aria-live="polite">
-            {Math.min(courts, Math.floor(capacity / perGame))} games at a time ·{" "}
-            {playing} playing
-            {resting ? ` · ${resting} waiting their turn` : ""}
+          <p className="eb-ends eb-courts" aria-live="polite">
+            <span>
+              <strong>
+                {Math.min(courts, Math.floor(capacity / perGame))}
+              </strong>{" "}
+              games at a time
+            </span>
+            <span>
+              <strong>{playing}</strong> playing
+            </span>
+            {resting ? (
+              <span>
+                <strong>{resting}</strong> waiting their turn
+              </span>
+            ) : null}
           </p>
         </Section>
 
