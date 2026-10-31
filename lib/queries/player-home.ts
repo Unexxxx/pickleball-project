@@ -236,7 +236,6 @@ export async function getUpcomingPublicEvents(supabase: Supabase, limit = 24) {
     .from("events")
     .select(LISTED_EVENT_COLUMNS)
     .eq("status", "published")
-    .eq("is_private", false)
     .gte("ends_at", new Date().toISOString())
     .order("starts_at", { ascending: true })
     .limit(limit);
@@ -248,7 +247,6 @@ export async function getLivePublicEvents(supabase: Supabase, limit = 6) {
     .from("events")
     .select(LISTED_EVENT_COLUMNS)
     .eq("status", "in_progress")
-    .eq("is_private", false)
     .order("starts_at", { ascending: true })
     .limit(limit);
   return { events: toListed(data), failed: Boolean(error) };

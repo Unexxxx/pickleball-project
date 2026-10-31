@@ -34,7 +34,6 @@ export default async function SearchPage({
           supabase
             .from("events")
             .select("id,name,join_code,status")
-            .eq("is_private", false)
             .in("status", ["published", "registration_closed", "in_progress"])
             .ilike("name", pattern)
             .order("starts_at")

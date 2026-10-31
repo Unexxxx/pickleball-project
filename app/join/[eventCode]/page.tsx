@@ -216,8 +216,7 @@ export default async function JoinPage({
           </div>
           {event.is_private ? (
             <p className="private-event-notice">
-              Private event — club members may join directly. Other invited
-              players need the event passcode.
+              Private event — ask the organizer for the passcode to join.
             </p>
           ) : null}
         </section>
@@ -242,7 +241,10 @@ export default async function JoinPage({
             <RegistrationStatus
               eventId={event.id}
               isPrivate={event.is_private}
-              initialRegistered={Boolean(ownRegistration)}
+              initialStatus={
+                ownRegistration?.status as
+                  "confirmed" | "waitlisted" | "requested" | undefined
+              }
             />
           ) : event.status === "published" ? (
             <Link className="button" href={loginHref}>

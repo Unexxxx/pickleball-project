@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   Clock3,
+  KeyRound,
   ListOrdered,
   Lock,
   MapPin,
@@ -12,6 +13,7 @@ import {
   Minus,
   Plus,
   Trophy,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { createEvent } from "@/lib/actions/events";
@@ -382,14 +384,14 @@ export function EventForm({
 
         <Section n={4} title="Who can join">
           <Choice
-            legend="Visibility"
+            legend="Joining"
             name="visibility"
             value={isPrivate ? "private" : "public"}
             onChange={(value) => setIsPrivate(value === "private")}
             hint={
               isPrivate
-                ? "Hidden from listings. Club members can join; others need the passcode."
-                : "Anyone can find it on the club's schedule and join."
+                ? "Listed on the schedule, but joining takes the passcode — share it with the players you invite."
+                : "Listed on the schedule. Anyone can request to join, and you or your staff approve each request."
             }
             options={[
               ["public", "Public"],
@@ -406,7 +408,7 @@ export function EventForm({
                 maxLength={32}
                 autoComplete="new-password"
                 value={accessCode}
-                placeholder="At least 4 characters"
+                placeholder="At least 4 characters, e.g. dink2026"
                 onChange={(event) => setAccessCode(event.target.value)}
               />
             </label>
@@ -419,7 +421,7 @@ export function EventForm({
             hint={
               status === "draft"
                 ? "Only club staff can see it until you publish it."
-                : "Players can see and join it right away."
+                : "Players can see it on the schedule right away."
             }
             options={[
               ["published", "Publish now"],
@@ -500,6 +502,18 @@ export function EventForm({
               <Users aria-hidden="true" size={16} />
               <span>
                 {capacity} spots · {courts} {courts === 1 ? "court" : "courts"}
+              </span>
+            </li>
+            <li>
+              {isPrivate ? (
+                <KeyRound aria-hidden="true" size={16} />
+              ) : (
+                <UserCheck aria-hidden="true" size={16} />
+              )}
+              <span>
+                {isPrivate
+                  ? "Join with the passcode"
+                  : "Request to join · organizer approves"}
               </span>
             </li>
           </ul>

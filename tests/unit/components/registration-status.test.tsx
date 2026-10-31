@@ -14,9 +14,12 @@ vi.mock("@/lib/actions/events", () => ({
 describe("RegistrationStatus", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows Join and hides Withdraw before registration", () => {
+  it("asks to join a public event and hides Withdraw before registration", () => {
     render(<RegistrationStatus eventId={crypto.randomUUID()} />);
-    expect(screen.getByRole("button", { name: "Join event" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Request to join" }),
+    ).toBeVisible();
+    expect(screen.queryByLabelText("Event passcode")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Withdraw registration" }),
     ).not.toBeInTheDocument();
@@ -32,5 +35,24 @@ describe("RegistrationStatus", () => {
     expect(
       screen.queryByRole("button", { name: "Join event" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("joins a private event with the passcode", () => {
+    render(<RegistrationStatus eventId={crypto.randomUUID()} isPrivate />);
+    expect(screen.getByLabelText("Event passcode")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Join event" })).toBeVisible();
+  });
+
+  it("shows a pending request with a way to cancel it", () => {
+    render(
+      <RegistrationStatus
+        eventId={crypto.randomUUID()}
+        initialStatus="requested"
+      />,
+    );
+    expect(screen.getByText(/Request sent/)).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Cancel request" }),
+    ).toBeVisible();
   });
 });
