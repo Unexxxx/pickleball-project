@@ -6579,26 +6579,100 @@ button.eb-chip:disabled {
   }
 }
 
-/* Start time: an hour (1–12) + AM/PM, or an exact time on request. */
-.eb-time {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.5rem;
+/* Start time: an hour (1–12) + AM/PM, or an exact time via the clock icon.
+   Date and time share one label line and one control height (3rem) so the
+   two columns line up. */
+.eb-row {
+  align-items: start;
 }
-.eb-time select {
-  min-height: 2.75rem;
+.eb-row .eb-field > span {
+  min-height: 1.3rem;
+  line-height: 1.3rem;
+  font-size: 0.875rem;
+}
+.eb-row .eb-field input[type="date"],
+.eb-time input,
+.eb-time select,
+.eb-time .eb-chip,
+.eb-icon-button {
+  height: 3rem;
+  min-height: 3rem;
+}
+.eb-row .eb-field input[type="date"],
+.eb-time input {
+  padding-block: 0;
+}
+.eb-time {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.eb-time select,
+.eb-time input {
+  flex: 1 1 auto;
+  min-width: 0;
   font-variant-numeric: tabular-nums;
 }
 .eb-time .eb-chips {
+  flex: none;
   flex-wrap: nowrap;
   gap: 0.35rem;
 }
 .eb-time .eb-chip {
   padding-inline: 0.85rem;
 }
-.eb-field .eb-time-toggle {
-  justify-self: start;
+.eb-icon-button {
+  display: grid;
+  width: 3rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  padding: 0;
   color: var(--primary);
-  font-size: 0.825rem;
+  box-shadow: none;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 120ms var(--ease-out);
+}
+.eb-icon-button:active {
+  transform: scale(0.95);
+}
+@media (hover: hover) and (pointer: fine) {
+  .eb-icon-button:hover:not(:disabled) {
+    border-color: oklch(80% 0.19 125 / 0.6);
+    background: var(--muted);
+    box-shadow: none;
+    translate: none;
+  }
+}
+/* The end time, made easy to spot right under the start time. */
+.eb .eb-ends {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: none;
+  margin: 0.1rem 0 0;
+  border-radius: 999px;
+  background: oklch(80% 0.19 125 / 0.14);
+  padding: 0.4rem 0.85rem;
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+.eb .eb-ends svg {
+  flex: none;
+  color: var(--primary);
+}
+.eb .eb-ends strong {
+  color: var(--primary);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eb-icon-button:active {
+    transform: none;
+  }
 }

@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
+  Clock3,
+  ListOrdered,
   Lock,
   MapPin,
   MapPinned,
@@ -212,60 +214,89 @@ export function EventForm({
             </label>
             <div className="eb-field">
               <span id="eb-start-time">Start time</span>
-              {exact ? (
-                <input
-                  type="time"
-                  required
-                  aria-labelledby="eb-start-time"
-                  value={exactTime}
-                  onChange={(event) => setExactTime(event.target.value)}
-                />
-              ) : (
-                <div className="eb-time">
-                  <select
-                    aria-label="Start hour"
-                    value={hour12}
-                    onChange={(event) => setHour12(Number(event.target.value))}
-                  >
-                    {HOURS_12.map((h) => (
-                      <option key={h} value={h}>
-                        {h}:00
-                      </option>
-                    ))}
-                  </select>
-                  <div className="eb-chips" role="group" aria-label="AM or PM">
-                    {(["AM", "PM"] as const).map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        className="eb-chip"
-                        aria-pressed={meridiem === m}
-                        onClick={() => setMeridiem(m)}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <button
-                type="button"
-                className="profile-link-button eb-time-toggle"
-                onClick={() => {
-                  // Carry the picked hour into the exact field, and back.
-                  if (!exact) setExactTime(hourTo24(hour12, meridiem));
-                  else {
-                    const [h] = exactTime.split(":").map(Number);
-                    if (Number.isFinite(h)) {
-                      setHour12(((h! + 11) % 12) + 1);
-                      setMeridiem(h! >= 12 ? "PM" : "AM");
-                    }
+              <div className="eb-time">
+                {exact ? (
+                  <input
+                    type="time"
+                    required
+                    aria-labelledby="eb-start-time"
+                    value={exactTime}
+                    onChange={(event) => setExactTime(event.target.value)}
+                  />
+                ) : (
+                  <>
+                    <select
+                      aria-label="Start hour"
+                      value={hour12}
+                      onChange={(event) =>
+                        setHour12(Number(event.target.value))
+                      }
+                    >
+                      {HOURS_12.map((h) => (
+                        <option key={h} value={h}>
+                          {h}:00
+                        </option>
+                      ))}
+                    </select>
+                    <div
+                      className="eb-chips"
+                      role="group"
+                      aria-label="AM or PM"
+                    >
+                      {(["AM", "PM"] as const).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          className="eb-chip"
+                          aria-pressed={meridiem === m}
+                          onClick={() => setMeridiem(m)}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {/* Icon-only switch between hour picking and an exact time. */}
+                <button
+                  type="button"
+                  className="eb-icon-button"
+                  aria-label={
+                    exact ? "Pick an hour instead" : "Type an exact time"
                   }
-                  setExact(!exact);
-                }}
-              >
-                {exact ? "Pick an hour instead" : "Type an exact time"}
-              </button>
+                  title={exact ? "Pick an hour instead" : "Type an exact time"}
+                  onClick={() => {
+                    // Carry the picked hour into the exact field, and back.
+                    if (!exact) setExactTime(hourTo24(hour12, meridiem));
+                    else {
+                      const [h] = exactTime.split(":").map(Number);
+                      if (Number.isFinite(h)) {
+                        setHour12(((h! + 11) % 12) + 1);
+                        setMeridiem(h! >= 12 ? "PM" : "AM");
+                      }
+                    }
+                    setExact(!exact);
+                  }}
+                >
+                  {exact ? (
+                    <ListOrdered aria-hidden="true" size={18} />
+                  ) : (
+                    <Clock3 aria-hidden="true" size={18} />
+                  )}
+                </button>
+              </div>
+              {/* The end time, stated plainly right under the start. */}
+              <p className="eb-ends" aria-live="polite">
+                <CalendarDays aria-hidden="true" size={16} />
+                {endsAt ? (
+                  <span>
+                    Ends <strong>{timeLabel(endsAt)}</strong>
+                    {endsNextDay ? " the next day" : ""}
+                  </span>
+                ) : (
+                  <span>Pick a date to see when it ends</span>
+                )}
+              </p>
             </div>
           </div>
           <fieldset className="eb-choice">
@@ -283,11 +314,6 @@ export function EventForm({
                 </button>
               ))}
             </div>
-            <p className="eb-hint" aria-live="polite">
-              {endsAt
-                ? `Ends at ${timeLabel(endsAt)}${endsNextDay ? " the next day" : ""}.`
-                : "Pick a date to see when it ends."}
-            </p>
           </fieldset>
           <label className="eb-field">
             <span>Venue</span>

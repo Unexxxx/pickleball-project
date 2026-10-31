@@ -31,6 +31,7 @@ const renderForm = () =>
       clubImageUrl={null}
     />,
   );
+const endsText = () => document.querySelector(".eb-ends")?.textContent;
 const fill = (label: RegExp | string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
@@ -43,13 +44,11 @@ describe("create event form", () => {
       "aria-pressed",
       "true",
     );
-    expect(screen.getByText("Ends at 10:00 AM.")).toBeInTheDocument();
+    expect(endsText()).toBe("Ends 10:00 AM");
     fill("Start hour", "6");
     fireEvent.click(screen.getByRole("button", { name: "PM" }));
     fireEvent.click(screen.getByRole("button", { name: "8 hours" }));
-    expect(
-      screen.getByText("Ends at 2:00 AM the next day."),
-    ).toBeInTheDocument();
+    expect(endsText()).toBe("Ends 2:00 AM the next day");
     expect(screen.getByText(/6:00 PM – 2:00 AM/)).toBeInTheDocument();
   });
 
@@ -74,7 +73,7 @@ describe("create event form", () => {
     fireEvent.click(screen.getByRole("button", { name: "Type an exact time" }));
     expect(screen.getByLabelText("Start time")).toHaveValue("07:00");
     fill("Start time", "06:15");
-    expect(screen.getByText("Ends at 9:15 AM.")).toBeInTheDocument();
+    expect(endsText()).toBe("Ends 9:15 AM");
     fireEvent.click(
       screen.getByRole("button", { name: "Pick an hour instead" }),
     );
