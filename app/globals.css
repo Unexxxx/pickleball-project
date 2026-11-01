@@ -6719,3 +6719,77 @@ button.eb-chip:disabled {
 .eb .eb-courts > span {
   white-space: nowrap;
 }
+
+/* Event templates: a "Start from a template" strip above the sections and a
+   "Save as a template" option at the end of Who can join. */
+.eb-templates {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px dashed oklch(80% 0.19 125 / 0.45);
+  border-radius: var(--radius-lg);
+  background: oklch(80% 0.19 125 / 0.06);
+  padding: 0.9rem clamp(1rem, 3vw, 1.35rem);
+}
+.eb .eb-templates__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  max-width: none;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.eb-templates__label svg {
+  color: var(--primary);
+}
+.eb .eb-templates__remove {
+  justify-self: start;
+  min-height: 2rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--muted-foreground);
+  box-shadow: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .eb .eb-templates__remove:hover {
+    background: transparent;
+    color: var(--foreground);
+    box-shadow: none;
+    translate: none;
+  }
+}
+.eb-save-template {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.eb .eb-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.eb-check input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.eb-save-template .eb-hint {
+  font-weight: 400;
+}
+.eb-save-template .eb-field > label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}

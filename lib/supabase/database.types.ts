@@ -606,6 +606,36 @@ export type Database = {
           },
         ];
       };
+      event_templates: {
+        Row: {
+          club_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          name: string;
+          settings: Json;
+          updated_at: string;
+        };
+        Insert: {
+          club_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name: string;
+          settings: Json;
+          updated_at?: string;
+        };
+        Update: {
+          club_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name?: string;
+          settings?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       event_registrations: {
         Row: {
           event_id: string;
@@ -2246,6 +2276,14 @@ export type Database = {
       };
     };
     Functions: {
+      save_event_template: {
+        Args: { p_club_id: string; p_name: string; p_settings: Json };
+        Returns: string;
+      };
+      delete_event_template: {
+        Args: { p_template_id: string };
+        Returns: undefined;
+      };
       club_member_directory: {
         Args: { p_club_id: string };
         Returns: {
