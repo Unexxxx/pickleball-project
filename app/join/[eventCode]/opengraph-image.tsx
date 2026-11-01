@@ -4,25 +4,26 @@ import { ImageResponse } from "next/og";
 import { eventShareDetails } from "@/lib/event-share";
 import { resolveEventJoin } from "@/lib/queries/event-join";
 
-// Share card for an event link: what Messenger, Facebook and iMessage show.
+// Share card for an event link (Messenger, Facebook, iMessage): the event
+// page's header — host, badges, title, venue and the date card — on the same
+// dark surface with the volt glow and the faint ring.
 export const alt = "Pickleball event on UNEX";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const NAVY = "#0a2952";
+const SURFACE = "#0f1926";
+const FOREGROUND = "#f9f7f1";
 const VOLT = "#b5e02c";
-const CREAM = "#ede6c4";
 
 /**
- * Bricolage Grotesque (the app's heading font) at one weight, only the
- * letters this card uses. Null if Google Fonts can't be reached; the card
- * then falls back to the default font.
+ * One Google font at one weight, only the letters this card uses. Null if
+ * Google Fonts can't be reached; the card then uses the default font.
  */
-async function headingFont(weight: number, text: string) {
+async function googleFont(family: string, weight: number, text: string) {
   try {
     const css = await (
       await fetch(
-        `https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@${weight}&text=${encodeURIComponent(text)}`,
+        `https://fonts.googleapis.com/css2?family=${family.replaceAll(" ", "+")}:wght@${weight}&text=${encodeURIComponent(text)}`,
       )
     ).text();
     const url = css.match(
@@ -36,6 +37,50 @@ async function headingFont(weight: number, text: string) {
   }
 }
 
+function PinIcon() {
+  return (
+    <svg
+      width="34"
+      height="34"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="rgba(255,255,255,0.8)"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      width="52"
+      height="52"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={VOLT}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect width="18" height="18" x="3" y="4" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M8 14h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 14h.01" />
+      <path d="M8 18h.01" />
+      <path d="M12 18h.01" />
+      <path d="M16 18h.01" />
+    </svg>
+  );
+}
+
 export default async function EventOpengraphImage({
   params,
 }: {
@@ -43,127 +88,166 @@ export default async function EventOpengraphImage({
 }) {
   const { eventCode } = await params;
   const event = await resolveEventJoin(eventCode);
-  const ball = await readFile(
-    join(process.cwd(), "public/pickleball-ball.png"),
-  );
-  const ballSrc = `data:image/png;base64,${ball.toString("base64")}`;
+  const share = event ? eventShareDetails(event) : null;
   const logo = await readFile(
     join(process.cwd(), "public/unex-logo-cream.png"),
   );
   const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
-  const share = event ? eventShareDetails(event) : null;
+
   const title = share?.title ?? "Pickleball on UNEX";
-  // Long names shrink so they fit in two lines.
-  const titleSize = title.length > 48 ? 58 : title.length > 30 ? 70 : 84;
+  // Long names shrink so the title stays within two lines.
+  const titleSize = title.length > 44 ? 62 : title.length > 28 ? 76 : 92;
+  const host = share ? `HOSTED BY ${share.club.toUpperCase()}` : "UNEX";
   const text = [
     title,
-    share?.club,
-    share?.when,
+    host,
     share?.venue,
-    share?.spots,
-    ...(share?.tags ?? []),
-    "UNEX unex.live ·",
+    share?.date,
+    share?.times,
+    ...(share?.badges ?? []),
   ].join("");
-  const [bold, regular] = await Promise.all([
-    headingFont(800, text),
-    headingFont(500, text),
+  const [heading, bodyBold, body] = await Promise.all([
+    googleFont("Bricolage Grotesque", 800, title),
+    googleFont("Archivo", 800, text),
+    googleFont("Archivo", 700, text),
   ]);
   const fonts = [
-    bold && { name: "Bricolage", data: bold, weight: 800 as const },
-    regular && { name: "Bricolage", data: regular, weight: 500 as const },
+    heading && { name: "Heading", data: heading, weight: 800 as const },
+    bodyBold && { name: "Body", data: bodyBold, weight: 800 as const },
+    body && { name: "Body", data: body, weight: 700 as const },
   ].filter((font) => font !== null);
+  const bodyFont = bodyBold || body ? "Body" : "sans-serif";
 
   return new ImageResponse(
     <div
       style={{
+        position: "relative",
         width: "100%",
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "64px 76px",
-        background: NAVY,
-        color: CREAM,
-        fontFamily: fonts.length ? "Bricolage" : "sans-serif",
+        justifyContent: "center",
+        gap: 22,
+        overflow: "hidden",
+        padding: "0 72px",
+        backgroundColor: SURFACE,
+        backgroundImage:
+          "radial-gradient(circle at 92% 15%, rgba(216,242,79,0.3), rgba(216,242,79,0) 420px)",
+        color: FOREGROUND,
+        fontFamily: bodyFont,
       }}
     >
+      {/* The faint ring in the lower right. */}
+      <div
+        style={{
+          position: "absolute",
+          right: -70,
+          bottom: -120,
+          width: 340,
+          height: 340,
+          border: "60px solid rgba(255,255,255,0.05)",
+          borderRadius: 999,
+        }}
+      />
+      <img
+        src={logoSrc}
+        width={120}
+        height={50}
+        alt="UNEX"
+        style={{ position: "absolute", top: 48, right: 64, opacity: 0.9 }}
+      />
+
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          color: "rgba(255,255,255,0.82)",
+          fontSize: 24,
+          fontWeight: 800,
+          letterSpacing: 2.5,
         }}
       >
+        {host}
+      </div>
+      {share ? (
+        <div style={{ display: "flex", gap: 12 }}>
+          {share.badges.map((badge) => (
+            <div
+              key={badge}
+              style={{
+                display: "flex",
+                border: "2px solid rgba(255,255,255,0.2)",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.09)",
+                padding: "8px 22px",
+                color: "rgba(255,255,255,0.92)",
+                fontSize: 24,
+                fontWeight: 800,
+              }}
+            >
+              {badge}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div
+        style={{
+          display: "flex",
+          maxWidth: 1000,
+          fontFamily: heading ? "Heading" : bodyFont,
+          fontSize: titleSize,
+          fontWeight: 800,
+          lineHeight: 1.02,
+          letterSpacing: -2,
+        }}
+      >
+        {title}
+      </div>
+      {share ? (
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 18,
+            gap: 14,
+            color: "rgba(255,255,255,0.8)",
             fontSize: 30,
             fontWeight: 700,
           }}
         >
-          <img src={ballSrc} width={56} height={55} alt="" />
-          {share ? share.club : "UNEX"}
+          <PinIcon />
+          {share.venue}
         </div>
-        <img src={logoSrc} width={144} height={60} alt="UNEX" />
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
-        {share ? (
-          <div style={{ display: "flex", gap: 12 }}>
-            {share.tags.map((tag) => (
-              <div
-                key={tag}
-                style={{
-                  display: "flex",
-                  padding: "8px 20px",
-                  borderRadius: 999,
-                  background: tag === share.tags[0] ? VOLT : "#1b3b66",
-                  color: tag === share.tags[0] ? NAVY : CREAM,
-                  fontSize: 26,
-                  fontWeight: 700,
-                }}
-              >
-                {tag}
-              </div>
-            ))}
-          </div>
-        ) : null}
+      ) : null}
+      {share ? (
         <div
           style={{
             display: "flex",
-            fontSize: titleSize,
-            fontWeight: 800,
-            lineHeight: 1.05,
-            letterSpacing: -2,
-            maxWidth: 1040,
+            alignItems: "flex-start",
+            gap: 26,
+            marginTop: 6,
+            border: "2px solid rgba(255,255,255,0.16)",
+            borderRadius: 28,
+            background: "rgba(255,255,255,0.1)",
+            padding: "26px 32px",
           }}
         >
-          {title}
-        </div>
-        {share ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              fontSize: 34,
-            }}
-          >
-            <div style={{ display: "flex", color: VOLT, fontWeight: 700 }}>
-              {share.when}
+          <CalendarIcon />
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", fontSize: 32, fontWeight: 800 }}>
+              {share.date}
             </div>
-            <div style={{ display: "flex", opacity: 0.85 }}>
-              {share.venue} · {share.spots}
+            <div
+              style={{
+                display: "flex",
+                color: "rgba(255,255,255,0.82)",
+                fontSize: 28,
+                fontWeight: 700,
+              }}
+            >
+              {share.times}
             </div>
           </div>
-        ) : null}
-      </div>
-
-      <div style={{ display: "flex", fontSize: 26, color: VOLT }}>
-        unex.live
-      </div>
+        </div>
+      ) : null}
     </div>,
     { ...size, fonts: fonts.length ? fonts : undefined },
   );

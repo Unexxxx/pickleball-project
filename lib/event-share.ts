@@ -26,7 +26,27 @@ export function eventShareDetails(event: JoinEvent) {
     minute: "2-digit",
     timeZone,
   });
-  const when = `${day} · ${time.format(new Date(event.starts_at))} to ${time.format(new Date(event.ends_at))}`;
+  const times = `${time.format(new Date(event.starts_at))} to ${time.format(new Date(event.ends_at))}`;
+  const when = `${day} · ${times}`;
+  // As on the event page header: "Monday, November 2, 2026".
+  const date = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
+  }).format(new Date(event.starts_at));
+  const titleCase = (value: string) =>
+    value
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  // The event page header's badges.
+  const badges = [
+    titleCase(event.event_type),
+    titleCase(event.record_class),
+    event.is_private ? "Private" : "Public",
+    titleCase(event.status),
+  ];
   const format = event.formats.includes("singles") ? "Singles" : "Doubles";
   const tags = [
     TYPE[event.event_type] ?? "Event",
@@ -48,6 +68,9 @@ export function eventShareDetails(event: JoinEvent) {
     title: event.name,
     club: event.club_name,
     when,
+    date,
+    times,
+    badges,
     venue: event.venue,
     tags,
     spots: `${event.capacity} players`,
