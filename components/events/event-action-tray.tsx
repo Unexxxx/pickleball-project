@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CircleCheck, Gavel, ListOrdered, Map, Swords } from "lucide-react";
-const ACTIONS = [
+export const EVENT_ACTIONS = [
   { label: "Check in", path: "check-in", icon: CircleCheck, live: true },
   { label: "Queue", path: "queue", icon: ListOrdered, live: true },
   { label: "Courts", path: "courts", icon: Map, live: true },
@@ -25,7 +25,7 @@ export function EventActionTray({
   return (
     <nav aria-label="Event actions" className="event-nav overflow-x-auto">
       <ul>
-        {ACTIONS.filter(
+        {EVENT_ACTIONS.filter(
           (action) => status === "in_progress" || !action.live,
         ).map(({ label, path, icon: Icon }) => (
           <li key={path}>

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, Plus } from "lucide-react";
+import { CalendarDays, MapPin, Plus, Settings2 } from "lucide-react";
 import { ClubContact } from "@/components/clubs/club-contact";
 import { MemberRow } from "@/components/clubs/member-row";
 import { EventRow } from "@/components/dashboard/event-row";
+import { EVENT_ACTIONS } from "@/components/events/event-action-tray";
 import { formatEventTime } from "@/lib/format/event-time";
 import {
   ROLE_LABEL,
@@ -101,6 +102,29 @@ export default async function ClubOverview({
                     </Link>
                   )}
                 </div>
+                {/* While it's live, admins jump straight to any event tool;
+                    the queue is the button above. */}
+                {admin && isLive ? (
+                  <nav className="ph-live-tools" aria-label="Event controls">
+                    {EVENT_ACTIONS.filter(({ path }) => path !== "queue").map(
+                      ({ label, path, icon: Icon }) => (
+                        <Link
+                          key={path}
+                          href={`/dashboard/clubs/${club.slug}/events/${focus.id}/${path}`}
+                        >
+                          <Icon aria-hidden="true" size={16} />
+                          {label}
+                        </Link>
+                      ),
+                    )}
+                    <Link
+                      href={`/dashboard/clubs/${club.slug}/events/${focus.id}`}
+                    >
+                      <Settings2 aria-hidden="true" size={16} />
+                      Manage event
+                    </Link>
+                  </nav>
+                ) : null}
               </>
             ) : (
               <>
