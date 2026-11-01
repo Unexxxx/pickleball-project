@@ -183,9 +183,11 @@ export async function registerForEvent(input: unknown) {
           ? "You are already registered for this event."
           : databaseMessage.includes("REQUEST_DECLINED")
             ? "The organizer declined your request for this event."
-            : databaseMessage.includes("EVENT_NOT_OPEN")
-              ? "This event is not currently open for registration."
-              : "Unable to join this event. Please try again.";
+            : databaseMessage.includes("EVENT_FULL")
+              ? "This event has started and every spot is taken."
+              : databaseMessage.includes("EVENT_NOT_OPEN")
+                ? "This event is not currently open for registration."
+                : "Unable to join this event. Please try again.";
     return failure("INELIGIBLE", knownMessage, requestId);
   }
   return success(data?.[0] ?? null, requestId);
@@ -215,10 +217,16 @@ export async function reviewRegistration(input: unknown) {
   });
   if (error)
     return failure(
-      error.details === "PERMISSION_DENIED" ? "FORBIDDEN" : "STALE_VERSION",
+      error.details === "PERMISSION_DENIED"
+        ? "FORBIDDEN"
+        : error.details === "EVENT_FULL"
+          ? "INELIGIBLE"
+          : "STALE_VERSION",
       error.details === "PERMISSION_DENIED"
         ? "Only the club's owner, organizers and staff can review requests."
-        : "This request was already handled. Refresh to see the latest.",
+        : error.details === "EVENT_FULL"
+          ? "Every spot is taken. The event has started, so there's no waitlist."
+          : "This request was already handled. Refresh to see the latest.",
       requestId,
     );
   revalidatePath(

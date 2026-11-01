@@ -168,8 +168,8 @@ export function EventManagementControls({
           <div>
             <strong>Ready to run the event?</strong>
             <p>
-              Starting closes registration and opens club-managed check-in and
-              queueing.
+              Starting opens club-managed check-in and queueing. Players can
+              still ask to join while spots are free.
             </p>
           </div>
           <div>

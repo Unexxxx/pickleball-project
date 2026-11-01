@@ -107,6 +107,9 @@ export default async function JoinPage({
     (participant) => participant.status === "confirmed",
   ).length;
   const availableSpots = Math.max(event.capacity - confirmedCount, 0);
+  // Players can join a started event while a spot is free (no waitlist).
+  const isLive = event.status === "in_progress";
+  const canJoin = event.status === "published" || isLive;
   const timezone = event.club_timezone || "UTC";
   const dateFormatter = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -268,17 +271,19 @@ export default async function JoinPage({
             <div>
               <h2 id="join-event-heading">Join this event</h2>
               <p>
-                {event.status !== "published"
+                {!canJoin
                   ? "Registration closed"
                   : !user
                     ? "Sign in to view availability and join"
                     : availableSpots
                       ? `${availableSpots} ${availableSpots === 1 ? "spot" : "spots"} available`
-                      : "Event is full — new registrations join the waitlist"}
+                      : isLive
+                        ? "Every spot is taken"
+                        : "Event is full — new registrations join the waitlist"}
               </p>
             </div>
           </div>
-          {event.status === "published" && user ? (
+          {canJoin && user && (availableSpots || !isLive || ownRegistration) ? (
             <RegistrationStatus
               eventId={event.id}
               isPrivate={event.is_private}
@@ -287,14 +292,14 @@ export default async function JoinPage({
                   "confirmed" | "waitlisted" | "requested" | undefined
               }
             />
-          ) : event.status === "published" ? (
+          ) : canJoin && !user ? (
             <Link className="button" href={loginHref}>
               Sign in to join
             </Link>
           ) : (
             <p className="event-registration-closed">
               {event.status === "in_progress"
-                ? "This event is in progress. Registration is closed."
+                ? "This event has started and every spot is taken."
                 : event.status === "completed"
                   ? "This event has ended."
                   : event.status === "canceled"
