@@ -15,6 +15,7 @@ import { ExternalRosterReview } from "@/components/events/external-roster-review
 import { ParticipantList } from "@/components/events/participant-list";
 import { ShareEventLink } from "@/components/events/share-event-link";
 import { getClub } from "@/lib/queries/clubs";
+import { SHARE_URL } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { CLUB_ADMIN_ROLES, requireClubAccess } from "@/lib/queries/club-home";
 
@@ -106,10 +107,7 @@ export default async function EventPage({
   const confirmedCount = participants.filter(
     (participant) => participant.status === "confirmed",
   ).length;
-  const shareUrl = new URL(
-    `/join/${data.join_code}`,
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-  ).toString();
+  const shareUrl = new URL(`/join/${data.join_code}`, SHARE_URL).toString();
 
   return (
     <main className="public-event-page organizer-event-page">

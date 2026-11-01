@@ -1,3 +1,4 @@
+import { SHARE_URL } from "@/lib/site";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -92,7 +93,7 @@ export default async function JoinPage({
   const schedule = `${timeFormatter.format(
     new Date(event.starts_at),
   )} to ${timeFormatter.format(new Date(event.ends_at))}`;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = SHARE_URL;
   const shareUrl = new URL(`/join/${eventCode}`, siteUrl).toString();
   const mapQuery = encodeURIComponent(event.venue);
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`;
