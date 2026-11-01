@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getClub } from "@/lib/queries/clubs";
 import { currentPlayerId } from "@/lib/auth/authorization";
+import { EventEnded } from "@/components/events/event-ended";
 import { CourtEditor } from "@/components/events/court-editor";
 import { CLUB_ADMIN_ROLES, requireClubAccess } from "@/lib/queries/club-home";
 
@@ -24,6 +25,14 @@ export default async function CourtsPage({
     .eq("club_id", club.id)
     .single();
   if (!event) notFound();
+  if (event.status === "completed" || event.status === "canceled") {
+    return (
+      <EventEnded
+        status={event.status}
+        href={`/dashboard/clubs/${clubSlug}/events/${eventId}`}
+      />
+    );
+  }
   const { data: courts } = await supabase
     .from("event_courts")
     .select("id,label,status,current_match_id")
@@ -39,8 +48,6 @@ export default async function CourtsPage({
     .maybeSingle();
   const canManage =
     membership?.role === "owner" || membership?.role === "organizer";
-  const changesAllowed =
-    event.status !== "completed" && event.status !== "canceled";
   return (
     <main className="space-y-5">
       <header>
@@ -64,7 +71,7 @@ export default async function CourtsPage({
           currentMatchId: court.current_match_id,
         }))}
         canManage={canManage}
-        changesAllowed={changesAllowed}
+        changesAllowed
       />
     </main>
   );
