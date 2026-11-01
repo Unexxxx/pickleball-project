@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
+  Bookmark,
   Clock3,
   KeyRound,
   ListOrdered,
@@ -16,12 +17,22 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { createEvent } from "@/lib/actions/events";
+import {
+  createEvent,
+  deleteEventTemplate,
+  saveEventTemplate,
+} from "@/lib/actions/events";
+import type { TemplateSettings } from "@/lib/validation/events";
 
 type EventType = "open_play" | "tournament";
 type Format = "doubles" | "singles";
 type RecordClass = "unranked" | "ranked";
 type Status = "published" | "draft";
+export type EventTemplate = {
+  id: string;
+  name: string;
+  settings: TemplateSettings;
+};
 
 // Length chips; the end time is the start plus one of these.
 const DURATIONS = [3, 4, 5, 6, 7, 8];
@@ -63,11 +74,13 @@ export function EventForm({
   clubSlug,
   clubName,
   clubImageUrl,
+  templates: initialTemplates = [],
 }: {
   clubId: string;
   clubSlug: string;
   clubName: string;
   clubImageUrl: string | null;
+  templates?: EventTemplate[];
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState("");
@@ -90,6 +103,51 @@ export function EventForm({
   const [accessCode, setAccessCode] = useState("");
   const [status, setStatus] = useState<Status>("published");
   const [notes, setNotes] = useState("");
+  const [templates, setTemplates] = useState(initialTemplates);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [saveTemplate, setSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const applied = templates.find((t) => t.id === templateId) ?? null;
+
+  /** Fill the form from a template; the date and passcode stay as they are. */
+  function applyTemplate(template: EventTemplate) {
+    const t = template.settings;
+    setTemplateId(template.id);
+    setTemplateName(template.name);
+    setName(t.name);
+    setType(t.type);
+    setFormat(t.format);
+    setRecordClass(t.recordClass);
+    const [hh, mm] = t.startTime.split(":").map(Number) as [number, number];
+    if (mm === 0) {
+      setExact(false);
+      setHour12(hh % 12 || 12);
+      setMeridiem(hh < 12 ? "AM" : "PM");
+    } else {
+      setExact(true);
+    }
+    setExactTime(t.startTime);
+    setHours(t.hours);
+    setVenue(t.venue);
+    setMapUrl(t.mapUrl);
+    setCapacity(t.capacity);
+    setCourts(t.courts);
+    setIsPrivate(t.isPrivate);
+    setNotes(t.notes);
+    setMsg(`Filled in from “${template.name}”. Pick a date.`);
+  }
+
+  async function removeTemplate(template: EventTemplate) {
+    if (!window.confirm(`Remove the template “${template.name}”?`)) return;
+    const result = await deleteEventTemplate({
+      clubId,
+      templateId: template.id,
+    });
+    if (!result.ok) return setMsg(result.error.message);
+    setTemplates((list) => list.filter((t) => t.id !== template.id));
+    setTemplateId(null);
+    setMsg(`Removed the template “${template.name}”.`);
+  }
 
   const today = localInputValue(new Date()).slice(0, 10);
   const startTime = exact ? exactTime : hourTo24(hour12, meridiem);
@@ -118,6 +176,31 @@ export function EventForm({
         if (new Date(endsAt) <= new Date(startsAt))
           return setMsg("The end time must be after the start time.");
         setSubmitting(true);
+        if (saveTemplate) {
+          setMsg("Saving template…");
+          const saved = await saveEventTemplate({
+            clubId,
+            name: templateName.trim() || name.trim(),
+            settings: {
+              name,
+              type,
+              format,
+              recordClass,
+              startTime,
+              hours,
+              venue,
+              mapUrl,
+              capacity,
+              courts,
+              isPrivate,
+              notes,
+            },
+          });
+          if (!saved.ok) {
+            setSubmitting(false);
+            return setMsg(saved.error.message);
+          }
+        }
         setMsg(status === "draft" ? "Saving draft…" : "Publishing event…");
         const result = await createEvent({
           clubId,
@@ -150,6 +233,35 @@ export function EventForm({
       }}
     >
       <div className="eb__sections">
+        {templates.length ? (
+          <div className="eb-templates">
+            <p className="eb-templates__label">
+              <Bookmark aria-hidden="true" size={15} /> Start from a template
+            </p>
+            <div className="eb-chips">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="eb-chip"
+                  aria-pressed={template.id === templateId}
+                  onClick={() => applyTemplate(template)}
+                >
+                  {template.name}
+                </button>
+              ))}
+            </div>
+            {applied ? (
+              <button
+                type="button"
+                className="eb-templates__remove"
+                onClick={() => removeTemplate(applied)}
+              >
+                Remove “{applied.name}”
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         <Section n={1} title="What" hint="Name it and pick how it's played.">
           <label className="eb-field">
             <span>Event name</span>
@@ -442,6 +554,36 @@ export function EventForm({
               />
             </label>
           </details>
+          <div className="eb-save-template">
+            <label className="eb-check">
+              <input
+                type="checkbox"
+                checked={saveTemplate}
+                onChange={(event) => setSaveTemplate(event.target.checked)}
+              />
+              <span>Save as a template for next time</span>
+            </label>
+            {saveTemplate ? (
+              <div className="eb-field">
+                <label htmlFor="eb-template-name">Template name</label>
+                <input
+                  id="eb-template-name"
+                  name="templateName"
+                  maxLength={60}
+                  value={templateName}
+                  placeholder={name.trim() || "e.g. Saturday Open Play"}
+                  onChange={(event) => setTemplateName(event.target.value)}
+                />
+                <p className="eb-hint">
+                  {applied &&
+                  templateName.trim().toLowerCase() ===
+                    applied.name.trim().toLowerCase()
+                    ? "This updates the template you started from."
+                    : "Remembers everything except the date and passcode."}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </Section>
       </div>
 

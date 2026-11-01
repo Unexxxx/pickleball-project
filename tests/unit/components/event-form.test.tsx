@@ -8,11 +8,14 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const createEvent = vi.fn();
+const saveEventTemplate = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 vi.mock("@/lib/actions/events", () => ({
   createEvent: (...args: unknown[]) => createEvent(...args),
+  saveEventTemplate: (...args: unknown[]) => saveEventTemplate(...args),
+  deleteEventTemplate: vi.fn(),
 }));
 
 import { EventForm } from "@/components/events/event-form";
@@ -20,6 +23,7 @@ import { EventForm } from "@/components/events/event-form";
 afterEach(() => {
   cleanup();
   createEvent.mockReset();
+  saveEventTemplate.mockReset();
 });
 
 const renderForm = () =>
@@ -136,6 +140,83 @@ describe("create event form", () => {
       initialStatus: "published",
       isPrivate: false,
       accessCode: null,
+    });
+  });
+
+  it("fills the form from a template, keeping the date to pick", () => {
+    render(
+      <EventForm
+        clubId="00000000-0000-4000-8000-000000000001"
+        clubSlug="dink-a-boo"
+        clubName="Dink A Boo"
+        clubImageUrl={null}
+        templates={[
+          {
+            id: "00000000-0000-4000-8000-0000000000a1",
+            name: "Friday Night Ranked",
+            settings: {
+              name: "Friday Night Ranked",
+              type: "open_play",
+              format: "doubles",
+              recordClass: "ranked",
+              startTime: "18:30",
+              hours: 4,
+              venue: "Home Court",
+              mapUrl: "",
+              capacity: 24,
+              courts: 6,
+              isPrivate: false,
+              notes: "Bring water",
+            },
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Friday Night Ranked" }),
+    );
+    expect(screen.getByLabelText("Event name")).toHaveValue(
+      "Friday Night Ranked",
+    );
+    expect(screen.getByLabelText("Ranked")).toBeChecked();
+    expect(screen.getByLabelText("Start time")).toHaveValue("18:30");
+    expect(screen.getByLabelText("Players")).toHaveValue("24");
+    expect(screen.getByLabelText("Date")).toHaveValue("");
+    fill("Date", "2030-11-09");
+    expect(endsText()).toBe("Ends 10:30 PM");
+  });
+
+  it("saves the settings as a template before creating the event", async () => {
+    saveEventTemplate.mockResolvedValue({
+      ok: true,
+      data: { templateId: "t" },
+    });
+    createEvent.mockResolvedValue({ ok: true, data: { eventId: "e1" } });
+    renderForm();
+    fill("Event name", "Saturday Morning Open Play");
+    fill("Date", "2030-11-09");
+    fill("Venue", "Home Court Pickleball");
+    fireEvent.click(screen.getByLabelText("Save as a template for next time"));
+    fill("Template name", "Saturday mornings");
+    fireEvent.click(screen.getByRole("button", { name: "Publish event" }));
+    await waitFor(() => expect(createEvent).toHaveBeenCalledTimes(1));
+    expect(saveEventTemplate).toHaveBeenCalledWith({
+      clubId: "00000000-0000-4000-8000-000000000001",
+      name: "Saturday mornings",
+      settings: {
+        name: "Saturday Morning Open Play",
+        type: "open_play",
+        format: "doubles",
+        recordClass: "unranked",
+        startTime: "07:00",
+        hours: 3,
+        venue: "Home Court Pickleball",
+        mapUrl: "",
+        capacity: 16,
+        courts: 4,
+        isPrivate: false,
+        notes: "",
+      },
     });
   });
 });

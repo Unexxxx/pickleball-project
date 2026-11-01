@@ -112,3 +112,45 @@ export const registrationReviewSchema = z
     approve: z.boolean(),
   })
   .strict();
+
+/**
+ * What an event template remembers: everything on Create event except the
+ * date and the passcode (passcodes are only stored hashed).
+ */
+export const templateSettingsSchema = z
+  .object({
+    name: z.string().trim().max(120),
+    type: z.enum(["open_play", "tournament"]),
+    format: z.enum(["doubles", "singles"]),
+    recordClass: z.enum(["ranked", "unranked"]),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    hours: z.number().int().min(3).max(8),
+    venue: z.string().trim().max(200),
+    mapUrl: z
+      .string()
+      .trim()
+      .max(1000)
+      .refine((value) => !value || value.startsWith("https://")),
+    capacity: z.number().int().min(2).max(1000),
+    courts: z.number().int().min(1).max(100),
+    isPrivate: z.boolean(),
+    notes: z.string().trim().max(10_000),
+  })
+  .strict();
+export type TemplateSettings = z.infer<typeof templateSettingsSchema>;
+
+export const templateSaveSchema = z
+  .object({
+    clubId: uuidSchema,
+    name: z
+      .string()
+      .trim()
+      .min(1, "Name the template")
+      .max(60, "Use 60 characters or fewer"),
+    settings: templateSettingsSchema,
+  })
+  .strict();
+
+export const templateDeleteSchema = z
+  .object({ clubId: uuidSchema, templateId: uuidSchema })
+  .strict();

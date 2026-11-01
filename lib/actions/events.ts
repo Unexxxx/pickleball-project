@@ -8,6 +8,8 @@ import {
   eventUpdateSchema,
   registrationReviewSchema,
   registrationSchema,
+  templateDeleteSchema,
+  templateSaveSchema,
 } from "@/lib/validation/events";
 import { failure, success } from "@/lib/actions/result";
 
@@ -224,4 +226,48 @@ export async function reviewRegistration(input: unknown) {
   );
   revalidatePath("/join/[eventCode]", "page");
   return success({ status: data }, requestId);
+}
+/** Save Create event settings as a club template (same name updates it). */
+export async function saveEventTemplate(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const p = templateSaveSchema.safeParse(input);
+  if (!p.success)
+    return failure(
+      "VALIDATION_FAILED",
+      p.error.flatten().fieldErrors.name?.[0] ??
+        "Check the event details before saving them as a template.",
+      requestId,
+    );
+  const s = await createClient();
+  const { data, error } = await s.rpc("save_event_template", {
+    p_club_id: p.data.clubId,
+    p_name: p.data.name,
+    p_settings: p.data.settings,
+  });
+  if (error)
+    return failure(
+      "FORBIDDEN",
+      error.details === "TEMPLATE_LIMIT"
+        ? "This club already has 50 templates. Remove one to save another."
+        : "The template couldn't be saved. Please try again.",
+      requestId,
+    );
+  return success({ templateId: data }, requestId);
+}
+export async function deleteEventTemplate(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const p = templateDeleteSchema.safeParse(input);
+  if (!p.success)
+    return failure("VALIDATION_FAILED", "Check the template.", requestId);
+  const s = await createClient();
+  const { error } = await s.rpc("delete_event_template", {
+    p_template_id: p.data.templateId,
+  });
+  if (error)
+    return failure(
+      "FORBIDDEN",
+      "The template couldn't be removed. Please try again.",
+      requestId,
+    );
+  return success({}, requestId);
 }
