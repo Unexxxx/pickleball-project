@@ -15,11 +15,13 @@ insert into public.club_memberships(club_id,player_id,role) values
  ('96600000-0000-4000-8000-0000000000c1','96600000-0000-4000-8000-000000000001','owner');
 -- e1 public and in progress with 2 spots; e2 private and in progress with 1
 -- spot (passcode "dink1234"); e3 closed for registration; e4 completed.
+-- Start times are in the future (new events must be); organizers can start
+-- an event early.
 insert into public.events(id,club_id,type,name,venue,starts_at,ends_at,capacity,formats,record_class,status,is_private,access_code_hash) values
- ('96600000-0000-4000-8000-0000000000e1','96600000-0000-4000-8000-0000000000c1','open_play','Live Public','Court',now()-interval '1 hour',now()+interval '3 hours',2,array['doubles'],'unranked','in_progress',false,null),
- ('96600000-0000-4000-8000-0000000000e2','96600000-0000-4000-8000-0000000000c1','open_play','Live Private','Court',now()-interval '1 hour',now()+interval '3 hours',1,array['doubles'],'unranked','in_progress',true,extensions.crypt('dink1234',extensions.gen_salt('bf'))),
+ ('96600000-0000-4000-8000-0000000000e1','96600000-0000-4000-8000-0000000000c1','open_play','Live Public','Court',now()+interval '1 hour',now()+interval '5 hours',2,array['doubles'],'unranked','in_progress',false,null),
+ ('96600000-0000-4000-8000-0000000000e2','96600000-0000-4000-8000-0000000000c1','open_play','Live Private','Court',now()+interval '1 hour',now()+interval '5 hours',1,array['doubles'],'unranked','in_progress',true,extensions.crypt('dink1234',extensions.gen_salt('bf'))),
  ('96600000-0000-4000-8000-0000000000e3','96600000-0000-4000-8000-0000000000c1','open_play','Closed','Court',now()+interval '1 day',now()+interval '2 days',8,array['doubles'],'unranked','registration_closed',false,null),
- ('96600000-0000-4000-8000-0000000000e4','96600000-0000-4000-8000-0000000000c1','open_play','Ended','Court',now()-interval '1 day',now()-interval '20 hours',8,array['doubles'],'unranked','completed',false,null);
+ ('96600000-0000-4000-8000-0000000000e4','96600000-0000-4000-8000-0000000000c1','open_play','Ended','Court',now()+interval '1 day',now()+interval '2 days',8,array['doubles'],'unranked','completed',false,null);
 
 set local role authenticated;
 
