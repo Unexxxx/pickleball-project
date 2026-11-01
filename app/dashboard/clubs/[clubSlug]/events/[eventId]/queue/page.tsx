@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getClub } from "@/lib/queries/clubs";
 import { notFound } from "next/navigation";
+import { EventEnded } from "@/components/events/event-ended";
 import { RealtimeQueue } from "@/components/queues/realtime-queue";
 import { QueueCard } from "@/components/queues/queue-card";
 import { QueueBoard } from "@/components/queues/queue-board";
@@ -63,6 +64,14 @@ export default async function QueuePage({
     s.rpc("event_rotation_slot_sizes", { p_event_id: eventId }),
   ]);
   if (!data) notFound();
+  if (data.status === "completed" || data.status === "canceled") {
+    return (
+      <EventEnded
+        status={data.status}
+        href={`/dashboard/clubs/${clubSlug}/events/${eventId}`}
+      />
+    );
+  }
   const competitionPlayerIds = [
     ...new Set([
       ...data.event_queue_entries.map((entry) => entry.player_id),

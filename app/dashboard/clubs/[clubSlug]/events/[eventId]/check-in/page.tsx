@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CircleCheck } from "lucide-react";
 import { notFound } from "next/navigation";
+import { EventEnded } from "@/components/events/event-ended";
 import { OrganizerCheckInList } from "@/components/queues/organizer-check-in-list";
 import { getClub } from "@/lib/queries/clubs";
 import { createClient } from "@/lib/supabase/server";
@@ -43,6 +44,14 @@ export default async function CheckInPage({
       .in("state", ["ready", "assigned"]),
   ]);
   if (!event) notFound();
+  if (event.status === "completed" || event.status === "canceled") {
+    return (
+      <EventEnded
+        status={event.status}
+        href={`/dashboard/clubs/${clubSlug}/events/${eventId}`}
+      />
+    );
+  }
   const checkedIn = new Set(
     (attendance ?? [])
       .filter((entry) => entry.state === "checked_in")
