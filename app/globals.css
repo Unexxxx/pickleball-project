@@ -6821,39 +6821,10 @@ button.eb-chip:disabled {
   color: var(--muted-foreground);
 }
 
-/* Event tools on the club page's live card, for admins. */
-.ph-live-tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.85rem;
-}
-.ph-live-tools a {
-  display: inline-flex;
-  min-height: 2.5rem;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: oklch(15% 0.025 255 / 0.6);
-  padding: 0.45rem 0.7rem;
-  color: var(--muted-foreground);
-  font-size: 0.85rem;
-  font-weight: 750;
-  transition:
-    border-color 150ms ease,
-    color 150ms ease,
-    transform 120ms var(--ease-out);
-}
-.ph-live-tools a svg {
-  color: var(--accent);
-}
-.ph-live-tools a:active {
-  transform: scale(0.97);
-}
-@media (hover: hover) and (pointer: fine) {
-  .ph-live-tools a:hover {
-    border-color: var(--accent);
-    color: var(--foreground);
-  }
+/* The focus card, and under it the live event's controls for admins. */
+.ph-focus {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-width: 0;
 }

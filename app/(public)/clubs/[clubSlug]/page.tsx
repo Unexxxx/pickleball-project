@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, Plus, Settings2 } from "lucide-react";
+import { CalendarDays, MapPin, Plus } from "lucide-react";
 import { ClubContact } from "@/components/clubs/club-contact";
 import { MemberRow } from "@/components/clubs/member-row";
 import { EventRow } from "@/components/dashboard/event-row";
-import { EVENT_ACTIONS } from "@/components/events/event-action-tray";
+import { EventManagementControls } from "@/components/events/event-management-controls";
 import { formatEventTime } from "@/lib/format/event-time";
 import {
   ROLE_LABEL,
@@ -41,6 +41,18 @@ export default async function ClubOverview({
   const { live, upcoming } = splitSchedule(events);
   const focus = live[0] ?? upcoming[0] ?? null;
   const isLive = Boolean(live[0]);
+  // While an event is live, admins get its Manage event controls right here.
+  const { data: liveEvent } =
+    admin && isLive && focus
+      ? await supabase
+          .from("events")
+          .select(
+            "id,name,venue,map_url,notes,starts_at,ends_at,capacity,status,version",
+          )
+          .eq("id", focus.id)
+          .eq("club_id", club.id)
+          .maybeSingle()
+      : { data: null };
   const next = upcoming.filter((e) => e.id !== focus?.id).slice(0, 4);
   const staff = (directory ?? []).filter((m) =>
     ["owner", "organizer", "staff"].includes(m.role),
@@ -54,101 +66,101 @@ export default async function ClubOverview({
   return (
     <>
       <div className="ph-top">
-        <section
-          className={isLive ? "ph-hero ph-hero--live" : "ph-hero"}
-          aria-labelledby="club-focus-heading"
-        >
-          <div className="ph-hero__copy">
-            {focus ? (
-              <>
-                <p className="ph-kicker">
-                  {isLive && (
-                    <span className="ph-live-dot" aria-hidden="true" />
-                  )}
-                  {isLive ? "Live now" : "Next event"}
-                </p>
-                <h2 id="club-focus-heading">{focus.name}</h2>
-                <ul className="ph-meta">
-                  <li>
-                    <MapPin aria-hidden="true" size={16} />
-                    {focus.venue}
-                  </li>
-                  {!isLive && (
-                    <li>
-                      <CalendarDays aria-hidden="true" size={16} />
-                      <time dateTime={focus.starts_at}>
-                        {formatEventTime(focus.starts_at, club.timezone)}
-                      </time>
-                    </li>
-                  )}
-                </ul>
-                <div className="ph-actions">
-                  {/* Admins get one button: the manage page already shows
-                      the event, its share link and join requests. */}
-                  {admin ? (
-                    <Link
-                      className="button"
-                      href={
-                        isLive
-                          ? `/dashboard/clubs/${club.slug}/events/${focus.id}/queue`
-                          : `/dashboard/clubs/${club.slug}/events/${focus.id}`
-                      }
-                    >
-                      {isLive ? "Run live event" : "Manage event"}
-                    </Link>
-                  ) : (
-                    <Link className="button" href={`/join/${focus.join_code}`}>
-                      {isLive ? "View event" : "View & join"}
-                    </Link>
-                  )}
-                </div>
-                {/* While it's live, admins jump straight to any event tool;
-                    the queue is the button above. */}
-                {admin && isLive ? (
-                  <nav className="ph-live-tools" aria-label="Event controls">
-                    {EVENT_ACTIONS.filter(({ path }) => path !== "queue").map(
-                      ({ label, path, icon: Icon }) => (
-                        <Link
-                          key={path}
-                          href={`/dashboard/clubs/${club.slug}/events/${focus.id}/${path}`}
-                        >
-                          <Icon aria-hidden="true" size={16} />
-                          {label}
-                        </Link>
-                      ),
+        <div className="ph-focus">
+          <section
+            className={isLive ? "ph-hero ph-hero--live" : "ph-hero"}
+            aria-labelledby="club-focus-heading"
+          >
+            <div className="ph-hero__copy">
+              {focus ? (
+                <>
+                  <p className="ph-kicker">
+                    {isLive && (
+                      <span className="ph-live-dot" aria-hidden="true" />
                     )}
-                    <Link
-                      href={`/dashboard/clubs/${club.slug}/events/${focus.id}`}
-                    >
-                      <Settings2 aria-hidden="true" size={16} />
-                      Manage event
-                    </Link>
-                  </nav>
-                ) : null}
-              </>
-            ) : (
-              <>
-                <p className="ph-kicker">Schedule</p>
-                <h2 id="club-focus-heading">No events scheduled</h2>
-                <p>
-                  {admin
-                    ? "Create the next session so players can join and get matched."
-                    : "This club has nothing on the calendar yet. Check back soon."}
-                </p>
-                {admin ? (
+                    {isLive ? "Live now" : "Next event"}
+                  </p>
+                  <h2 id="club-focus-heading">{focus.name}</h2>
+                  <ul className="ph-meta">
+                    <li>
+                      <MapPin aria-hidden="true" size={16} />
+                      {focus.venue}
+                    </li>
+                    {!isLive && (
+                      <li>
+                        <CalendarDays aria-hidden="true" size={16} />
+                        <time dateTime={focus.starts_at}>
+                          {formatEventTime(focus.starts_at, club.timezone)}
+                        </time>
+                      </li>
+                    )}
+                  </ul>
                   <div className="ph-actions">
-                    <Link
-                      className="button"
-                      href={`/dashboard/clubs/${club.slug}/events/new`}
-                    >
-                      <Plus aria-hidden="true" size={17} /> Create event
-                    </Link>
+                    {/* Admins get one button: the manage page already shows
+                      the event, its share link and join requests. */}
+                    {admin ? (
+                      <Link
+                        className="button"
+                        href={
+                          isLive
+                            ? `/dashboard/clubs/${club.slug}/events/${focus.id}/queue`
+                            : `/dashboard/clubs/${club.slug}/events/${focus.id}`
+                        }
+                      >
+                        {isLive ? "Run live event" : "Manage event"}
+                      </Link>
+                    ) : (
+                      <Link
+                        className="button"
+                        href={`/join/${focus.join_code}`}
+                      >
+                        {isLive ? "View event" : "View & join"}
+                      </Link>
+                    )}
                   </div>
-                ) : null}
-              </>
-            )}
-          </div>
-        </section>
+                </>
+              ) : (
+                <>
+                  <p className="ph-kicker">Schedule</p>
+                  <h2 id="club-focus-heading">No events scheduled</h2>
+                  <p>
+                    {admin
+                      ? "Create the next session so players can join and get matched."
+                      : "This club has nothing on the calendar yet. Check back soon."}
+                  </p>
+                  {admin ? (
+                    <div className="ph-actions">
+                      <Link
+                        className="button"
+                        href={`/dashboard/clubs/${club.slug}/events/new`}
+                      >
+                        <Plus aria-hidden="true" size={17} /> Create event
+                      </Link>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </div>
+          </section>
+          {liveEvent ? (
+            <EventManagementControls
+              clubId={club.id}
+              clubSlug={club.slug}
+              event={{
+                id: liveEvent.id,
+                name: liveEvent.name,
+                venue: liveEvent.venue,
+                mapUrl: liveEvent.map_url,
+                notes: liveEvent.notes,
+                startsAt: liveEvent.starts_at,
+                endsAt: liveEvent.ends_at,
+                capacity: liveEvent.capacity,
+                status: liveEvent.status,
+                version: liveEvent.version,
+              }}
+            />
+          ) : null}
+        </div>
 
         <section className="ph-panel" aria-labelledby="club-contact-heading">
           <ClubContact
