@@ -129,7 +129,20 @@ export default async function EventPage({
           </div>
           <h1>{data.name}</h1>
           <p>
-            <MapPin aria-hidden="true" size={19} /> {data.venue}
+            <MapPin aria-hidden="true" size={19} />{" "}
+            {data.map_url ? (
+              <a
+                className="event-venue-link"
+                href={data.map_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {data.venue}
+                <ExternalLink aria-hidden="true" size={15} />
+              </a>
+            ) : (
+              data.venue
+            )}
           </p>
         </div>
         <div className="event-schedule-card" aria-label="Event schedule">
@@ -176,17 +189,6 @@ export default async function EventPage({
               </dd>
             </div>
           </dl>
-          {data.map_url ? (
-            <a
-              className="event-map-link"
-              href={data.map_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MapPin aria-hidden="true" size={17} /> Open saved map location{" "}
-              <ExternalLink aria-hidden="true" size={15} />
-            </a>
-          ) : null}
         </section>
         <aside className="event-join-card organizer-event-summary">
           <div className="event-availability">

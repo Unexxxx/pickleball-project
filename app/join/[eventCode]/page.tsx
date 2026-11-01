@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   CalendarDays,
   Clock3,
+  ExternalLink,
   MapPin,
   Navigation,
   ShieldCheck,
@@ -171,7 +172,20 @@ export default async function JoinPage({
           </div>
           <h1>{event.name}</h1>
           <p>
-            <MapPin aria-hidden="true" size={19} /> {event.venue}
+            <MapPin aria-hidden="true" size={19} />{" "}
+            {event.map_url ? (
+              <a
+                className="event-venue-link"
+                href={event.map_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {event.venue}
+                <ExternalLink aria-hidden="true" size={15} />
+              </a>
+            ) : (
+              event.venue
+            )}
           </p>
         </div>
         <div className="event-schedule-card" aria-label="Event schedule">
