@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { eventShareDetails } from "@/lib/event-share";
 import { SHARE_URL } from "@/lib/site";
 import Link from "next/link";
 import {
@@ -33,6 +35,36 @@ function formatDuration(startsAt: string, endsAt: string) {
   return [hours ? `${hours} hr` : "", remainder ? `${remainder} min` : ""]
     .filter(Boolean)
     .join(" ");
+}
+
+// Link previews (Messenger, Facebook, iMessage…) show the event itself.
+export async function generateMetadata({
+  params,
+}: PageProps<"/join/[eventCode]">): Promise<Metadata> {
+  const { eventCode } = await params;
+  const event = await resolveEventJoin(eventCode);
+  if (!event) return { title: "Event not found", robots: { index: false } };
+  const share = eventShareDetails(event);
+  const title = `${share.title} · ${share.club}`;
+  return {
+    title,
+    description: share.description,
+    // Invitation links, not search pages.
+    robots: { index: false },
+    alternates: { canonical: `${SHARE_URL}/join/${eventCode}` },
+    openGraph: {
+      type: "website",
+      siteName: "UNEX",
+      url: `${SHARE_URL}/join/${eventCode}`,
+      title,
+      description: share.description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: share.description,
+    },
+  };
 }
 
 export default async function JoinPage({
