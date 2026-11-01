@@ -1546,22 +1546,24 @@ pre {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
-.event-map-link {
+/* The venue in the event header opens the saved map location. */
+.event-venue-link {
   display: inline-flex;
-  min-height: 2.75rem;
   align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.55rem 0.8rem;
-  color: var(--primary);
-  font-size: 0.82rem;
-  font-weight: 800;
+  gap: 0.35rem;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.3);
+  text-underline-offset: 0.25rem;
+  transition: text-decoration-color 150ms ease;
+}
+.event-venue-link svg {
+  flex: none;
+  opacity: 0.7;
 }
 @media (hover: hover) and (pointer: fine) {
-  .event-map-link:hover {
-    border-color: var(--primary);
-    background: var(--muted);
+  .event-venue-link:hover {
+    text-decoration-color: currentColor;
   }
 }
 .event-status-badge--canceled {
