@@ -6820,3 +6820,15 @@ button.eb-chip:disabled {
   margin: 0 0 0.5rem;
   color: var(--muted-foreground);
 }
+
+/* The signed-in player's photo in the header's profile button. */
+.app-nav .app-nav__profile:has(.app-nav__avatar) {
+  padding: 0.1875rem;
+}
+.app-nav__avatar {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--muted) center / cover no-repeat;
+}

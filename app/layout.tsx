@@ -71,6 +71,18 @@ async function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     data: { user },
   } = await supabase.auth.getUser();
   const isAuthenticated = Boolean(user);
+  // The signed-in player's photo for the header's profile button.
+  const { data: account } = user
+    ? await supabase
+        .from("accounts")
+        .select("players(avatar_path)")
+        .eq("auth_user_id", user.id)
+        .maybeSingle()
+    : { data: null };
+  const avatarPath = account?.players?.avatar_path;
+  const avatarUrl = avatarPath
+    ? supabase.storage.from("avatars").getPublicUrl(avatarPath).data.publicUrl
+    : null;
 
   return (
     <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
@@ -79,7 +91,7 @@ async function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
           Skip to main content
         </a>
         <div className="app-frame">
-          <SiteHeader isAuthenticated={isAuthenticated} />
+          <SiteHeader isAuthenticated={isAuthenticated} avatarUrl={avatarUrl} />
           <div className="app-content" id="main-content">
             {children}
           </div>

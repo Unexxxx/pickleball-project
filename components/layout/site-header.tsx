@@ -25,7 +25,13 @@ const APP_NAV = [
   },
 ];
 
-export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function SiteHeader({
+  isAuthenticated,
+  avatarUrl = null,
+}: {
+  isAuthenticated: boolean;
+  avatarUrl?: string | null;
+}) {
   // The landing page is dark end-to-end (see design-system/dink-palette.md),
   // so its header is fixed and transparent; every other route keeps it in
   // normal flow.
@@ -74,7 +80,15 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
               href="/dashboard/profile"
               aria-label="Your profile"
             >
-              <UserRound aria-hidden="true" size={18} />
+              {avatarUrl ? (
+                <span
+                  className="app-nav__avatar"
+                  aria-hidden="true"
+                  style={{ backgroundImage: `url(${avatarUrl})` }}
+                />
+              ) : (
+                <UserRound aria-hidden="true" size={18} />
+              )}
             </Link>
           </nav>
         ) : (
