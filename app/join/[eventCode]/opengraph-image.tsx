@@ -1,6 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { SHARE_URL } from "@/lib/site";
 import { eventShareDetails } from "@/lib/event-share";
 import { resolveEventJoin } from "@/lib/queries/event-join";
 
@@ -32,6 +31,21 @@ async function googleFont(family: string, weight: number, text: string) {
     if (!url) return null;
     const font = await fetch(url);
     return font.ok ? await font.arrayBuffer() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The cream UNEX wordmark. This card is drawn on request, where the
+ * deployment has no public/ folder on disk, so it's fetched from the site.
+ */
+async function logoDataUrl() {
+  try {
+    const response = await fetch(`${SHARE_URL}/unex-logo-cream.png`);
+    if (!response.ok) return null;
+    const bytes = Buffer.from(await response.arrayBuffer());
+    return `data:image/png;base64,${bytes.toString("base64")}`;
   } catch {
     return null;
   }
@@ -87,12 +101,10 @@ export default async function EventOpengraphImage({
   params: Promise<{ eventCode: string }>;
 }) {
   const { eventCode } = await params;
-  const event = await resolveEventJoin(eventCode);
+  // A missing event or logo still gives a card, never an error.
+  const event = await resolveEventJoin(eventCode).catch(() => null);
   const share = event ? eventShareDetails(event) : null;
-  const logo = await readFile(
-    join(process.cwd(), "public/unex-logo-cream.png"),
-  );
-  const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+  const logoSrc = await logoDataUrl();
 
   const title = share?.title ?? "Pickleball on UNEX";
   // Long names shrink so the title stays within two lines.
@@ -149,13 +161,15 @@ export default async function EventOpengraphImage({
           borderRadius: 999,
         }}
       />
-      <img
-        src={logoSrc}
-        width={120}
-        height={50}
-        alt="UNEX"
-        style={{ position: "absolute", top: 48, right: 64, opacity: 0.9 }}
-      />
+      {logoSrc ? (
+        <img
+          src={logoSrc}
+          width={120}
+          height={50}
+          alt="UNEX"
+          style={{ position: "absolute", top: 48, right: 64, opacity: 0.9 }}
+        />
+      ) : null}
 
       <div
         style={{
