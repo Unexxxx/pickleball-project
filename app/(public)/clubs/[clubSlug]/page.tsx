@@ -92,7 +92,7 @@ export default async function ClubOverview({
                           className="button"
                           href={`/dashboard/clubs/${club.slug}/events/${focus.id}/queue`}
                         >
-                          Run live event
+                          Open live queue
                         </Link>
                       ) : null}
                       <Link
