@@ -40,13 +40,14 @@ export function eventShareDetails(event: JoinEvent) {
     value
       .replaceAll("_", " ")
       .replace(/\b\w/g, (letter) => letter.toUpperCase());
-  // The event page header's badges.
+  // The event page header's badges; Published is the usual state, so only
+  // the other statuses get one.
   const badges = [
     titleCase(event.event_type),
     titleCase(event.record_class),
     event.is_private ? "Private" : "Public",
-    titleCase(event.status),
-  ];
+    event.status === "published" ? null : titleCase(event.status),
+  ].filter((badge): badge is string => Boolean(badge));
   const format = event.formats.includes("singles") ? "Singles" : "Doubles";
   const tags = [
     TYPE[event.event_type] ?? "Event",

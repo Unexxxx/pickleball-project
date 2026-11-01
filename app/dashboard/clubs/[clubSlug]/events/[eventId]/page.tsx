@@ -121,11 +121,14 @@ export default async function EventPage({
             <span>{titleCase(data.type)}</span>
             <span>{titleCase(data.record_class)}</span>
             <span>{data.is_private ? "Private" : "Public"}</span>
-            <span
-              className={`event-status-badge event-status-badge--${data.status}`}
-            >
-              {titleCase(data.status)}
-            </span>
+            {/* Published is the usual state; only the others need a badge. */}
+            {data.status !== "published" ? (
+              <span
+                className={`event-status-badge event-status-badge--${data.status}`}
+              >
+                {titleCase(data.status)}
+              </span>
+            ) : null}
           </div>
           <h1>{data.name}</h1>
           <p>
