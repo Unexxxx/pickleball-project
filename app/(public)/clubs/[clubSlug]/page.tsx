@@ -82,19 +82,28 @@ export default async function ClubOverview({
                   )}
                 </ul>
                 <div className="ph-actions">
-                  {/* Admins get one button: the manage page already shows
-                      the event, its share link and join requests. */}
+                  {/* Admins manage the event from its page, which shows the
+                      details, share link and join requests. While it's live,
+                      the queue comes first. */}
                   {admin ? (
-                    <Link
-                      className="button"
-                      href={
-                        isLive
-                          ? `/dashboard/clubs/${club.slug}/events/${focus.id}/queue`
-                          : `/dashboard/clubs/${club.slug}/events/${focus.id}`
-                      }
-                    >
-                      {isLive ? "Run live event" : "Manage event"}
-                    </Link>
+                    <>
+                      {isLive ? (
+                        <Link
+                          className="button"
+                          href={`/dashboard/clubs/${club.slug}/events/${focus.id}/queue`}
+                        >
+                          Run live event
+                        </Link>
+                      ) : null}
+                      <Link
+                        className={
+                          isLive ? "button button-secondary" : "button"
+                        }
+                        href={`/dashboard/clubs/${club.slug}/events/${focus.id}`}
+                      >
+                        Manage event
+                      </Link>
+                    </>
                   ) : (
                     <Link className="button" href={`/join/${focus.join_code}`}>
                       {isLive ? "View event" : "View & join"}
