@@ -1,11 +1,16 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-export async function resolveEventJoin(code: string) {
+/** One lookup per request (shared by the page and its link preview). */
+export const resolveEventJoin = cache(async (code: string) => {
   if (!/^[a-f0-9]{18}$/.test(code)) return null;
   const s = await createClient();
   const { data } = await s.rpc("resolve_event_join", { p_join_code: code });
   return data?.[0] ?? null;
-}
+});
+export type JoinEvent = NonNullable<
+  Awaited<ReturnType<typeof resolveEventJoin>>
+>;
 
 export async function getEventJoinRoster(code: string, eventId: string) {
   const s = await createClient();

@@ -1,3 +1,6 @@
+import type { Metadata } from "next";
+import { eventShareDetails } from "@/lib/event-share";
+import { SHARE_URL } from "@/lib/site";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -32,6 +35,36 @@ function formatDuration(startsAt: string, endsAt: string) {
   return [hours ? `${hours} hr` : "", remainder ? `${remainder} min` : ""]
     .filter(Boolean)
     .join(" ");
+}
+
+// Link previews (Messenger, Facebook, iMessage…) show the event itself.
+export async function generateMetadata({
+  params,
+}: PageProps<"/join/[eventCode]">): Promise<Metadata> {
+  const { eventCode } = await params;
+  const event = await resolveEventJoin(eventCode);
+  if (!event) return { title: "Event not found", robots: { index: false } };
+  const share = eventShareDetails(event);
+  const title = `${share.title} · ${share.club}`;
+  return {
+    title,
+    description: share.description,
+    // Invitation links, not search pages.
+    robots: { index: false },
+    alternates: { canonical: `${SHARE_URL}/join/${eventCode}` },
+    openGraph: {
+      type: "website",
+      siteName: "UNEX",
+      url: `${SHARE_URL}/join/${eventCode}`,
+      title,
+      description: share.description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: share.description,
+    },
+  };
 }
 
 export default async function JoinPage({
@@ -89,16 +122,10 @@ export default async function JoinPage({
     minute: "2-digit",
     timeZone: timezone,
   });
-  const endTimeFormatter = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: timezone,
-    timeZoneName: "short",
-  });
   const schedule = `${timeFormatter.format(
     new Date(event.starts_at),
-  )}–${endTimeFormatter.format(new Date(event.ends_at))}`;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  )} to ${timeFormatter.format(new Date(event.ends_at))}`;
+  const siteUrl = SHARE_URL;
   const shareUrl = new URL(`/join/${eventCode}`, siteUrl).toString();
   const mapQuery = encodeURIComponent(event.venue);
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`;
