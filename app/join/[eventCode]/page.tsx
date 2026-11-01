@@ -89,15 +89,9 @@ export default async function JoinPage({
     minute: "2-digit",
     timeZone: timezone,
   });
-  const endTimeFormatter = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: timezone,
-    timeZoneName: "short",
-  });
   const schedule = `${timeFormatter.format(
     new Date(event.starts_at),
-  )}–${endTimeFormatter.format(new Date(event.ends_at))}`;
+  )} to ${timeFormatter.format(new Date(event.ends_at))}`;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const shareUrl = new URL(`/join/${eventCode}`, siteUrl).toString();
   const mapQuery = encodeURIComponent(event.venue);

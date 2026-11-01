@@ -83,12 +83,11 @@ export default async function EventPage({
     hour: "numeric",
     minute: "2-digit",
     timeZone: club.timezone,
-    timeZoneName: "short",
   });
   const startDate = dateFormatter.format(new Date(data.starts_at));
   const endDate = dateFormatter.format(new Date(data.ends_at));
   const date = startDate === endDate ? startDate : `${startDate} – ${endDate}`;
-  const schedule = `${timeFormatter.format(new Date(data.starts_at))}–${timeFormatter.format(new Date(data.ends_at))}`;
+  const schedule = `${timeFormatter.format(new Date(data.starts_at))} to ${timeFormatter.format(new Date(data.ends_at))}`;
   // Requests wait in their own list; declined ones aren't shown.
   const requests = participants
     .filter((participant) => participant.status === "requested")
