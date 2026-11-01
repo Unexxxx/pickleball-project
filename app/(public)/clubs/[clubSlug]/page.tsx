@@ -82,6 +82,8 @@ export default async function ClubOverview({
                   )}
                 </ul>
                 <div className="ph-actions">
+                  {/* Admins get one button: the manage page already shows
+                      the event, its share link and join requests. */}
                   {admin ? (
                     <Link
                       className="button"
@@ -93,13 +95,11 @@ export default async function ClubOverview({
                     >
                       {isLive ? "Run live event" : "Manage event"}
                     </Link>
-                  ) : null}
-                  <Link
-                    className={admin ? "button button-secondary" : "button"}
-                    href={`/join/${focus.join_code}`}
-                  >
-                    {isLive ? "View event" : "View & join"}
-                  </Link>
+                  ) : (
+                    <Link className="button" href={`/join/${focus.join_code}`}>
+                      {isLive ? "View event" : "View & join"}
+                    </Link>
+                  )}
                 </div>
               </>
             ) : (

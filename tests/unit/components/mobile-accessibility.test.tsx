@@ -21,10 +21,21 @@ describe("mobile accessibility", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Score is required");
   });
   it("labels the scrollable event tray", () => {
-    render(<EventActionTray clubSlug="club" eventId="event" />);
+    render(
+      <EventActionTray clubSlug="club" eventId="event" status="in_progress" />,
+    );
     expect(
       screen.getByRole("navigation", { name: "Event actions" }),
     ).toHaveClass("overflow-x-auto");
+    expect(screen.getAllByRole("link")).toHaveLength(5);
+  });
+  it("keeps only results tools once the event is over", () => {
+    render(
+      <EventActionTray clubSlug="club" eventId="event" status="completed" />,
+    );
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
+      ["Matches", "Disputes"],
+    );
   });
   it("keeps controls explicitly labelled", () => {
     render(<FormErrorSummary errors={[]} />);
