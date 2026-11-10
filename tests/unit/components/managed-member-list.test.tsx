@@ -9,12 +9,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const changeMemberRole = vi.fn();
 const removeMember = vi.fn();
+const transferClubOwnership = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 vi.mock("@/lib/actions/clubs", () => ({
   changeMemberRole: (...args: unknown[]) => changeMemberRole(...args),
   removeMember: (...args: unknown[]) => removeMember(...args),
+  transferClubOwnership: (...args: unknown[]) => transferClubOwnership(...args),
 }));
 
 import { ManagedMemberList } from "@/components/clubs/managed-member-list";
@@ -24,6 +26,7 @@ afterEach(() => {
   cleanup();
   changeMemberRole.mockReset();
   removeMember.mockReset();
+  transferClubOwnership.mockReset();
 });
 
 const CLUB = "00000000-0000-4000-8000-000000000001";
@@ -93,6 +96,34 @@ describe("member menu", () => {
     );
     expect(await screen.findByRole("status")).toHaveTextContent(
       "Player 2 is no longer an admin.",
+    );
+  });
+
+  it("lets the owner transfer ownership to an admin, after confirming", async () => {
+    transferClubOwnership.mockResolvedValue({ ok: true });
+    renderAs("owner", "p1");
+    // A member has to be made an admin first.
+    fireEvent.click(screen.getByLabelText("Options for Player 3"));
+    expect(
+      screen.queryByRole("menuitem", { name: /Transfer ownership/ }),
+    ).toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    fireEvent.click(screen.getByLabelText("Options for Player 2"));
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: /Transfer ownership/ }),
+    );
+    expect(transferClubOwnership).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("menuitem", { name: "Transfer" }));
+    await waitFor(() =>
+      expect(transferClubOwnership).toHaveBeenCalledWith({
+        clubId: CLUB,
+        clubSlug: "dink-a-boo",
+        membershipId: members[1]!.membershipId,
+      }),
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Player 2 is now the club owner.",
     );
   });
 

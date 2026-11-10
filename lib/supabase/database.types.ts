@@ -2837,6 +2837,14 @@ export type Database = {
           version: number;
         }[];
       };
+      transfer_club_ownership: {
+        Args: {
+          p_club_id: string;
+          p_idempotency_key: string;
+          p_membership_id: string;
+        };
+        Returns: undefined;
+      };
       transition_event: {
         Args: {
           p_event_id: string;

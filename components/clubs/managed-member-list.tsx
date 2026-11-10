@@ -6,7 +6,11 @@ import { Search } from "lucide-react";
 import { MemberMenu, type MenuRole } from "@/components/clubs/member-menu";
 import { MemberRow } from "@/components/clubs/member-row";
 import { ToastMessage } from "@/components/ui/toast-message";
-import { changeMemberRole, removeMember } from "@/lib/actions/clubs";
+import {
+  changeMemberRole,
+  removeMember,
+  transferClubOwnership,
+} from "@/lib/actions/clubs";
 import type { ClubRole } from "@/lib/auth/authorization";
 import type { RosterEntry } from "@/lib/queries/club-home";
 
@@ -120,6 +124,19 @@ export function ManagedMemberList({
                     role={m.role}
                     canChangeRole={canChangeRole}
                     canRemove={canRemove}
+                    canTransfer={canChangeRole}
+                    onTransfer={() =>
+                      run(
+                        m.membershipId,
+                        () =>
+                          transferClubOwnership({
+                            clubId,
+                            clubSlug,
+                            membershipId: m.membershipId,
+                          }),
+                        `${m.name} is now the club owner.`,
+                      )
+                    }
                     busy={busyId === m.membershipId}
                     onChangeRole={(role: MenuRole) =>
                       run(

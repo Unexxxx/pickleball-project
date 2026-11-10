@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Menu, ShieldCheck, ShieldOff, UserMinus } from "lucide-react";
+import { Crown, Menu, ShieldCheck, ShieldOff, UserMinus } from "lucide-react";
 import type { ClubRole } from "@/lib/auth/authorization";
 
 /** "organizer" is how the database stores Admin. */
@@ -17,9 +17,11 @@ export function MemberMenu({
   role,
   canChangeRole,
   canRemove,
+  canTransfer = false,
   busy,
   onChangeRole,
   onRemove,
+  onTransfer,
 }: {
   name: string;
   role: ClubRole;
@@ -28,16 +30,21 @@ export function MemberMenu({
   busy: boolean;
   onChangeRole: (role: MenuRole) => void;
   onRemove: () => void;
+  /** Owners only, on an admin's row. */
+  canTransfer?: boolean;
+  onTransfer?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState<"remove" | "transfer" | null>(
+    null,
+  );
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   function close(returnFocus = true) {
     setOpen(false);
-    setConfirming(false);
+    setConfirming(null);
     if (returnFocus) triggerRef.current?.focus();
   }
 
@@ -62,13 +69,13 @@ export function MemberMenu({
     const onPointer = (event: PointerEvent) => {
       if (!wrapRef.current?.contains(event.target as Node)) {
         setOpen(false);
-        setConfirming(false);
+        setConfirming(null);
       }
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
-        setConfirming(false);
+        setConfirming(null);
         triggerRef.current?.focus();
       }
     };
@@ -103,27 +110,40 @@ export function MemberMenu({
         >
           {confirming ? (
             <div className="member-menu__confirm">
-              <p>
-                Remove <strong>{name}</strong> from the club? They can ask to
-                join again.
-              </p>
+              {confirming === "transfer" ? (
+                <p>
+                  Make <strong>{name}</strong> the club owner? You&apos;ll
+                  become an admin, and only they can give ownership back.
+                </p>
+              ) : (
+                <p>
+                  Remove <strong>{name}</strong> from the club? They can ask to
+                  join again.
+                </p>
+              )}
               <div>
                 <button
                   type="button"
                   role="menuitem"
-                  className="member-menu__danger-button"
+                  className={
+                    confirming === "transfer"
+                      ? undefined
+                      : "member-menu__danger-button"
+                  }
                   onClick={() => {
+                    const transfer = confirming === "transfer";
                     close(false);
-                    onRemove();
+                    if (transfer) onTransfer?.();
+                    else onRemove();
                   }}
                 >
-                  Remove
+                  {confirming === "transfer" ? "Transfer" : "Remove"}
                 </button>
                 <button
                   type="button"
                   role="menuitem"
                   className="button-quiet"
-                  onClick={() => setConfirming(false)}
+                  onClick={() => setConfirming(null)}
                 >
                   Cancel
                 </button>
@@ -159,12 +179,27 @@ export function MemberMenu({
                   )}
                 </button>
               ) : null}
+              {canTransfer && role === "organizer" ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="member-menu__item"
+                  onClick={() => setConfirming("transfer")}
+                >
+                  <span>
+                    <strong>
+                      <Crown aria-hidden="true" size={16} /> Transfer ownership
+                    </strong>
+                    <span>They become the owner; you become an admin</span>
+                  </span>
+                </button>
+              ) : null}
               {canRemove ? (
                 <button
                   type="button"
                   role="menuitem"
                   className="member-menu__item member-menu__item--danger"
-                  onClick={() => setConfirming(true)}
+                  onClick={() => setConfirming("remove")}
                 >
                   <span>
                     <strong>

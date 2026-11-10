@@ -73,6 +73,14 @@ export const memberRoleChangeSchema = z
     role: z.enum(["organizer", "member"]),
   })
   .strict();
+/** Owners hand the club to one of its admins. */
+export const ownershipTransferSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    membershipId: uuidSchema,
+  })
+  .strict();
 export const joinPolicySchema = z
   .object({
     clubId: uuidSchema,

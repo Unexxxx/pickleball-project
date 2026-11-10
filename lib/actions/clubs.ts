@@ -8,6 +8,7 @@ import {
   clubTargetSchema,
   joinPolicySchema,
   memberRoleChangeSchema,
+  ownershipTransferSchema,
   membershipRemoveSchema,
   membershipReviewSchema,
   clubSchema,
@@ -273,6 +274,38 @@ export async function changeMemberRole(input: unknown) {
   }
   refreshClub(parsed.data.clubSlug);
   return success({ role: parsed.data.role }, requestId);
+}
+
+/** The owner hands the club to an admin and becomes an admin. */
+export async function transferClubOwnership(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = ownershipTransferSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Choose an admin.", requestId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("transfer_club_ownership", {
+    p_club_id: parsed.data.clubId,
+    p_membership_id: parsed.data.membershipId,
+    p_idempotency_key: crypto.randomUUID(),
+  });
+  if (error) {
+    const detail = `${error.details ?? ""} ${error.message ?? ""}`;
+    if (detail.includes("NOT_ADMIN"))
+      return failure(
+        "CONFLICT",
+        "Make them an admin first, then transfer ownership.",
+        requestId,
+      );
+    if (detail.includes("PERMISSION_DENIED"))
+      return failure(
+        "FORBIDDEN",
+        "Only the club owner can transfer ownership.",
+        requestId,
+      );
+    return membershipFailure(error, requestId);
+  }
+  refreshClub(parsed.data.clubSlug);
+  return success({ transferred: true }, requestId);
 }
 
 /** Owners and admins choose "Anyone can join" or "Approval required". */
