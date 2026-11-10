@@ -31,7 +31,7 @@ select results_eq($$select rank::int from public.club_leaderboard_page('97000000
   $$select generate_series(51,59)$$,'the next page continues after #50');
 select is((select max(total)::int from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1',false,'ranker 1')),10,'search covers the whole board');
 select is((select is_member from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1') where rank=2),true,'members are marked');
-select is((select is_member from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1') where rank=59 or display_name='Ranker 59' limit 1),false,'someone who left is not a member');
+select is((select is_member from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1',false,'Ranker 59')),false,'someone who left is not a member');
 select is((select max(total)::int from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1',true)),29,'members only counts every member, not just the first page');
 select is((select display_name from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1',true) where rank=1),'Ranker 02','members are ranked among themselves');
 select is((select rank::int from public.club_leaderboard_page('97000000-0000-4000-8000-0000000000c1',true,'Ranker 10')),5,'search keeps the member rank');
