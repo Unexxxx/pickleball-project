@@ -8,9 +8,9 @@ import type { MemberCursor, MemberPage } from "@/lib/queries/club-home";
 /** Search waits this long after the last keystroke. */
 const SEARCH_DELAY_MS = 250;
 
-type Load<T> = (
+type Load<T, C> = (
   query: string,
-  after: MemberCursor | null,
+  after: C | null,
 ) => Promise<CommandResult<MemberPage<T>>>;
 
 /**
@@ -20,14 +20,15 @@ type Load<T> = (
  * remove or role change), the rows already on screen are re-read so the
  * list stays correct without jumping back to the top.
  */
-export function useMemberPages<T>({
+export function useMemberPages<T, C = MemberCursor>({
   initial,
   load,
   cursorOf,
 }: {
   initial: MemberPage<T>;
-  load: Load<T>;
-  cursorOf: (item: T) => MemberCursor;
+  load: Load<T, C>;
+  /** Where the next page starts, from the last row shown. */
+  cursorOf: (item: T) => C;
 }) {
   const [seen, setSeen] = useState(initial);
   const [items, setItems] = useState(initial.items);

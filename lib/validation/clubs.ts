@@ -86,6 +86,15 @@ export const memberPageSchema = z
       .default(null),
   })
   .strict();
+/** A page of a club leaderboard: filter, search and the last rank shown. */
+export const clubBoardPageSchema = z
+  .object({
+    clubId: uuidSchema,
+    membersOnly: z.boolean().default(false),
+    query: z.string().max(100).default(""),
+    afterRank: z.number().int().positive().nullable().default(null),
+  })
+  .strict();
 /** Owners hand the club to one of its admins. */
 export const ownershipTransferSchema = z
   .object({

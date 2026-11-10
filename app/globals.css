@@ -7024,3 +7024,41 @@ button.eb-chip:disabled {
     translate: none;
   }
 }
+
+/* Club leaderboard: "Your rank" card, search, table, Show more. */
+.club-board {
+  display: grid;
+  gap: 0.85rem;
+}
+.board-me {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid oklch(80% 0.19 125 / 0.35);
+  border-radius: var(--radius-md);
+  background: oklch(80% 0.19 125 / 0.08);
+  padding: 0.75rem 0.9rem;
+}
+.board-me .rank-chip {
+  flex: none;
+  width: auto;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.board-me div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.board-me span:not(.rank-chip) {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.leaderboard-me td {
+  background: oklch(80% 0.19 125 / 0.08);
+}
+.leaderboard-me td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}

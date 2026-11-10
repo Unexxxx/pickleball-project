@@ -13,10 +13,15 @@ export type LeaderboardRow = {
 export function LeaderboardTable({
   rows,
   memberIds,
+  currentPlayerId,
+  emptyText = "No eligible ranked players yet.",
 }: {
   rows: LeaderboardRow[];
   /** On a club leaderboard, marks which players are club members. */
   memberIds?: Set<string>;
+  /** Highlights the signed-in player's own row. */
+  currentPlayerId?: string | null;
+  emptyText?: string;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -33,7 +38,14 @@ export function LeaderboardTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.public_slug}>
+            <tr
+              key={row.public_slug}
+              className={
+                currentPlayerId && row.player_id === currentPlayerId
+                  ? "leaderboard-me"
+                  : undefined
+              }
+            >
               <td>
                 <span className="rank-chip">{row.rank}</span>
               </td>
@@ -54,7 +66,7 @@ export function LeaderboardTable({
           ))}
         </tbody>
       </table>
-      {rows.length === 0 ? <p>No eligible ranked players yet.</p> : null}
+      {rows.length === 0 ? <p className="ph-empty">{emptyText}</p> : null}
     </div>
   );
 }

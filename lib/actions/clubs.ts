@@ -8,6 +8,7 @@ import {
   clubTargetSchema,
   joinPolicySchema,
   memberRoleChangeSchema,
+  clubBoardPageSchema,
   memberPageSchema,
   ownershipTransferSchema,
   membershipRemoveSchema,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/validation/clubs";
 import { failure, success } from "@/lib/actions/result";
 import { getMemberPage, getRosterPage } from "@/lib/queries/club-home";
+import { getClubLeaderboardPage } from "@/lib/queries/leaderboards";
 export async function createClub(input: unknown) {
   const requestId = crypto.randomUUID();
   const parsed = clubSchema.safeParse(input);
@@ -402,6 +404,28 @@ export async function loadRosterPage(input: unknown) {
     return failure(
       "FORBIDDEN",
       "Only club owners and admins can see this list.",
+      requestId,
+    );
+  return success(page, requestId);
+}
+
+/** The next page of a club leaderboard, or a name search. */
+export async function loadClubLeaderboardPage(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = clubBoardPageSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the search.", requestId);
+  const { clubId, membersOnly, query, afterRank } = parsed.data;
+  const page = await getClubLeaderboardPage(
+    clubId,
+    membersOnly,
+    query.trim(),
+    afterRank,
+  );
+  if (!page)
+    return failure(
+      "INTERNAL_ERROR",
+      "Rankings couldn't be loaded. Please try again.",
       requestId,
     );
   return success(page, requestId);

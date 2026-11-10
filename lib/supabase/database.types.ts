@@ -2299,6 +2299,20 @@ export type Database = {
         Args: { p_club_id: string; p_contact: string };
         Returns: undefined;
       };
+      club_leaderboard_me: {
+        Args: { p_club_id: string; p_members_only?: boolean };
+        Returns: ClubLeaderboardRpcRow[];
+      };
+      club_leaderboard_page: {
+        Args: {
+          p_after_rank?: number;
+          p_club_id: string;
+          p_limit?: number;
+          p_members_only?: boolean;
+          p_query?: string;
+        };
+        Returns: ClubLeaderboardRpcRow[];
+      };
       club_member_counts: {
         Args: { p_club_id: string };
         Returns: { members: number; private_members: number }[];
@@ -3152,3 +3166,18 @@ export const Constants = {
     },
   },
 } as const;
+
+/** A row from club_leaderboard_page() / club_leaderboard_me(). */
+export type ClubLeaderboardRpcRow = {
+  calculation_version: number;
+  display_name: string;
+  is_member: boolean;
+  losses: number;
+  player_id: string;
+  public_slug: string;
+  rank: number;
+  rating: number;
+  total: number;
+  win_rate: number;
+  wins: number;
+};
