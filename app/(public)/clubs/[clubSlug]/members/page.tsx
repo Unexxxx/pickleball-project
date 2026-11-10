@@ -103,7 +103,8 @@ export default async function ClubMembers({
           <h2 id="club-members-heading">
             Members{" "}
             <span className="count-badge">
-              {roster ? managedMembers.length : others.length}
+              {/* Everyone in the club, Club staff included. */}
+              {roster ? active.length : directory.length}
             </span>
           </h2>
         </header>
