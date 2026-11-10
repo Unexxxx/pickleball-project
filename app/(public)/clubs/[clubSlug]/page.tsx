@@ -7,7 +7,8 @@ import { EventRow } from "@/components/dashboard/event-row";
 import { formatEventTime } from "@/lib/format/event-time";
 import {
   ROLE_LABEL,
-  getClubDirectory,
+  getClubMemberCounts,
+  getMemberPage,
   getClubEvents,
   getClubHome,
   getViewerRole,
@@ -28,22 +29,22 @@ export default async function ClubOverview({
   const role = await getViewerRole(club.id);
   const admin = isClubAdmin(role);
   const supabase = await createClient();
-  const [events, directory, { count: rankedPlayers }] = await Promise.all([
-    getClubEvents(club.id, admin),
-    getClubDirectory(club.id),
-    supabase
-      .from("public_leaderboards")
-      .select("player_id", { count: "exact", head: true })
-      .eq("scope", "club")
-      .eq("club_slug", club.slug),
-  ]);
+  const [events, counts, staffPage, { count: rankedPlayers }] =
+    await Promise.all([
+      getClubEvents(club.id, admin),
+      getClubMemberCounts(club.id),
+      getMemberPage(club.id, "staff"),
+      supabase
+        .from("public_leaderboards")
+        .select("player_id", { count: "exact", head: true })
+        .eq("scope", "club")
+        .eq("club_slug", club.slug),
+    ]);
   const { live, upcoming } = splitSchedule(events);
   const focus = live[0] ?? upcoming[0] ?? null;
   const isLive = Boolean(live[0]);
   const next = upcoming.filter((e) => e.id !== focus?.id).slice(0, 4);
-  const staff = (directory ?? []).filter((m) =>
-    ["owner", "organizer", "staff"].includes(m.role),
-  );
+  const staff = staffPage?.items ?? [];
   const held = events.filter((e) => e.status === "completed").length;
   const eventHref = (event: ClubScheduleEvent) =>
     admin
@@ -198,10 +199,10 @@ export default async function ClubOverview({
             <Link href={`/clubs/${club.slug}/rankings`}>Rankings</Link>
           </header>
           <dl className="club-stats">
-            {directory ? (
+            {counts ? (
               <div>
                 <dt>Members</dt>
-                <dd>{directory.length}</dd>
+                <dd>{counts.members.toLocaleString("en-US")}</dd>
               </div>
             ) : null}
             <div>

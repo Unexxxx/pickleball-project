@@ -60,7 +60,7 @@ export function eventShareDetails(event: JoinEvent) {
       ? "This event was canceled."
       : event.status === "completed"
         ? "This event has ended."
-        : event.status !== "published"
+        : event.status !== "published" && event.status !== "in_progress"
           ? "Registration is closed."
           : event.is_private
             ? "Join with the passcode on UNEX."

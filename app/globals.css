@@ -382,6 +382,16 @@
   --dink-volt: oklch(80% 0.19 125);
   --dink-volt-ink: oklch(28% 0.09 125);
   --dink-coral: oklch(74% 0.19 35);
+  /* Leaderboard medals (ranks 1–3). */
+  --medal-gold-hi: oklch(90% 0.13 92);
+  --medal-gold-lo: oklch(76% 0.15 75);
+  --medal-gold-ink: oklch(32% 0.07 70);
+  --medal-silver-hi: oklch(93% 0.01 250);
+  --medal-silver-lo: oklch(74% 0.02 250);
+  --medal-silver-ink: oklch(30% 0.02 255);
+  --medal-bronze-hi: oklch(82% 0.09 60);
+  --medal-bronze-lo: oklch(63% 0.11 45);
+  --medal-bronze-ink: oklch(26% 0.05 45);
   --dink-line: oklch(87% 0.012 90);
   --dink-surface-dark: rgb(10 41 82); /* actl.me body background */
   --dink-surface-dark-2: rgb(17 57 108);
@@ -897,6 +907,31 @@ pre {
   background: oklch(80% 0.19 125 / 0.16);
   color: var(--primary);
   font-weight: 900;
+}
+/* Ranks 1–3: gold, silver and bronze. Static on purpose: leaderboards are
+   read often, so the medal is a colour, not a motion. A light top edge and
+   a darker ring make each read as metal; the number stays dark for
+   contrast. */
+.rank-chip[data-medal] {
+  --medal-hi: var(--medal-gold-hi);
+  --medal-lo: var(--medal-gold-lo);
+  --medal-ink: var(--medal-gold-ink);
+  background: linear-gradient(160deg, var(--medal-hi), var(--medal-lo));
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.45),
+    0 0 0 1px oklch(from var(--medal-lo) calc(l - 0.12) c h);
+  color: var(--medal-ink);
+  font-variant-numeric: tabular-nums;
+}
+.rank-chip[data-medal="silver"] {
+  --medal-hi: var(--medal-silver-hi);
+  --medal-lo: var(--medal-silver-lo);
+  --medal-ink: var(--medal-silver-ink);
+}
+.rank-chip[data-medal="bronze"] {
+  --medal-hi: var(--medal-bronze-hi);
+  --medal-lo: var(--medal-bronze-lo);
+  --medal-ink: var(--medal-bronze-ink);
 }
 .stat-card {
   border: 1px solid var(--border);
@@ -5717,6 +5752,10 @@ main.club-home {
 .club-toast span {
   flex: 1;
 }
+.club-toast--success {
+  border-color: var(--border);
+  color: var(--foreground);
+}
 .club-toast__close {
   min-height: 2rem;
   min-width: 2rem;
@@ -6024,20 +6063,11 @@ button.club-photo__open:active {
   padding: 0 0.85rem;
   font-size: 0.85rem;
 }
-.club-admin__decline,
-.club-admin__remove {
+.club-admin__decline {
   min-height: 2.25rem;
   margin: 0;
   padding: 0 0.7rem;
   font-size: 0.85rem;
-}
-.club-admin__members summary {
-  min-height: 2.5rem;
-  cursor: pointer;
-  color: var(--primary);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 2.5rem;
 }
 /* Leave club sits where Join is, but as a quiet secondary action. */
 .club-join.club-leave {
@@ -6831,4 +6861,239 @@ button.eb-chip:disabled {
   aspect-ratio: 1;
   border-radius: 999px;
   background: var(--muted) center / cover no-repeat;
+}
+
+/* Per-member menu on the Members tab (role changes, remove). */
+.member-menu {
+  position: relative;
+  flex: none;
+}
+.member-menu__trigger {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-height: 0;
+  place-items: center;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 0;
+  color: var(--muted-foreground);
+  transition:
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 120ms var(--ease-out);
+}
+.member-menu__trigger:active {
+  transform: scale(0.97);
+}
+/* Outranks the global `button:hover:not(:disabled)` lime fill and lift. */
+.member-menu .member-menu__trigger {
+  box-shadow: none;
+}
+.member-menu .member-menu__trigger[aria-expanded="true"] {
+  border-color: var(--accent);
+  background: transparent;
+  color: var(--foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .member-menu .member-menu__trigger:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: transparent;
+    box-shadow: none;
+    color: var(--foreground);
+    translate: none;
+  }
+}
+.member-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 0.15rem;
+  width: min(17rem, calc(100vw - 2rem));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  padding: 0.35rem;
+  box-shadow: 0 18px 40px oklch(0% 0 0 / 0.45);
+  transform-origin: top right;
+  animation: member-menu-in 150ms var(--ease-out);
+}
+/* Near the bottom of the screen the menu opens upward instead. */
+.member-menu__panel--up {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
+  transform-origin: bottom right;
+}
+@keyframes member-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-menu__panel {
+    animation: none;
+  }
+}
+.member-menu__label {
+  margin: 0;
+  padding: 0.4rem 0.6rem 0.2rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.member-menu__item {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 0.45rem 0.6rem;
+  color: var(--foreground);
+  text-align: left;
+  transition: background-color 120ms ease;
+}
+.member-menu__item > span {
+  display: grid;
+  gap: 0.1rem;
+}
+.member-menu__item strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+}
+.member-menu__item span span {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.member-menu__item > svg {
+  color: var(--accent);
+}
+.member-menu .member-menu__item {
+  box-shadow: none;
+}
+.member-menu .member-menu__item:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .member-menu .member-menu__item:hover:not(:disabled) {
+    background: var(--surface);
+    box-shadow: none;
+    translate: none;
+  }
+  .member-menu .member-menu__danger-button:hover:not(:disabled) {
+    background: var(--danger);
+    filter: brightness(1.08);
+  }
+}
+.member-menu__item--danger {
+  margin-top: 0.2rem;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  color: var(--danger);
+}
+.member-menu__confirm {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.5rem;
+}
+.member-menu__confirm p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+.member-menu__confirm div {
+  display: flex;
+  gap: 0.4rem;
+}
+.member-menu__confirm button {
+  min-height: 2.5rem;
+  margin: 0;
+  padding: 0 0.9rem;
+  font-size: 0.85rem;
+}
+.member-menu__danger-button {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: oklch(18% 0.03 255);
+}
+
+/* Under a long member list: "Showing 30 of 1,000" and Show more. */
+.member-pager {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.member-pager__status {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.member-pager .member-pager__more {
+  min-width: 10rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  box-shadow: none;
+  color: var(--foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .member-pager .member-pager__more:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: transparent;
+    box-shadow: none;
+    translate: none;
+  }
+}
+
+/* Club leaderboard: "Your rank" card, search, table, Show more. */
+.club-board {
+  display: grid;
+  gap: 0.85rem;
+}
+.board-me {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid oklch(80% 0.19 125 / 0.35);
+  border-radius: var(--radius-md);
+  background: oklch(80% 0.19 125 / 0.08);
+  padding: 0.75rem 0.9rem;
+}
+.board-me .rank-chip {
+  flex: none;
+  width: auto;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.board-me div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.board-me span:not(.rank-chip) {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.leaderboard-me td {
+  background: oklch(80% 0.19 125 / 0.08);
+}
+.leaderboard-me td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
 }

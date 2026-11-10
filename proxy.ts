@@ -44,4 +44,14 @@ export async function proxy(request: NextRequest) {
   }
   return response;
 }
-export const config = { matcher: ["/dashboard/:path*", "/admin/:path*"] };
+// Runs on every page (not static files or images) so an expired login is
+// refreshed once, here, and the new cookie is saved before anything renders.
+// Server components can't save cookies: if they each refreshed on their own
+// they would race for the same one-time refresh token, so the header and
+// the page could disagree about who is signed in, and the next visit would
+// be signed out.
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp4|webm|woff2?)$).*)",
+  ],
+};

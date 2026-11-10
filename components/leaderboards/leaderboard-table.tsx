@@ -1,4 +1,14 @@
 import Link from "next/link";
+/** Gold, silver and bronze for ranks 1–3 (styled by `.rank-chip[data-medal]`). */
+export const rankMedal = (rank: number | null) =>
+  rank === 1
+    ? "gold"
+    : rank === 2
+      ? "silver"
+      : rank === 3
+        ? "bronze"
+        : undefined;
+
 export type LeaderboardRow = {
   player_id?: string | null;
   rank: number | null;
@@ -13,10 +23,15 @@ export type LeaderboardRow = {
 export function LeaderboardTable({
   rows,
   memberIds,
+  currentPlayerId,
+  emptyText = "No eligible ranked players yet.",
 }: {
   rows: LeaderboardRow[];
   /** On a club leaderboard, marks which players are club members. */
   memberIds?: Set<string>;
+  /** Highlights the signed-in player's own row. */
+  currentPlayerId?: string | null;
+  emptyText?: string;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -33,9 +48,18 @@ export function LeaderboardTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.public_slug}>
+            <tr
+              key={row.public_slug}
+              className={
+                currentPlayerId && row.player_id === currentPlayerId
+                  ? "leaderboard-me"
+                  : undefined
+              }
+            >
               <td>
-                <span className="rank-chip">{row.rank}</span>
+                <span className="rank-chip" data-medal={rankMedal(row.rank)}>
+                  {row.rank}
+                </span>
               </td>
               <td>
                 <Link href={`/players/${row.public_slug}`}>
@@ -54,7 +78,7 @@ export function LeaderboardTable({
           ))}
         </tbody>
       </table>
-      {rows.length === 0 ? <p>No eligible ranked players yet.</p> : null}
+      {rows.length === 0 ? <p className="ph-empty">{emptyText}</p> : null}
     </div>
   );
 }

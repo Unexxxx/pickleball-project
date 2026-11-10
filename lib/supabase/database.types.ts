@@ -2299,6 +2299,64 @@ export type Database = {
         Args: { p_club_id: string; p_contact: string };
         Returns: undefined;
       };
+      club_leaderboard_me: {
+        Args: { p_club_id: string; p_members_only?: boolean };
+        Returns: ClubLeaderboardRpcRow[];
+      };
+      club_leaderboard_page: {
+        Args: {
+          p_after_rank?: number;
+          p_club_id: string;
+          p_limit?: number;
+          p_members_only?: boolean;
+          p_query?: string;
+        };
+        Returns: ClubLeaderboardRpcRow[];
+      };
+      club_member_counts: {
+        Args: { p_club_id: string };
+        Returns: { members: number; private_members: number }[];
+      };
+      club_member_page: {
+        Args: {
+          p_after_id?: string;
+          p_after_name?: string;
+          p_club_id: string;
+          p_limit?: number;
+          p_query?: string;
+          p_scope: string;
+        };
+        Returns: {
+          avatar_path: string;
+          display_name: string;
+          joined_at: string;
+          player_id: string;
+          public_slug: string;
+          role: Database["public"]["Enums"]["club_role"];
+          total: number;
+        }[];
+      };
+      club_roster_page: {
+        Args: {
+          p_after_id?: string;
+          p_after_name?: string;
+          p_club_id: string;
+          p_limit?: number;
+          p_query?: string;
+          p_scope: string;
+        };
+        Returns: {
+          avatar_path: string;
+          display_name: string;
+          membership_id: string;
+          player_id: string;
+          public_slug: string;
+          role: Database["public"]["Enums"]["club_role"];
+          since: string;
+          status: Database["public"]["Enums"]["membership_status"];
+          total: number;
+        }[];
+      };
       club_staff_roster: {
         Args: { p_club_id: string };
         Returns: {
@@ -2837,6 +2895,14 @@ export type Database = {
           version: number;
         }[];
       };
+      transfer_club_ownership: {
+        Args: {
+          p_club_id: string;
+          p_idempotency_key: string;
+          p_membership_id: string;
+        };
+        Returns: undefined;
+      };
       transition_event: {
         Args: {
           p_event_id: string;
@@ -3100,3 +3166,18 @@ export const Constants = {
     },
   },
 } as const;
+
+/** A row from club_leaderboard_page() / club_leaderboard_me(). */
+export type ClubLeaderboardRpcRow = {
+  calculation_version: number;
+  display_name: string;
+  is_member: boolean;
+  losses: number;
+  player_id: string;
+  public_slug: string;
+  rank: number;
+  rating: number;
+  total: number;
+  win_rate: number;
+  wins: number;
+};

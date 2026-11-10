@@ -12,9 +12,9 @@ export const metadata: Metadata = { title: "Clubs" };
 
 const ROLE_LABEL: Record<string, string> = {
   owner: "Owner",
-  organizer: "Organizer",
-  score_official: "Score official",
-  staff: "Staff",
+  organizer: "Admin",
+  score_official: "Member",
+  staff: "Admin",
   member: "Member",
 };
 

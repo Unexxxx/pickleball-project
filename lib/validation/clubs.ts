@@ -64,6 +64,45 @@ export const membershipRemoveSchema = z
     membershipId: uuidSchema,
   })
   .strict();
+/** Owners make a member an admin ("organizer") or an admin a member. */
+export const memberRoleChangeSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    membershipId: uuidSchema,
+    role: z.enum(["organizer", "member"]),
+  })
+  .strict();
+/** A page of a member list: search text and where the last page ended. */
+export const memberPageSchema = z
+  .object({
+    clubId: uuidSchema,
+    scope: z.enum(["members", "requests"]),
+    query: z.string().max(100).default(""),
+    after: z
+      .object({ name: z.string().max(200), id: uuidSchema })
+      .strict()
+      .nullable()
+      .default(null),
+  })
+  .strict();
+/** A page of a club leaderboard: filter, search and the last rank shown. */
+export const clubBoardPageSchema = z
+  .object({
+    clubId: uuidSchema,
+    membersOnly: z.boolean().default(false),
+    query: z.string().max(100).default(""),
+    afterRank: z.number().int().positive().nullable().default(null),
+  })
+  .strict();
+/** Owners hand the club to one of its admins. */
+export const ownershipTransferSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    membershipId: uuidSchema,
+  })
+  .strict();
 export const joinPolicySchema = z
   .object({
     clubId: uuidSchema,

@@ -12,9 +12,12 @@ import { X } from "lucide-react";
 export function ToastMessage({
   message,
   onDismiss,
+  tone = "error",
 }: {
   message: string;
   onDismiss: () => void;
+  /** "success" confirms something worked; errors interrupt (role=alert). */
+  tone?: "error" | "success";
 }) {
   useEffect(() => {
     if (!message) return;
@@ -24,7 +27,12 @@ export function ToastMessage({
 
   if (!message) return null;
   return createPortal(
-    <div className="club-toast" role="alert">
+    <div
+      className={
+        tone === "success" ? "club-toast club-toast--success" : "club-toast"
+      }
+      role={tone === "success" ? "status" : "alert"}
+    >
       <span>{message}</span>
       <button
         type="button"

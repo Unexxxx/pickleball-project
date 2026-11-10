@@ -8,9 +8,10 @@ import {
 } from "@/lib/auth/authorization";
 import { createClient } from "@/lib/supabase/server";
 
-/** Roles that run a club: shown as "Club staff" and see management tools. */
+/** Roles that run a club (owners and admins): shown as "Club staff" and see
+ * management tools. Admins are stored as "organizer"; staff is retired. */
 export const CLUB_ADMIN_ROLES: ClubRole[] = ["owner", "organizer", "staff"];
-/** Roles that may use the live event workspace (score officials score). */
+/** Roles that may use the live event workspace. */
 export const WORKSPACE_ROLES: ClubRole[] = [
   ...CLUB_ADMIN_ROLES,
   "score_official",
@@ -18,9 +19,10 @@ export const WORKSPACE_ROLES: ClubRole[] = [
 
 export const ROLE_LABEL: Record<ClubRole, string> = {
   owner: "Owner",
-  organizer: "Organizer",
-  staff: "Staff",
-  score_official: "Score official",
+  organizer: "Admin",
+  // Retired roles (the database no longer allows them).
+  staff: "Admin",
+  score_official: "Member",
   member: "Member",
 };
 
@@ -110,30 +112,6 @@ export type RosterEntry = {
   status: string;
   since: string;
 };
-
-/** Staff-only roster (pending requests + members). Null if not allowed. */
-export const getStaffRoster = cache(
-  async (clubId: string): Promise<RosterEntry[] | null> => {
-    const supabase = await createClient();
-    const { data, error } = await supabase.rpc("club_staff_roster", {
-      p_club_id: clubId,
-    });
-    if (error) return null;
-    return (data ?? []).map((row) => ({
-      membershipId: row.membership_id,
-      playerId: row.player_id,
-      name: row.display_name,
-      slug: row.public_slug,
-      avatarUrl: row.avatar_path
-        ? supabase.storage.from("avatars").getPublicUrl(row.avatar_path).data
-            .publicUrl
-        : null,
-      role: row.role as ClubRole,
-      status: row.status,
-      since: row.since,
-    }));
-  },
-);
 
 /**
  * Server-side gate for club management pages. Hiding a button is never the
@@ -228,4 +206,219 @@ export function splitSchedule(events: ClubScheduleEvent[]) {
     .filter((e) => !live.includes(e) && !upcoming.includes(e))
     .reverse();
   return { live, upcoming, past };
+}
+
+/** Members load this many at a time ("Show more"). */
+export const MEMBER_PAGE_SIZE = 30;
+
+/** Where the next page starts: the last row's name and id. */
+export type MemberCursor = { name: string; id: string };
+
+export type MemberPage<T> = { items: T[]; total: number; hasMore: boolean };
+
+/** How many are in the club, and how many regular members are private. */
+export const getClubMemberCounts = cache(
+  async (
+    clubId: string,
+  ): Promise<{ members: number; privateMembers: number } | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("club_member_counts", {
+      p_club_id: clubId,
+    });
+    if (error?.code === MISSING_FUNCTION) return countsFallback(clubId);
+    const row = data?.[0];
+    if (error || !row) return null;
+    return { members: row.members, privateMembers: row.private_members };
+  },
+);
+
+type Supabase = Awaited<ReturnType<typeof createClient>>;
+const avatarUrl = (supabase: Supabase, path: string | null) =>
+  path
+    ? supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl
+    : null;
+
+/**
+ * One page of the public member list. 'staff' is the owners and admins
+ * (private ones unnamed); 'members' is everyone else with a public profile.
+ * Asks for one extra row to know whether there's more.
+ */
+export async function getMemberPage(
+  clubId: string,
+  scope: "staff" | "members",
+  query = "",
+  after: MemberCursor | null = null,
+): Promise<MemberPage<DirectoryEntry> | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("club_member_page", {
+    p_club_id: clubId,
+    p_scope: scope,
+    p_query: query || undefined,
+    p_after_name: after?.name,
+    p_after_id: after?.id,
+    p_limit: MEMBER_PAGE_SIZE + 1,
+  });
+  if (error?.code === MISSING_FUNCTION)
+    return memberPageFallback(clubId, scope, query, after);
+  if (error || !data) return null;
+  return {
+    items: data.slice(0, MEMBER_PAGE_SIZE).map((row) => ({
+      playerId: row.player_id,
+      name: row.display_name,
+      slug: row.public_slug,
+      avatarUrl: avatarUrl(supabase, row.avatar_path),
+      role: row.role as ClubRole,
+      joinedAt: row.joined_at,
+    })),
+    total: Number(data[0]?.total ?? 0),
+    hasMore: data.length > MEMBER_PAGE_SIZE,
+  };
+}
+
+/**
+ * One page of the owners' and admins' roster: 'staff', 'members' (private
+ * profiles included) or 'requests'. Null when the viewer isn't allowed.
+ */
+export async function getRosterPage(
+  clubId: string,
+  scope: "staff" | "members" | "requests",
+  query = "",
+  after: MemberCursor | null = null,
+): Promise<MemberPage<RosterEntry> | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("club_roster_page", {
+    p_club_id: clubId,
+    p_scope: scope,
+    p_query: query || undefined,
+    p_after_name: after?.name,
+    p_after_id: after?.id,
+    p_limit: MEMBER_PAGE_SIZE + 1,
+  });
+  if (error?.code === MISSING_FUNCTION)
+    return rosterPageFallback(supabase, clubId, scope, query, after);
+  if (error || !data) return null;
+  return {
+    items: data.slice(0, MEMBER_PAGE_SIZE).map((row) => ({
+      membershipId: row.membership_id,
+      playerId: row.player_id,
+      name: row.display_name,
+      slug: row.public_slug,
+      avatarUrl: avatarUrl(supabase, row.avatar_path),
+      role: row.role as ClubRole,
+      status: row.status,
+      since: row.since,
+    })),
+    total: Number(data[0]?.total ?? 0),
+    hasMore: data.length > MEMBER_PAGE_SIZE,
+  };
+}
+
+// Until the paged functions are deployed (local dev against the hosted
+// database, or the moment between a deploy and its migration), page the
+// older full lists here instead, with the same order and cursors.
+const MISSING_FUNCTION = "PGRST202";
+
+const byName = (a: MemberCursor, b: MemberCursor) => {
+  const x = a.name.toLowerCase();
+  const y = b.name.toLowerCase();
+  if (x !== y) return x < y ? -1 : 1;
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+};
+
+function pageOf<T>(
+  rows: T[],
+  key: (row: T) => MemberCursor,
+  query: string,
+  after: MemberCursor | null,
+): MemberPage<T> {
+  const q = query.toLowerCase();
+  const matches = rows
+    .filter((row) => !q || key(row).name.toLowerCase().includes(q))
+    .sort((a, b) => byName(key(a), key(b)));
+  const rest = after
+    ? matches.filter((row) => byName(key(row), after) > 0)
+    : matches;
+  return {
+    items: rest.slice(0, MEMBER_PAGE_SIZE),
+    total: matches.length,
+    hasMore: rest.length > MEMBER_PAGE_SIZE,
+  };
+}
+
+async function countsFallback(clubId: string) {
+  const directory = await getClubDirectory(clubId);
+  if (!directory) return null;
+  return {
+    members: directory.length,
+    privateMembers: directory.filter(
+      (m) => !CLUB_ADMIN_ROLES.includes(m.role) && !m.playerId,
+    ).length,
+  };
+}
+
+async function memberPageFallback(
+  clubId: string,
+  scope: "staff" | "members",
+  query: string,
+  after: MemberCursor | null,
+): Promise<MemberPage<DirectoryEntry> | null> {
+  const directory = await getClubDirectory(clubId);
+  if (!directory) return null;
+  if (scope === "staff") {
+    const staff = directory.filter((m) => CLUB_ADMIN_ROLES.includes(m.role));
+    return { items: staff, total: staff.length, hasMore: false };
+  }
+  return pageOf(
+    directory.filter((m) => !CLUB_ADMIN_ROLES.includes(m.role) && m.playerId),
+    (m) => ({ name: m.name ?? "", id: m.playerId ?? "" }),
+    query,
+    after,
+  );
+}
+
+async function rosterPageFallback(
+  supabase: Supabase,
+  clubId: string,
+  scope: "staff" | "members" | "requests",
+  query: string,
+  after: MemberCursor | null,
+): Promise<MemberPage<RosterEntry> | null> {
+  const { data, error } = await supabase.rpc("club_staff_roster", {
+    p_club_id: clubId,
+  });
+  if (error || !data) return null;
+  const rows: RosterEntry[] = data.map((row) => ({
+    membershipId: row.membership_id,
+    playerId: row.player_id,
+    name: row.display_name,
+    slug: row.public_slug,
+    avatarUrl: avatarUrl(supabase, row.avatar_path),
+    role: row.role as ClubRole,
+    status: row.status,
+    since: row.since,
+  }));
+  const admin = (m: RosterEntry) => CLUB_ADMIN_ROLES.includes(m.role);
+  if (scope === "staff") {
+    const staff = rows
+      .filter((m) => m.status === "active" && admin(m))
+      .sort(
+        (a, b) =>
+          Number(b.role === "owner") - Number(a.role === "owner") ||
+          byName(
+            { name: a.name, id: a.membershipId },
+            { name: b.name, id: b.membershipId },
+          ),
+      );
+    return { items: staff, total: staff.length, hasMore: false };
+  }
+  return pageOf(
+    rows.filter((m) =>
+      scope === "requests"
+        ? m.status === "requested"
+        : m.status === "active" && !admin(m),
+    ),
+    (m) => ({ name: m.name, id: m.membershipId }),
+    query,
+    after,
+  );
 }

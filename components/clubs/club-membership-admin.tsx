@@ -2,24 +2,21 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, UserMinus, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { MemberRow } from "@/components/clubs/member-row";
+import {
+  MemberPagerFooter,
+  MemberSearch,
+  useMemberPages,
+} from "@/components/clubs/member-pages";
 import { ToastMessage } from "@/components/ui/toast-message";
 import {
-  removeMember,
+  loadRosterPage,
   reviewMembership,
   setJoinPolicy,
 } from "@/lib/actions/clubs";
-import type { RosterEntry } from "@/lib/queries/club-home";
+import type { MemberPage, RosterEntry } from "@/lib/queries/club-home";
 
-const STAFF = ["owner", "organizer", "staff"];
-const ROLE: Record<string, string> = {
-  owner: "Owner",
-  organizer: "Organizer",
-  staff: "Staff",
-  score_official: "Score official",
-  member: "Member",
-};
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", {
     month: "short",
@@ -28,25 +25,23 @@ const when = (iso: string) =>
 
 /**
  * Staff tools on the Members tab: join setting (owners/organizers), pending
- * requests to approve or decline, and removing members. Every action is
+ * requests to approve or decline. Role changes and removal live in each
+ * member's menu (ManagedMemberList). Every action is
  * re-checked by the database; hidden buttons are not the permission check.
  */
 export function ClubMembershipAdmin({
   clubId,
   clubSlug,
-  roster,
+  requests: initialRequests,
   joinPolicy,
   canSetPolicy,
-  viewerIsOwner,
-  viewerPlayerId,
 }: {
   clubId: string;
   clubSlug: string;
-  roster: RosterEntry[];
+  /** The first page of pending join requests. */
+  requests: MemberPage<RosterEntry>;
   joinPolicy: "open" | "approval";
   canSetPolicy: boolean;
-  viewerIsOwner: boolean;
-  viewerPlayerId: string | null;
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -64,12 +59,13 @@ export function ClubMembershipAdmin({
     else router.refresh();
   }
 
-  const requests = roster.filter((m) => m.status === "requested");
-  const members = roster.filter(
-    (m) => m.status !== "requested" && m.playerId !== viewerPlayerId,
-  );
-  const canRemove = (m: RosterEntry) =>
-    viewerIsOwner || !STAFF.includes(m.role);
+  const pages = useMemberPages({
+    initial: initialRequests,
+    load: (query, after) =>
+      loadRosterPage({ clubId, scope: "requests", query, after }),
+    cursorOf: (m) => ({ name: m.name, id: m.membershipId }),
+  });
+  const requests = pages.items;
 
   return (
     <section
@@ -87,7 +83,7 @@ export function ClubMembershipAdmin({
             <p className="ph-panel__hint">
               {joinPolicy === "open"
                 ? "Anyone signed in joins instantly."
-                : "Players send a request; you or your staff approve it here."}
+                : "Players send a request; you or your admins approve it here."}
             </p>
           </div>
           <div className="ph-tabs" role="group" aria-label="Who can join">
@@ -118,8 +114,16 @@ export function ClubMembershipAdmin({
 
       <div>
         <h3 className="club-section-title">
-          Join requests <span className="count-badge">{requests.length}</span>
+          Join requests{" "}
+          <span className="count-badge">{initialRequests.total}</span>
         </h3>
+        {initialRequests.total > 6 ? (
+          <MemberSearch
+            value={pages.query}
+            onChange={pages.setQuery}
+            label="Search requests"
+          />
+        ) : null}
         {requests.length ? (
           <ul className="ph-list club-admin__list">
             {requests.map((m) => (
@@ -175,54 +179,22 @@ export function ClubMembershipAdmin({
             ))}
           </ul>
         ) : (
-          <p className="ph-empty">No pending requests.</p>
+          <p className="ph-empty">
+            {pages.searched
+              ? `No requests match “${pages.searched}”.`
+              : "No pending requests."}
+          </p>
         )}
+        <MemberPagerFooter
+          shown={requests.length}
+          total={pages.total}
+          hasMore={pages.hasMore}
+          loading={pages.loading}
+          error={pages.error}
+          onMore={pages.showMore}
+        />
       </div>
 
-      {members.length ? (
-        <details className="club-admin__members">
-          <summary>Remove members ({members.length})</summary>
-          <ul className="ph-list club-admin__list">
-            {members.map((m) => (
-              <li key={m.membershipId} className="club-admin__row">
-                <MemberRow
-                  member={{
-                    playerId: m.playerId,
-                    name: m.name,
-                    slug: m.slug,
-                    avatarUrl: m.avatarUrl,
-                    role: m.role,
-                    joinedAt: m.since,
-                  }}
-                  detail={`${ROLE[m.role] ?? m.role} · since ${when(m.since)}`}
-                />
-                {canRemove(m) ? (
-                  <button
-                    type="button"
-                    className="button-quiet club-admin__remove"
-                    disabled={busyId === m.membershipId}
-                    onClick={() => {
-                      if (!window.confirm(`Remove ${m.name} from the club?`))
-                        return;
-                      run(m.membershipId, () =>
-                        removeMember({
-                          clubId,
-                          clubSlug,
-                          membershipId: m.membershipId,
-                        }),
-                      );
-                    }}
-                  >
-                    <UserMinus aria-hidden="true" size={15} /> Remove
-                  </button>
-                ) : (
-                  <span className="ph-panel__hint">Owner only</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
       <ToastMessage message={message} onDismiss={dismiss} />
     </section>
   );
