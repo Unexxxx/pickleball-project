@@ -5,7 +5,10 @@ import {
   MemberSearch,
   useMemberPages,
 } from "@/components/clubs/member-pages";
-import { LeaderboardTable } from "@/components/leaderboards/leaderboard-table";
+import {
+  LeaderboardTable,
+  rankMedal,
+} from "@/components/leaderboards/leaderboard-table";
 import { loadClubLeaderboardPage } from "@/lib/actions/clubs";
 import type { ClubBoardPage, ClubBoardRow } from "@/lib/queries/leaderboards";
 
@@ -42,7 +45,9 @@ export function ClubLeaderboard({
     <div className="club-board">
       {me ? (
         <section className="board-me" aria-label="Your rank">
-          <span className="rank-chip">{me.row.rank}</span>
+          <span className="rank-chip" data-medal={rankMedal(me.row.rank)}>
+            {me.row.rank}
+          </span>
           <div>
             <strong>
               Your rank · #{n(me.row.rank)} of {n(me.total)}

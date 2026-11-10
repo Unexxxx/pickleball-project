@@ -1,4 +1,14 @@
 import Link from "next/link";
+/** Gold, silver and bronze for ranks 1–3 (styled by `.rank-chip[data-medal]`). */
+export const rankMedal = (rank: number | null) =>
+  rank === 1
+    ? "gold"
+    : rank === 2
+      ? "silver"
+      : rank === 3
+        ? "bronze"
+        : undefined;
+
 export type LeaderboardRow = {
   player_id?: string | null;
   rank: number | null;
@@ -47,7 +57,9 @@ export function LeaderboardTable({
               }
             >
               <td>
-                <span className="rank-chip">{row.rank}</span>
+                <span className="rank-chip" data-medal={rankMedal(row.rank)}>
+                  {row.rank}
+                </span>
               </td>
               <td>
                 <Link href={`/players/${row.public_slug}`}>

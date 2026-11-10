@@ -382,6 +382,16 @@
   --dink-volt: oklch(80% 0.19 125);
   --dink-volt-ink: oklch(28% 0.09 125);
   --dink-coral: oklch(74% 0.19 35);
+  /* Leaderboard medals (ranks 1–3). */
+  --medal-gold-hi: oklch(90% 0.13 92);
+  --medal-gold-lo: oklch(76% 0.15 75);
+  --medal-gold-ink: oklch(32% 0.07 70);
+  --medal-silver-hi: oklch(93% 0.01 250);
+  --medal-silver-lo: oklch(74% 0.02 250);
+  --medal-silver-ink: oklch(30% 0.02 255);
+  --medal-bronze-hi: oklch(82% 0.09 60);
+  --medal-bronze-lo: oklch(63% 0.11 45);
+  --medal-bronze-ink: oklch(26% 0.05 45);
   --dink-line: oklch(87% 0.012 90);
   --dink-surface-dark: rgb(10 41 82); /* actl.me body background */
   --dink-surface-dark-2: rgb(17 57 108);
@@ -897,6 +907,31 @@ pre {
   background: oklch(80% 0.19 125 / 0.16);
   color: var(--primary);
   font-weight: 900;
+}
+/* Ranks 1–3: gold, silver and bronze. Static on purpose: leaderboards are
+   read often, so the medal is a colour, not a motion. A light top edge and
+   a darker ring make each read as metal; the number stays dark for
+   contrast. */
+.rank-chip[data-medal] {
+  --medal-hi: var(--medal-gold-hi);
+  --medal-lo: var(--medal-gold-lo);
+  --medal-ink: var(--medal-gold-ink);
+  background: linear-gradient(160deg, var(--medal-hi), var(--medal-lo));
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.45),
+    0 0 0 1px oklch(from var(--medal-lo) calc(l - 0.12) c h);
+  color: var(--medal-ink);
+  font-variant-numeric: tabular-nums;
+}
+.rank-chip[data-medal="silver"] {
+  --medal-hi: var(--medal-silver-hi);
+  --medal-lo: var(--medal-silver-lo);
+  --medal-ink: var(--medal-silver-ink);
+}
+.rank-chip[data-medal="bronze"] {
+  --medal-hi: var(--medal-bronze-hi);
+  --medal-lo: var(--medal-bronze-lo);
+  --medal-ink: var(--medal-bronze-ink);
 }
 .stat-card {
   border: 1px solid var(--border);
