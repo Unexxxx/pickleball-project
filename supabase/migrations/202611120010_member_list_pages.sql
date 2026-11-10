@@ -176,5 +176,5 @@ begin
   limit v_limit;
 end
 $$;
-revoke all on function public.club_roster_page(uuid, text, text, text, uuid, integer) from public;
+revoke all on function public.club_roster_page(uuid, text, text, text, uuid, integer) from public, anon;
 grant execute on function public.club_roster_page(uuid, text, text, text, uuid, integer) to authenticated;

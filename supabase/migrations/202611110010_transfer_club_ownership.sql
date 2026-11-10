@@ -57,5 +57,5 @@ begin
 end
 $$;
 
-revoke all on function public.transfer_club_ownership(uuid, uuid, uuid) from public;
+revoke all on function public.transfer_club_ownership(uuid, uuid, uuid) from public, anon;
 grant execute on function public.transfer_club_ownership(uuid, uuid, uuid) to authenticated;
