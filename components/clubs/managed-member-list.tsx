@@ -1,18 +1,23 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
 import { MemberMenu, type MenuRole } from "@/components/clubs/member-menu";
 import { MemberRow } from "@/components/clubs/member-row";
+import {
+  MemberPagerFooter,
+  MemberSearch,
+  useMemberPages,
+} from "@/components/clubs/member-pages";
 import { ToastMessage } from "@/components/ui/toast-message";
 import {
   changeMemberRole,
+  loadRosterPage,
   removeMember,
   transferClubOwnership,
 } from "@/lib/actions/clubs";
 import type { ClubRole } from "@/lib/auth/authorization";
-import type { RosterEntry } from "@/lib/queries/club-home";
+import type { MemberPage, RosterEntry } from "@/lib/queries/club-home";
 
 const ADMINS: ClubRole[] = ["owner", "organizer", "staff"];
 const ROLE: Record<ClubRole, string> = {
@@ -38,6 +43,7 @@ export function ManagedMemberList({
   viewerRole,
   viewerPlayerId,
   detail,
+  emptyText = "No members yet.",
 }: {
   clubId: string;
   clubSlug: string;
@@ -45,19 +51,13 @@ export function ManagedMemberList({
   viewerRole: ClubRole;
   viewerPlayerId: string | null;
   detail: "role" | "joined";
+  emptyText?: string;
 }) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState<"error" | "success">("error");
   const dismiss = useCallback(() => setMessage(""), []);
-  const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q
-      ? members.filter((m) => m.name.toLowerCase().includes(q))
-      : members;
-  }, [members, query]);
 
   async function run(
     id: string,
@@ -82,21 +82,9 @@ export function ManagedMemberList({
   const isOwner = viewerRole === "owner";
   return (
     <>
-      {members.length > 6 ? (
-        <label className="member-search">
-          <Search aria-hidden="true" size={16} />
-          <span className="sr-only">Search members</span>
-          <input
-            type="search"
-            placeholder="Search members"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-      ) : null}
-      {shown.length ? (
+      {members.length ? (
         <ul className="ph-list member-grid">
-          {shown.map((m) => {
+          {members.map((m) => {
             const self = m.playerId === viewerPlayerId;
             // Owners make members admins and back; removing an admin takes
             // an owner. Nobody manages themselves or an owner here.
@@ -169,11 +157,51 @@ export function ManagedMemberList({
           })}
         </ul>
       ) : (
-        <p className="ph-empty">
-          {query ? `No members match “${query}”.` : "No members yet."}
-        </p>
+        <p className="ph-empty">{emptyText}</p>
       )}
       <ToastMessage message={message} onDismiss={dismiss} tone={toast} />
+    </>
+  );
+}
+
+/**
+ * The owners' and admins' Members list for clubs of any size: 30 at a time
+ * with Show more, and a search that covers the whole club.
+ */
+export function PagedManagedMemberList({
+  initial,
+  ...props
+}: Omit<Parameters<typeof ManagedMemberList>[0], "members" | "emptyText"> & {
+  initial: MemberPage<RosterEntry>;
+}) {
+  const pages = useMemberPages({
+    initial,
+    load: (query, after) =>
+      loadRosterPage({ clubId: props.clubId, scope: "members", query, after }),
+    cursorOf: (m) => ({ name: m.name, id: m.membershipId }),
+  });
+  return (
+    <>
+      {initial.total > 6 ? (
+        <MemberSearch value={pages.query} onChange={pages.setQuery} />
+      ) : null}
+      <ManagedMemberList
+        {...props}
+        members={pages.items}
+        emptyText={
+          pages.searched
+            ? `No members match “${pages.searched}”.`
+            : "No members yet."
+        }
+      />
+      <MemberPagerFooter
+        shown={pages.items.length}
+        total={pages.total}
+        hasMore={pages.hasMore}
+        loading={pages.loading}
+        error={pages.error}
+        onMore={pages.showMore}
+      />
     </>
   );
 }

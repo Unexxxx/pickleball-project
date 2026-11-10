@@ -2299,6 +2299,50 @@ export type Database = {
         Args: { p_club_id: string; p_contact: string };
         Returns: undefined;
       };
+      club_member_counts: {
+        Args: { p_club_id: string };
+        Returns: { members: number; private_members: number }[];
+      };
+      club_member_page: {
+        Args: {
+          p_after_id?: string;
+          p_after_name?: string;
+          p_club_id: string;
+          p_limit?: number;
+          p_query?: string;
+          p_scope: string;
+        };
+        Returns: {
+          avatar_path: string;
+          display_name: string;
+          joined_at: string;
+          player_id: string;
+          public_slug: string;
+          role: Database["public"]["Enums"]["club_role"];
+          total: number;
+        }[];
+      };
+      club_roster_page: {
+        Args: {
+          p_after_id?: string;
+          p_after_name?: string;
+          p_club_id: string;
+          p_limit?: number;
+          p_query?: string;
+          p_scope: string;
+        };
+        Returns: {
+          avatar_path: string;
+          display_name: string;
+          membership_id: string;
+          player_id: string;
+          public_slug: string;
+          role: Database["public"]["Enums"]["club_role"];
+          since: string;
+          status: Database["public"]["Enums"]["membership_status"];
+          total: number;
+        }[];
+      };
       club_staff_roster: {
         Args: { p_club_id: string };
         Returns: {

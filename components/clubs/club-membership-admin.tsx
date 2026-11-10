@@ -4,9 +4,18 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { MemberRow } from "@/components/clubs/member-row";
+import {
+  MemberPagerFooter,
+  MemberSearch,
+  useMemberPages,
+} from "@/components/clubs/member-pages";
 import { ToastMessage } from "@/components/ui/toast-message";
-import { reviewMembership, setJoinPolicy } from "@/lib/actions/clubs";
-import type { RosterEntry } from "@/lib/queries/club-home";
+import {
+  loadRosterPage,
+  reviewMembership,
+  setJoinPolicy,
+} from "@/lib/actions/clubs";
+import type { MemberPage, RosterEntry } from "@/lib/queries/club-home";
 
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", {
@@ -23,13 +32,14 @@ const when = (iso: string) =>
 export function ClubMembershipAdmin({
   clubId,
   clubSlug,
-  roster,
+  requests: initialRequests,
   joinPolicy,
   canSetPolicy,
 }: {
   clubId: string;
   clubSlug: string;
-  roster: RosterEntry[];
+  /** The first page of pending join requests. */
+  requests: MemberPage<RosterEntry>;
   joinPolicy: "open" | "approval";
   canSetPolicy: boolean;
 }) {
@@ -49,7 +59,13 @@ export function ClubMembershipAdmin({
     else router.refresh();
   }
 
-  const requests = roster.filter((m) => m.status === "requested");
+  const pages = useMemberPages({
+    initial: initialRequests,
+    load: (query, after) =>
+      loadRosterPage({ clubId, scope: "requests", query, after }),
+    cursorOf: (m) => ({ name: m.name, id: m.membershipId }),
+  });
+  const requests = pages.items;
 
   return (
     <section
@@ -98,8 +114,16 @@ export function ClubMembershipAdmin({
 
       <div>
         <h3 className="club-section-title">
-          Join requests <span className="count-badge">{requests.length}</span>
+          Join requests{" "}
+          <span className="count-badge">{initialRequests.total}</span>
         </h3>
+        {initialRequests.total > 6 ? (
+          <MemberSearch
+            value={pages.query}
+            onChange={pages.setQuery}
+            label="Search requests"
+          />
+        ) : null}
         {requests.length ? (
           <ul className="ph-list club-admin__list">
             {requests.map((m) => (
@@ -155,8 +179,20 @@ export function ClubMembershipAdmin({
             ))}
           </ul>
         ) : (
-          <p className="ph-empty">No pending requests.</p>
+          <p className="ph-empty">
+            {pages.searched
+              ? `No requests match “${pages.searched}”.`
+              : "No pending requests."}
+          </p>
         )}
+        <MemberPagerFooter
+          shown={requests.length}
+          total={pages.total}
+          hasMore={pages.hasMore}
+          loading={pages.loading}
+          error={pages.error}
+          onMore={pages.showMore}
+        />
       </div>
 
       <ToastMessage message={message} onDismiss={dismiss} />

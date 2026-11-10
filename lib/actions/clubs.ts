@@ -8,6 +8,7 @@ import {
   clubTargetSchema,
   joinPolicySchema,
   memberRoleChangeSchema,
+  memberPageSchema,
   ownershipTransferSchema,
   membershipRemoveSchema,
   membershipReviewSchema,
@@ -15,6 +16,7 @@ import {
   membershipRoleSchema,
 } from "@/lib/validation/clubs";
 import { failure, success } from "@/lib/actions/result";
+import { getMemberPage, getRosterPage } from "@/lib/queries/club-home";
 export async function createClub(input: unknown) {
   const requestId = crypto.randomUUID();
   const parsed = clubSchema.safeParse(input);
@@ -369,4 +371,38 @@ export async function setClubContacts(input: unknown) {
   }
   refreshClub(clubSlug);
   return success({}, requestId);
+}
+
+/** The next page of the public member list, or a name search. */
+export async function loadMemberPage(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = memberPageSchema.safeParse(input);
+  if (!parsed.success || parsed.data.scope !== "members")
+    return failure("VALIDATION_FAILED", "Check the search.", requestId);
+  const { clubId, query, after } = parsed.data;
+  const page = await getMemberPage(clubId, "members", query.trim(), after);
+  if (!page)
+    return failure(
+      "INTERNAL_ERROR",
+      "Members couldn't be loaded. Please try again.",
+      requestId,
+    );
+  return success(page, requestId);
+}
+
+/** The next page of the owners' and admins' member or request list. */
+export async function loadRosterPage(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = memberPageSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Check the search.", requestId);
+  const { clubId, scope, query, after } = parsed.data;
+  const page = await getRosterPage(clubId, scope, query.trim(), after);
+  if (!page)
+    return failure(
+      "FORBIDDEN",
+      "Only club owners and admins can see this list.",
+      requestId,
+    );
+  return success(page, requestId);
 }

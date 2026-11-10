@@ -3,21 +3,29 @@ import { notFound } from "next/navigation";
 import { ClubContact } from "@/components/clubs/club-contact";
 import { ClubMembershipAdmin } from "@/components/clubs/club-membership-admin";
 import { currentPlayerId } from "@/lib/auth/authorization";
-import { ManagedMemberList } from "@/components/clubs/managed-member-list";
+import {
+  ManagedMemberList,
+  PagedManagedMemberList,
+} from "@/components/clubs/managed-member-list";
 import { MemberList } from "@/components/clubs/member-list";
 import { MemberRow } from "@/components/clubs/member-row";
 import {
-  CLUB_ADMIN_ROLES,
   ROLE_LABEL,
-  getClubDirectory,
   getClubHome,
-  getStaffRoster,
+  getClubMemberCounts,
+  getMemberPage,
+  getRosterPage,
   getViewerRole,
   isClubAdmin,
 } from "@/lib/queries/club-home";
 
 export const metadata: Metadata = { title: "Members" };
 
+/**
+ * Club staff, then Members. Lists load 30 at a time and search the whole
+ * club in the database, so this works the same for 5 members or 5,000.
+ * Owners and admins also get join requests and a menu on each member.
+ */
 export default async function ClubMembers({
   params,
 }: {
@@ -26,38 +34,41 @@ export default async function ClubMembers({
   const { clubSlug } = await params;
   const club = await getClubHome(clubSlug);
   if (!club) notFound();
-  const [role, directory] = await Promise.all([
-    getViewerRole(club.id),
-    getClubDirectory(club.id),
+  const role = await getViewerRole(club.id);
+  const admin = isClubAdmin(role);
+
+  const [counts, staff, members, roster] = await Promise.all([
+    getClubMemberCounts(club.id),
+    getMemberPage(club.id, "staff"),
+    getMemberPage(club.id, "members"),
+    admin
+      ? Promise.all([
+          getRosterPage(club.id, "staff"),
+          getRosterPage(club.id, "members"),
+          getRosterPage(club.id, "requests"),
+          currentPlayerId(),
+        ])
+      : null,
   ]);
-  if (!directory)
+  if (!counts || !staff || !members)
     return (
       <p role="alert">
         The member list couldn&apos;t be loaded. Please refresh and try again.
       </p>
     );
-  const staff = directory.filter((m) => CLUB_ADMIN_ROLES.includes(m.role));
-  const others = directory.filter((m) => !CLUB_ADMIN_ROLES.includes(m.role));
-  const publicMembers = others.filter((m) => m.playerId);
-
-  const admin = isClubAdmin(role);
-  const [roster, viewerPlayerId] = admin
-    ? await Promise.all([getStaffRoster(club.id), currentPlayerId()])
-    : [null, null];
-  // Staff manage from the roster, which includes private members.
-  const active = (roster ?? []).filter((m) => m.status === "active");
-  const managedStaff = active.filter((m) => CLUB_ADMIN_ROLES.includes(m.role));
-  const managedMembers = active.filter(
-    (m) => !CLUB_ADMIN_ROLES.includes(m.role),
-  );
+  // Owners and admins manage from the roster, which includes private
+  // members. If it can't be read, they see the public lists.
+  const [rosterStaff, rosterMembers, requests, viewerPlayerId] = roster ?? [];
+  const manage =
+    admin && role && rosterStaff && rosterMembers && requests ? role : null;
 
   return (
     <div className="club-members">
-      {admin && roster && club.joinPolicy ? (
+      {manage && requests && club.joinPolicy ? (
         <ClubMembershipAdmin
           clubId={club.id}
           clubSlug={club.slug}
-          roster={roster}
+          requests={requests}
           joinPolicy={club.joinPolicy}
           canSetPolicy={role === "owner" || role === "organizer"}
         />
@@ -75,18 +86,19 @@ export default async function ClubMembers({
           legacyContact={club.contact_info}
           canEdit={admin}
         />
-        {admin && role && roster ? (
+        {manage && rosterStaff ? (
           <ManagedMemberList
             clubId={club.id}
             clubSlug={club.slug}
-            members={managedStaff}
-            viewerRole={role}
-            viewerPlayerId={viewerPlayerId}
+            members={rosterStaff.items}
+            viewerRole={manage}
+            viewerPlayerId={viewerPlayerId ?? null}
             detail="role"
+            emptyText="No staff listed."
           />
-        ) : staff.length ? (
+        ) : staff.items.length ? (
           <ul className="ph-list member-grid">
-            {staff.map((member, index) => (
+            {staff.items.map((member, index) => (
               <li key={member.playerId ?? `private-staff-${index}`}>
                 <MemberRow member={member} detail={ROLE_LABEL[member.role]} />
               </li>
@@ -103,23 +115,24 @@ export default async function ClubMembers({
             Members{" "}
             <span className="count-badge">
               {/* Everyone in the club, Club staff included. */}
-              {roster ? active.length : directory.length}
+              {counts.members.toLocaleString("en-US")}
             </span>
           </h2>
         </header>
-        {admin && role && roster ? (
-          <ManagedMemberList
+        {manage && rosterMembers ? (
+          <PagedManagedMemberList
             clubId={club.id}
             clubSlug={club.slug}
-            members={managedMembers}
-            viewerRole={role}
-            viewerPlayerId={viewerPlayerId}
+            initial={rosterMembers}
+            viewerRole={manage}
+            viewerPlayerId={viewerPlayerId ?? null}
             detail="joined"
           />
         ) : (
           <MemberList
-            members={publicMembers}
-            privateCount={others.length - publicMembers.length}
+            clubId={club.id}
+            initial={members}
+            privateCount={counts.privateMembers}
           />
         )}
       </section>

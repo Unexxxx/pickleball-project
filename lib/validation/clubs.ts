@@ -73,6 +73,19 @@ export const memberRoleChangeSchema = z
     role: z.enum(["organizer", "member"]),
   })
   .strict();
+/** A page of a member list: search text and where the last page ended. */
+export const memberPageSchema = z
+  .object({
+    clubId: uuidSchema,
+    scope: z.enum(["members", "requests"]),
+    query: z.string().max(100).default(""),
+    after: z
+      .object({ name: z.string().max(200), id: uuidSchema })
+      .strict()
+      .nullable()
+      .default(null),
+  })
+  .strict();
 /** Owners hand the club to one of its admins. */
 export const ownershipTransferSchema = z
   .object({

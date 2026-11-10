@@ -8,7 +8,7 @@ import { ClubJoin } from "@/components/clubs/club-join";
 import { ClubTabs } from "@/components/clubs/club-tabs";
 import {
   ROLE_LABEL,
-  getClubDirectory,
+  getClubMemberCounts,
   getClubHome,
   getViewerMembership,
   getViewerRole,
@@ -39,9 +39,9 @@ export default async function ClubLayout({
   const { clubSlug } = await params;
   const club = await getClubHome(clubSlug);
   if (!club) notFound();
-  const [role, directory, membership] = await Promise.all([
+  const [role, counts, membership] = await Promise.all([
     getViewerRole(club.id),
-    getClubDirectory(club.id),
+    getClubMemberCounts(club.id),
     getViewerMembership(club.id),
   ]);
 
@@ -49,7 +49,7 @@ export default async function ClubLayout({
     <main className="ph club-home">
       <ClubProfileHero
         name={club.name}
-        memberCount={directory?.length ?? null}
+        memberCount={counts?.members ?? null}
         profileImageUrl={club.profileImageUrl}
         backgroundImageUrl={club.backgroundImageUrl}
         roleLabel={role ? ROLE_LABEL[role] : null}

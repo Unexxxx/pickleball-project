@@ -6995,3 +6995,32 @@ button.eb-chip:disabled {
   background: var(--danger);
   color: oklch(18% 0.03 255);
 }
+
+/* Under a long member list: "Showing 30 of 1,000" and Show more. */
+.member-pager {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.member-pager__status {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.member-pager .member-pager__more {
+  min-width: 10rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  box-shadow: none;
+  color: var(--foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .member-pager .member-pager__more:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: transparent;
+    box-shadow: none;
+    translate: none;
+  }
+}
