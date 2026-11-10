@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.1.0
       - name: Find the hosted project
         run: |
           for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_URL_SECRET; do
@@ -55,5 +55,8 @@ jobs:
           echo "::add-mask::$password"
           echo "SUPABASE_DB_PASSWORD=$password" >> "$GITHUB_ENV"
       - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
-      - run: supabase migration list
-      - run: supabase db push
+      # CLI v3 targets the local stack unless told otherwise: --remote means
+      # the linked hosted project, and --yes confirms the push (CI can't
+      # answer a prompt).
+      - run: supabase migration list --remote
+      - run: supabase db push --remote --yes
