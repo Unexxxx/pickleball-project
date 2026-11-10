@@ -63,13 +63,12 @@ export default async function ClubMembers({
         />
       ) : null}
       <section className="ph-panel" aria-labelledby="club-staff-heading">
-        <header className="ph-panel__head">
-          <h2 id="club-staff-heading">Club staff</h2>
-        </header>
-        <p className="ph-panel__hint">
-          The people who run {club.name}. Reach them here:
-        </p>
         <ClubContact
+          heading={{
+            id: "club-staff-heading",
+            text: "Club staff",
+            hint: `The people who run ${club.name}. Reach them here:`,
+          }}
           clubId={club.id}
           clubSlug={club.slug}
           contacts={club.contacts}

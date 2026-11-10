@@ -38,7 +38,7 @@ export function ClubContact({
    * When given, this component draws the panel header itself so the
    * Edit/Add contacts button can sit in its top-right corner.
    */
-  heading?: { id: string; text: string };
+  heading?: { id: string; text: string; hint?: ReactNode };
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -57,6 +57,7 @@ export function ClubContact({
           <h2 id={heading.id}>{heading.text}</h2>
           {action}
         </header>
+        {heading.hint ? <p className="ph-panel__hint">{heading.hint}</p> : null}
         {body}
       </>
     ) : (
