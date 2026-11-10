@@ -8,9 +8,10 @@ import {
 } from "@/lib/auth/authorization";
 import { createClient } from "@/lib/supabase/server";
 
-/** Roles that run a club: shown as "Club staff" and see management tools. */
+/** Roles that run a club (owners and admins): shown as "Club staff" and see
+ * management tools. Admins are stored as "organizer"; staff is retired. */
 export const CLUB_ADMIN_ROLES: ClubRole[] = ["owner", "organizer", "staff"];
-/** Roles that may use the live event workspace (score officials score). */
+/** Roles that may use the live event workspace. */
 export const WORKSPACE_ROLES: ClubRole[] = [
   ...CLUB_ADMIN_ROLES,
   "score_official",
@@ -18,9 +19,10 @@ export const WORKSPACE_ROLES: ClubRole[] = [
 
 export const ROLE_LABEL: Record<ClubRole, string> = {
   owner: "Owner",
-  organizer: "Organizer",
-  staff: "Staff",
-  score_official: "Score official",
+  organizer: "Admin",
+  // Retired roles (the database no longer allows them).
+  staff: "Admin",
+  score_official: "Member",
   member: "Member",
 };
 

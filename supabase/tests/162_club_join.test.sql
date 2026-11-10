@@ -16,7 +16,7 @@ insert into public.clubs(id,slug,name,timezone) values
 update public.clubs set join_policy = 'open' where id = '95000000-0000-4000-8000-0000000000c2';
 insert into public.club_memberships(club_id,player_id,role) values
  ('95000000-0000-4000-8000-0000000000c1','95000000-0000-4000-8000-000000000001','owner'),
- ('95000000-0000-4000-8000-0000000000c1','95000000-0000-4000-8000-000000000002','staff'),
+ ('95000000-0000-4000-8000-0000000000c1','95000000-0000-4000-8000-000000000002','organizer'),
  ('95000000-0000-4000-8000-0000000000c2','95000000-0000-4000-8000-000000000001','owner');
 
 select is((select join_policy from public.clubs where id='95000000-0000-4000-8000-0000000000c1'),'approval','clubs require approval by default');

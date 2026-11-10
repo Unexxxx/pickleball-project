@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ClubContact } from "@/components/clubs/club-contact";
 import { ClubMembershipAdmin } from "@/components/clubs/club-membership-admin";
 import { currentPlayerId } from "@/lib/auth/authorization";
+import { ManagedMemberList } from "@/components/clubs/managed-member-list";
 import { MemberList } from "@/components/clubs/member-list";
 import { MemberRow } from "@/components/clubs/member-row";
 import {
@@ -43,6 +44,12 @@ export default async function ClubMembers({
   const [roster, viewerPlayerId] = admin
     ? await Promise.all([getStaffRoster(club.id), currentPlayerId()])
     : [null, null];
+  // Staff manage from the roster, which includes private members.
+  const active = (roster ?? []).filter((m) => m.status === "active");
+  const managedStaff = active.filter((m) => CLUB_ADMIN_ROLES.includes(m.role));
+  const managedMembers = active.filter(
+    (m) => !CLUB_ADMIN_ROLES.includes(m.role),
+  );
 
   return (
     <div className="club-members">
@@ -53,8 +60,6 @@ export default async function ClubMembers({
           roster={roster}
           joinPolicy={club.joinPolicy}
           canSetPolicy={role === "owner" || role === "organizer"}
-          viewerIsOwner={role === "owner"}
-          viewerPlayerId={viewerPlayerId}
         />
       ) : null}
       <section className="ph-panel" aria-labelledby="club-staff-heading">
@@ -71,7 +76,16 @@ export default async function ClubMembers({
           legacyContact={club.contact_info}
           canEdit={admin}
         />
-        {staff.length ? (
+        {admin && role && roster ? (
+          <ManagedMemberList
+            clubId={club.id}
+            clubSlug={club.slug}
+            members={managedStaff}
+            viewerRole={role}
+            viewerPlayerId={viewerPlayerId}
+            detail="role"
+          />
+        ) : staff.length ? (
           <ul className="ph-list member-grid">
             {staff.map((member, index) => (
               <li key={member.playerId ?? `private-staff-${index}`}>
@@ -87,13 +101,27 @@ export default async function ClubMembers({
       <section className="ph-panel" aria-labelledby="club-members-heading">
         <header className="ph-panel__head">
           <h2 id="club-members-heading">
-            Members <span className="count-badge">{others.length}</span>
+            Members{" "}
+            <span className="count-badge">
+              {roster ? managedMembers.length : others.length}
+            </span>
           </h2>
         </header>
-        <MemberList
-          members={publicMembers}
-          privateCount={others.length - publicMembers.length}
-        />
+        {admin && role && roster ? (
+          <ManagedMemberList
+            clubId={club.id}
+            clubSlug={club.slug}
+            members={managedMembers}
+            viewerRole={role}
+            viewerPlayerId={viewerPlayerId}
+            detail="joined"
+          />
+        ) : (
+          <MemberList
+            members={publicMembers}
+            privateCount={others.length - publicMembers.length}
+          />
+        )}
       </section>
     </div>
   );

@@ -503,7 +503,7 @@ export function EventForm({
             hint={
               isPrivate
                 ? "Listed on the schedule, but joining takes the passcode — share it with the players you invite."
-                : "Listed on the schedule. Anyone can request to join, and you or your staff approve each request."
+                : "Listed on the schedule. Anyone can request to join, and you or your admins approve each request."
             }
             options={[
               ["public", "Public"],
@@ -532,7 +532,7 @@ export function EventForm({
             onChange={setStatus}
             hint={
               status === "draft"
-                ? "Only club staff can see it until you publish it."
+                ? "Only club owners and admins can see it until you publish it."
                 : "Players can see it on the schedule right away."
             }
             options={[

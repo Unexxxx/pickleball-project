@@ -7,6 +7,7 @@ import {
   clubMediaSchema,
   clubTargetSchema,
   joinPolicySchema,
+  memberRoleChangeSchema,
   membershipRemoveSchema,
   membershipReviewSchema,
   clubSchema,
@@ -74,7 +75,7 @@ function clubCommandFailure(
   if (detail.includes("PERMISSION_DENIED"))
     return failure(
       "FORBIDDEN",
-      `Only club owners and organizers can change the ${what}.`,
+      `Only club owners and admins can change the ${what}.`,
       requestId,
     );
   if (detail.includes("VALIDATION_FAILED"))
@@ -227,7 +228,7 @@ export async function reviewMembership(input: unknown) {
   return success({}, requestId);
 }
 
-/** Staff remove a member (owners are needed to remove staff or owners). */
+/** Admins remove a member (removing an admin takes an owner). */
 export async function removeMember(input: unknown) {
   const requestId = crypto.randomUUID();
   const parsed = membershipRemoveSchema.safeParse(input);
@@ -243,7 +244,38 @@ export async function removeMember(input: unknown) {
   return success({}, requestId);
 }
 
-/** Owners and organizers choose "Anyone can join" or "Approval required". */
+/** Owners change a member's role from the Members tab menu. */
+export async function changeMemberRole(input: unknown) {
+  const requestId = crypto.randomUUID();
+  const parsed = memberRoleChangeSchema.safeParse(input);
+  if (!parsed.success)
+    return failure("VALIDATION_FAILED", "Choose a role.", requestId);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_membership_role", {
+    p_club_id: parsed.data.clubId,
+    p_membership_id: parsed.data.membershipId,
+    p_role: parsed.data.role,
+    p_reason: "members_menu",
+    p_idempotency_key: crypto.randomUUID(),
+  });
+  if (error) {
+    if (
+      `${error.details ?? ""} ${error.message ?? ""}`.includes(
+        "PERMISSION_DENIED",
+      )
+    )
+      return failure(
+        "FORBIDDEN",
+        "Only club owners can change roles.",
+        requestId,
+      );
+    return membershipFailure(error, requestId);
+  }
+  refreshClub(parsed.data.clubSlug);
+  return success({ role: parsed.data.role }, requestId);
+}
+
+/** Owners and admins choose "Anyone can join" or "Approval required". */
 export async function setJoinPolicy(input: unknown) {
   const requestId = crypto.randomUUID();
   const parsed = joinPolicySchema.safeParse(input);
@@ -297,7 +329,7 @@ export async function setClubContacts(input: unknown) {
     if (detail.includes("PERMISSION_DENIED"))
       return failure(
         "FORBIDDEN",
-        "Only club owners, organizers and staff can change the contacts.",
+        "Only club owners and admins can change the contacts.",
         requestId,
       );
     return clubCommandFailure(error, "contacts", requestId);

@@ -223,7 +223,7 @@ export async function reviewRegistration(input: unknown) {
           ? "INELIGIBLE"
           : "STALE_VERSION",
       error.details === "PERMISSION_DENIED"
-        ? "Only the club's owner, organizers and staff can review requests."
+        ? "Only the club's owners and admins can review requests."
         : error.details === "EVENT_FULL"
           ? "Every spot is taken. The event has started, so there's no waitlist."
           : "This request was already handled. Refresh to see the latest.",

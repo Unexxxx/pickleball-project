@@ -42,14 +42,7 @@ export function MemberList({
         <ul className="ph-list member-grid">
           {shown.map((member) => (
             <li key={member.playerId}>
-              <MemberRow
-                member={member}
-                detail={
-                  member.role === "score_official"
-                    ? `Score official · ${joined(member.joinedAt)}`
-                    : joined(member.joinedAt)
-                }
-              />
+              <MemberRow member={member} detail={joined(member.joinedAt)} />
             </li>
           ))}
         </ul>

@@ -64,6 +64,15 @@ export const membershipRemoveSchema = z
     membershipId: uuidSchema,
   })
   .strict();
+/** Owners make a member an admin ("organizer") or an admin a member. */
+export const memberRoleChangeSchema = z
+  .object({
+    clubId: uuidSchema,
+    clubSlug: z.string().min(1).max(120),
+    membershipId: uuidSchema,
+    role: z.enum(["organizer", "member"]),
+  })
+  .strict();
 export const joinPolicySchema = z
   .object({
     clubId: uuidSchema,

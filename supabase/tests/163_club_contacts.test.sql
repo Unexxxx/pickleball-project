@@ -12,7 +12,7 @@ end $$;
 insert into public.clubs(id,slug,name,timezone) values('94000000-0000-4000-8000-0000000000c1','contacts-test','Contacts Club','UTC');
 insert into public.club_memberships(club_id,player_id,role) values
  ('94000000-0000-4000-8000-0000000000c1','94000000-0000-4000-8000-000000000001','owner'),
- ('94000000-0000-4000-8000-0000000000c1','94000000-0000-4000-8000-000000000002','staff'),
+ ('94000000-0000-4000-8000-0000000000c1','94000000-0000-4000-8000-000000000002','organizer'),
  ('94000000-0000-4000-8000-0000000000c1','94000000-0000-4000-8000-000000000003','member');
 
 select ok(not has_function_privilege('anon','public.set_club_contacts(uuid,text,text,text)','EXECUTE'),'anonymous users cannot set contacts');
