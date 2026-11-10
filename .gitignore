@@ -21,3 +21,6 @@ supabase/.temp/
 
 # graphify generated knowledge graph
 graphify-out/
+
+# Undo records from scripts/request-hosted-club-membership.mjs
+scripts/.club-requests-*.json
