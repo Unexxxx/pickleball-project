@@ -57,17 +57,14 @@ describe("member menu", () => {
     // No menu on your own row.
     expect(screen.queryByLabelText("Options for Player 1")).toBeNull();
     fireEvent.click(screen.getByLabelText("Options for Player 3"));
+    // One action for the role, then remove.
     expect(
-      screen.getByRole("menuitemradio", { name: /Member/ }),
-    ).toHaveAttribute("aria-checked", "true");
-    // Owner, admin and member are the only roles.
-    expect(
-      screen.getAllByRole("menuitemradio").map((item) => item.textContent),
+      screen.getAllByRole("menuitem").map((item) => item.textContent?.trim()),
     ).toEqual([
-      "AdminCreates events and runs the club",
-      "MemberPlays in events",
+      "Make adminCan create events and run the club",
+      "Remove from club",
     ]);
-    fireEvent.click(screen.getByRole("menuitemradio", { name: /Admin/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Make admin/ }));
     await waitFor(() =>
       expect(changeMemberRole).toHaveBeenCalledWith({
         clubId: CLUB,
@@ -75,6 +72,27 @@ describe("member menu", () => {
         membershipId: members[2]!.membershipId,
         role: "organizer",
       }),
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Player 3 is now an admin.",
+    );
+  });
+
+  it("lets an owner remove an admin's role", async () => {
+    changeMemberRole.mockResolvedValue({ ok: true });
+    renderAs("owner", "p1");
+    fireEvent.click(screen.getByLabelText("Options for Player 2"));
+    expect(screen.queryByRole("menuitem", { name: /Make admin/ })).toBeNull();
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: /Remove admin role/ }),
+    );
+    await waitFor(() =>
+      expect(changeMemberRole).toHaveBeenCalledWith(
+        expect.objectContaining({ role: "member" }),
+      ),
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Player 2 is no longer an admin.",
     );
   });
 
@@ -93,7 +111,7 @@ describe("member menu", () => {
     // The owner's row has no menu.
     expect(screen.queryByLabelText("Options for Player 1")).toBeNull();
     fireEvent.click(screen.getByLabelText("Options for Player 3"));
-    expect(screen.queryByRole("menuitemradio")).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: /admin/i })).toBeNull();
     expect(
       screen.getByRole("menuitem", { name: /Remove from club/ }),
     ).toBeInTheDocument();

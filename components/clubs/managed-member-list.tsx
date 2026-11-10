@@ -46,6 +46,7 @@ export function ManagedMemberList({
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [toast, setToast] = useState<"error" | "success">("error");
   const dismiss = useCallback(() => setMessage(""), []);
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -57,12 +58,21 @@ export function ManagedMemberList({
   async function run(
     id: string,
     action: () => Promise<{ ok: boolean; error?: { message: string } }>,
+    done?: string,
   ) {
     setBusyId(id);
     const result = await action();
     setBusyId(null);
-    if (!result.ok) setMessage(result.error?.message ?? "Please try again.");
-    else router.refresh();
+    if (!result.ok) {
+      setToast("error");
+      setMessage(result.error?.message ?? "Please try again.");
+      return;
+    }
+    if (done) {
+      setToast("success");
+      setMessage(done);
+    }
+    router.refresh();
   }
 
   const isOwner = viewerRole === "owner";
@@ -112,13 +122,18 @@ export function ManagedMemberList({
                     canRemove={canRemove}
                     busy={busyId === m.membershipId}
                     onChangeRole={(role: MenuRole) =>
-                      run(m.membershipId, () =>
-                        changeMemberRole({
-                          clubId,
-                          clubSlug,
-                          membershipId: m.membershipId,
-                          role,
-                        }),
+                      run(
+                        m.membershipId,
+                        () =>
+                          changeMemberRole({
+                            clubId,
+                            clubSlug,
+                            membershipId: m.membershipId,
+                            role,
+                          }),
+                        role === "organizer"
+                          ? `${m.name} is now an admin.`
+                          : `${m.name} is no longer an admin.`,
                       )
                     }
                     onRemove={() =>
@@ -141,7 +156,7 @@ export function ManagedMemberList({
           {query ? `No members match “${query}”.` : "No members yet."}
         </p>
       )}
-      <ToastMessage message={message} onDismiss={dismiss} />
+      <ToastMessage message={message} onDismiss={dismiss} tone={toast} />
     </>
   );
 }

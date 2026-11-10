@@ -5717,6 +5717,10 @@ main.club-home {
 .club-toast span {
   flex: 1;
 }
+.club-toast--success {
+  border-color: var(--border);
+  color: var(--foreground);
+}
 .club-toast__close {
   min-height: 2rem;
   min-width: 2rem;

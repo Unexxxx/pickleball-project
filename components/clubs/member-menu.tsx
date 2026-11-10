@@ -1,24 +1,15 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Check, Menu, UserMinus } from "lucide-react";
+import { Menu, ShieldCheck, ShieldOff, UserMinus } from "lucide-react";
 import type { ClubRole } from "@/lib/auth/authorization";
 
+/** "organizer" is how the database stores Admin. */
 export type MenuRole = "organizer" | "member";
 
-// "organizer" is how the database stores Admin.
-const ROLES: { role: MenuRole; label: string; hint: string }[] = [
-  {
-    role: "organizer",
-    label: "Admin",
-    hint: "Creates events and runs the club",
-  },
-  { role: "member", label: "Member", hint: "Plays in events" },
-];
-
 /**
- * The per-member menu on the Members tab: owners make someone an admin or a
- * member; admins remove members (removing an admin takes an owner). The
+ * The per-member menu on the Members tab: owners make a member an admin or
+ * remove an admin's role; admins remove members (removing an admin takes an owner). The
  * database re-checks both.
  */
 export function MemberMenu({
@@ -141,30 +132,32 @@ export function MemberMenu({
           ) : (
             <>
               {canChangeRole ? (
-                <div role="group" aria-label="Role">
-                  <p className="member-menu__label">Role</p>
-                  {ROLES.map((option) => (
-                    <button
-                      key={option.role}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={role === option.role}
-                      className="member-menu__item"
-                      onClick={() => {
-                        close();
-                        if (role !== option.role) onChangeRole(option.role);
-                      }}
-                    >
-                      <span>
-                        <strong>{option.label}</strong>
-                        <span>{option.hint}</span>
-                      </span>
-                      {role === option.role ? (
-                        <Check aria-hidden="true" size={16} />
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="member-menu__item"
+                  onClick={() => {
+                    close();
+                    onChangeRole(role === "organizer" ? "member" : "organizer");
+                  }}
+                >
+                  {role === "organizer" ? (
+                    <span>
+                      <strong>
+                        <ShieldOff aria-hidden="true" size={16} /> Remove admin
+                        role
+                      </strong>
+                      <span>Goes back to being a regular member</span>
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>
+                        <ShieldCheck aria-hidden="true" size={16} /> Make admin
+                      </strong>
+                      <span>Can create events and run the club</span>
+                    </span>
+                  )}
+                </button>
               ) : null}
               {canRemove ? (
                 <button
